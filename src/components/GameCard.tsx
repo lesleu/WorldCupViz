@@ -1,0 +1,85 @@
+import Link from "next/link";
+import type { MatchCatalogEntry } from "@/data/matchCatalog";
+import { VISUALIZER_CONFIG } from "@/config";
+import LiveBadge from "@/components/LiveBadge";
+import MatchCoverPreview from "@/components/MatchCoverPreview";
+import TbdCoverPreview from "@/components/TbdCoverPreview";
+
+interface GameCardProps {
+  entry: MatchCatalogEntry;
+}
+
+function CardBody({ entry }: GameCardProps) {
+  const meta = [entry.date, entry.venue].filter(Boolean).join(" · ");
+  const isTbd = entry.isTbd === true;
+  const isLive = entry.status === "live";
+  const isScheduled = entry.status === "scheduled" || isTbd;
+  const title = isTbd
+    ? "Matchup TBD"
+    : `${entry.homeTeam} vs ${entry.awayTeam}`;
+
+  return (
+    <>
+      <div className="relative overflow-hidden">
+        {isLive && (
+          <div className="absolute left-3 top-3 z-10">
+            <LiveBadge />
+          </div>
+        )}
+        <div className={isScheduled ? "opacity-50" : undefined}>
+          {isTbd ? <TbdCoverPreview /> : <MatchCoverPreview entry={entry} />}
+        </div>
+      </div>
+
+      <div className="space-y-1 px-4 py-3">
+        <p
+          className="text-sm font-semibold leading-snug"
+          style={{
+            color: isTbd
+              ? VISUALIZER_CONFIG.colors.textMuted
+              : VISUALIZER_CONFIG.colors.text,
+          }}
+        >
+          {title}
+        </p>
+        {meta && (
+          <p
+            className="text-[11px] leading-relaxed"
+            style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+          >
+            {meta}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+export default function GameCard({ entry }: GameCardProps) {
+  const isTbd = entry.isTbd === true;
+  const isLive = entry.status === "live";
+
+  if (isTbd) {
+    return (
+      <div
+        className="block cursor-default overflow-hidden rounded-2xl border border-white/10 opacity-60"
+        style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
+        aria-disabled
+      >
+        <CardBody entry={entry} />
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/match/${entry.id}`}
+      className={`group block overflow-hidden rounded-2xl border transition hover:border-white/25 ${
+        isLive ? "border-red-500/40" : "border-white/10"
+      }`}
+      style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
+    >
+      <CardBody entry={entry} />
+    </Link>
+  );
+}

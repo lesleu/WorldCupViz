@@ -1,0 +1,27 @@
+import type { ShapesConfig } from "./types";
+
+export const shapesConfig: ShapesConfig = {
+  baseCircleSize: 0.17,
+  maxTerritoryScale: 0.45,
+  minTerritoryScale: 0.75,
+  awayStarOuter: 52,
+  awayStarInner: 20,
+  barHeight: 11,
+  barWidthMin: 48,
+  barWidthMax: 130,
+  shardMinSize: 22,
+  shardMaxSize: 64,
+  rayMinLength: 0.45,
+  rayMaxLength: 1,
+  rayLengthRatio: 0.48,
+  rayWeight: 1.2,
+  rayThinWeight: 0.5,
+  rayAccentEvery: 5,
+  rayCountBase: 9,
+  rayCountPerPossession: 4,
+  centerStrokeWeight: 2.5,
+  impactRingInnerScale: 1.45,
+  monumentBaseWidthRatio: 0.3,
+  monumentBaseHeightRatio: 0.08,
+  monumentTipOffsetRatio: 0.12,
+};

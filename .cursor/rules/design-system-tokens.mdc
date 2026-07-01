@@ -1,0 +1,49 @@
+---
+description: Figma design tokens — sync workflow and naming conventions
+globs: design-tokens/**,src/config/**,src/data/teamPalettes.generated.ts,scripts/sync-tokens.ts
+alwaysApply: false
+---
+
+# Design system tokens
+
+## Source of truth
+
+Figma → `design-tokens/tokens/` → `npm run sync:tokens` → generated `*.generated.ts` files.
+
+Never hand-edit `@generated` files. Edit Figma, re-export, re-sync.
+
+## Team palettes
+
+- FIFA 3-letter codes: `MEX`, `KOR`, …
+- Four slots per team: `c1` (primary), `c2`, `c3`, `c4` (accent)
+- Lookup: `getTeamPalette(code)` from `@/data/teamPalettes.generated`
+
+## Global colors
+
+From `foundations.generated.ts`: `paper.*`, `ink.*`, `event.*`
+
+## Color rules
+
+`design-tokens/color-rules.json` maps each visual component to palette slots or global event colors. Synced to `colorRules.generated.ts`.
+
+## Component sizes
+
+Figma component px (at **1920×1080**) sync to:
+
+- `componentSizes.generated.ts` — flat min/max used at runtime via `designScale.ts`
+- `componentSpecs.generated.ts` — raw token dump for Cursor reference
+
+Do **not** put px sizes in hand-tuned `*.config.ts`. Behavior ratios only (opacity, jitter, segment count).
+
+Scale formula: `figmaPx × min(artworkWidth/1920, artworkHeight/1080)`
+
+## Re-export checklist
+
+1. Update Figma variables
+2. Tokens Studio → export to `design-tokens/tokens/`
+3. Export layered SVG to `design-tokens/assets/{ComponentName}.svg` (group names = color roles)
+4. Export PNGs to `design-tokens/reference/{ComponentName}.png` (optional visual QA)
+5. `npm run sync:tokens`
+6. `npm run sync:assets`
+7. `npm run check:design`
+8. `npm run check:sizes`

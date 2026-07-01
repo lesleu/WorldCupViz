@@ -1,0 +1,44 @@
+{
+  "name": "world-cup-vizi",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "npm run sync:teams && npm run sync:assets && npm run sync:tokens && npm run vendor:p5",
+    "postinstall": "npm run vendor:p5",
+    "prebuild": "npm run sync:teams && npm run sync:assets && npm run sync:tokens && npm run vendor:p5",
+    "vendor:p5": "mkdir -p public/vendor && cp node_modules/p5/lib/p5.min.js public/vendor/p5.min.js",
+    "dev": "next dev --port 3000",
+    "dev:clean": "rm -rf .next && npm run dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "sync:tokens": "tsx scripts/sync-tokens.ts",
+    "sync:teams": "tsx scripts/sync-teams.ts",
+    "sync:assets": "tsx scripts/sync-assets.ts",
+    "check:design": "tsx scripts/check-design-parity.ts",
+    "check:sizes": "tsx scripts/check-size-parity.ts",
+    "check:teams": "tsx scripts/check-teams.ts",
+    "check:match-api": "tsx scripts/check-match-api.ts",
+    "sync:matches": "tsx scripts/sync-matches.ts",
+    "export:composition": "tsx scripts/export-composition-frames.ts"
+  },
+  "dependencies": {
+    "@types/p5": "^1.7.6",
+    "next": "^15.3.3",
+    "p5": "^1.11.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "^15.3.3",
+    "tailwindcss": "^4.1.8",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

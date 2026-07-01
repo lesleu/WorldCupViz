@@ -1,0 +1,63 @@
+---
+description: Canvas renderer — draw components from Figma SVG assets and color rules
+globs: src/design-system/render/**,src/design-system/state/**,src/design-system/color/**,src/design-system/layout/**,src/design-system/assets/**
+alwaysApply: false
+---
+
+# Canvas renderer rules
+
+## Before editing draw code
+
+1. Read `design-tokens/assets/{ComponentName}.svg` for layered geometry
+2. Optional visual QA: `design-tokens/reference/{ComponentName}.png`
+3. For **layout / placement**: read `design-tokens/reference/compositions/*.png` + `design-tokens/composition-hints.json`
+4. Read Figma px in `src/config/componentSizes.generated.ts`
+5. Read color roles in `src/design-system/color/colorRules.generated.ts`
+
+## Drawing components
+
+- Use `drawSvgComponent()` from `svgRenderer.ts` for all event marks (Goal, Shot, PassAccuracy, etc.)
+- Do **not** hand-code shapes, star polygons, or procedural approximations in `posterRenderer.ts`
+- **PossessionGrid** is the exception — procedural circles sized from Figma tokens
+- After Figma SVG changes: `npm run sync:assets` then verify with `npm run build`
+
+## Sizing
+
+- Figma artboard: **1920×1080** (`src/config/design.config.ts`)
+- Runtime scale: `getDesignScale(layout)` = `min(artworkWidth/1920, artworkHeight/1080)`
+- Spawn sizes: `resolveComponentSize(VISUAL_COMPONENT.X, layout, rng)` in `artState.ts`
+- Store marks normalized: `normSize(px, layout)` — draw with `denormSize(norm, layout)`
+- Never hardcode px in config or draw functions; never duplicate Figma sizes in `*.config.ts`
+
+## Color
+
+- Use `paletteForSide(match, side)` + `getComponentColor(VISUAL_COMPONENT.X, palette, role)`
+- SVG layer names must match color rule role names (`body`, `accent`, `fill`, …)
+- Never hardcode hex in `posterRenderer.ts` or `artState.ts`
+- Exceptions (fouls, cards, ink marks) come from `foundations.generated.ts` via color rules
+
+## Placement
+
+- Event marks spawn in `markRegion` via `findPlacement()` in `placementEngine.ts`
+- Possession grid: `resolvePossessionGridMetrics()` from Figma `gridSize` + `circleSize` tokens; anchors to token-sized `gridRegion`
+- Tune placement against `design-tokens/reference/compositions/MEX-KOR-fulltime.png` + `.cursor/rules/composition-reference.mdc`
+- Light overlap allowed (`composition.maxOverlapRatio`); marks spread across full zone height
+- Set `composition.showZoneDebug: true` to visualize subregions
+
+## Shapes
+
+- Component names match `VISUAL_COMPONENT` in `visualMappings.ts`: `PossessionGrid`, `Shot`, `Goal`, …
+- Same geometry on left and right; only palette differs
+- Generative behavior (jitter, accumulation, animation) stays in code; **geometry** follows synced SVG paths
+
+## After Figma changes
+
+1. Re-export layered SVG → `design-tokens/assets/`
+2. `npm run sync:assets`
+3. Re-export tokens → `npm run sync:tokens`
+4. Verify assets → `npm run check:design`
+5. Verify no legacy px in config → `npm run check:sizes`
+
+## Reference
+
+See `VISUAL_LANGUAGE.md`, `design-tokens/assets/README.md`, and `AGENTS.md`.

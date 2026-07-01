@@ -1,0 +1,65 @@
+// @generated — do not edit. Run: npm run sync:tokens
+
+import type { VisualComponent } from "@/design-system/mapping/visualMappings";
+
+export type ColorSlot =
+  | "c1"
+  | "c2"
+  | "c3"
+  | "c4"
+  | "paper.cream"
+  | "ink.text"
+  | "ink.textMuted"
+  | "ink.mark"
+  | "event.foul"
+  | "event.offside"
+  | "event.cardYellow"
+  | "event.cardRed";
+
+export type ComponentColorRules = Partial<Record<VisualComponent, Record<string, ColorSlot>>>;
+
+export const COMPONENT_COLOR_RULES: ComponentColorRules = {
+  "PossessionGrid": {
+    "c3": "c3",
+    "paper.cream": "paper.cream"
+  },
+  "PassAccuracy": {
+    "ink.mark": "ink.mark"
+  },
+  "Shot": {
+    "c1": "c1",
+    "c2": "c2"
+  },
+  "ShotOnTarget": {
+    "c2": "c2"
+  },
+  "Goal": {
+    "c1": "c1",
+    "c4": "c4"
+  },
+  "Foul": {
+    "ink.mark": "ink.mark"
+  },
+  "Corner": {
+    "c4": "c4"
+  },
+  "Offside": {
+    "c3": "event.offside"
+  },
+  "YellowCard": {
+    "event.cardYellow": "event.cardYellow",
+    "ink.mark": "ink.mark"
+  },
+  "RedCard": {
+    "event.cardRed": "event.cardRed",
+    "ink.mark": "ink.mark"
+  },
+  "EventBurst": {
+    "c4": "c4"
+  },
+  "MatchChrome": {
+    "c1": "c1",
+    "ink.text": "ink.text",
+    "ink.textMuted": "ink.textMuted"
+  }
+};

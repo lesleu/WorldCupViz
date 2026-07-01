@@ -1,0 +1,586 @@
+{
+  "tournament": "FIFA World Cup 2026",
+  "teamCount": 48,
+  "generatedAt": "2026-07-01T02:15:18.950Z",
+  "teams": [
+    {
+      "code": "CAN",
+      "name": "Canada",
+      "confederation": "CONCACAF",
+      "isHost": true,
+      "palette": {
+        "c1": "#d8131d",
+        "c2": "#550000",
+        "c3": "#faede7",
+        "c4": "#a70f1b"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "MEX",
+      "name": "Mexico",
+      "confederation": "CONCACAF",
+      "isHost": true,
+      "palette": {
+        "c1": "#2ccf8b",
+        "c2": "#fe4802",
+        "c3": "#ff9e79",
+        "c4": "#25805a"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "USA",
+      "name": "United States",
+      "confederation": "CONCACAF",
+      "isHost": true,
+      "palette": {
+        "c1": "#1e2434",
+        "c2": "#d80e14",
+        "c3": "#d4dbdb",
+        "c4": "#571610"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "AUS",
+      "name": "Australia",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#fbd67b",
+        "c2": "#04563f",
+        "c3": "#ffa792",
+        "c4": "#026874"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "IRQ",
+      "name": "Iraq",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#1e7956",
+        "c2": "#0d6444",
+        "c3": "#33916d",
+        "c4": "#202028"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "IRN",
+      "name": "IR Iran",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#f5534e",
+        "c2": "#861c0f",
+        "c3": "#d31c2e",
+        "c4": "#d0ced1"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "JPN",
+      "name": "Japan",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#053199",
+        "c2": "#e5f3ff",
+        "c3": "#d3054d",
+        "c4": "#081014"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "JOR",
+      "name": "Jordan",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#e6dcdb",
+        "c2": "#740a0e",
+        "c3": "#1d1e20",
+        "c4": "#b28975"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "KOR",
+      "name": "Korea Republic",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#883f3f",
+        "c2": "#e7dfff",
+        "c3": "#d62f2f",
+        "c4": "#ab99e2"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "QAT",
+      "name": "Qatar",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#8A1538",
+        "c2": "#FFFFFF",
+        "c3": "#FFD700",
+        "c4": "#5C0E26"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "KSA",
+      "name": "Saudi Arabia",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#19403b",
+        "c2": "#1a2e2d",
+        "c3": "#474993",
+        "c4": "#e9e9f1"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "UZB",
+      "name": "Uzbekistan",
+      "confederation": "AFC",
+      "palette": {
+        "c1": "#05208b",
+        "c2": "#1c48a7",
+        "c3": "#f1f1f1",
+        "c4": "#205b9d"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "ALG",
+      "name": "Algeria",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#048d7b",
+        "c2": "#e9e7e8",
+        "c3": "#df3238",
+        "c4": "#055846"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "CPV",
+      "name": "Cabo Verde",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#003893",
+        "c2": "#FFFFFF",
+        "c3": "#CF2027",
+        "c4": "#002660"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "COD",
+      "name": "Congo DR",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#59abda",
+        "c2": "#e1e1eb",
+        "c3": "#c1d8e7",
+        "c4": "#0c4c89"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "CIV",
+      "name": "Côte d'Ivoire",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#ffa134",
+        "c2": "#f35714",
+        "c3": "#00a783",
+        "c4": "#e4dbca"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "EGY",
+      "name": "Egypt",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#f44349",
+        "c2": "#bd3c40",
+        "c3": "#eeeef0",
+        "c4": "#cdcdd1"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "GHA",
+      "name": "Ghana",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#f7cf4a",
+        "c2": "#d03321",
+        "c3": "#fff6b9",
+        "c4": "#339693"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "MAR",
+      "name": "Morocco",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#ae0002",
+        "c2": "#c19c6a",
+        "c3": "#046840",
+        "c4": "#d2dbe8"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "SEN",
+      "name": "Senegal",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#c1182f",
+        "c2": "#036c5b",
+        "c3": "#e7cf3b",
+        "c4": "#f3eded"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "RSA",
+      "name": "South Africa",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#e4c928",
+        "c2": "#259c6c",
+        "c3": "#e0b814",
+        "c4": "#096c4c"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "TUN",
+      "name": "Tunisia",
+      "confederation": "CAF",
+      "palette": {
+        "c1": "#c90324",
+        "c2": "#dfdfdf",
+        "c3": "#222222",
+        "c4": "#9b1825"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "CUW",
+      "name": "Curaçao",
+      "confederation": "CONCACAF",
+      "palette": {
+        "c1": "#e5cf8e",
+        "c2": "#061a4a",
+        "c3": "#004c76",
+        "c4": "#e0e819"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "HAI",
+      "name": "Haiti",
+      "confederation": "CONCACAF",
+      "palette": {
+        "c1": "#0359be",
+        "c2": "#bcbac0",
+        "c3": "#f14147",
+        "c4": "#06225c"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "PAN",
+      "name": "Panama",
+      "confederation": "CONCACAF",
+      "palette": {
+        "c1": "#e8262e",
+        "c2": "#efefef",
+        "c3": "#e4ac61",
+        "c4": "#043347"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "ARG",
+      "name": "Argentina",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#6cb0e1",
+        "c2": "#22222c",
+        "c3": "#b0daef",
+        "c4": "#edeaf3"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "BRA",
+      "name": "Brazil",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#04474f",
+        "c2": "#eed557",
+        "c3": "#1f3040",
+        "c4": "#073894"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "COL",
+      "name": "Colombia",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#f6d025",
+        "c2": "#1b4090",
+        "c3": "#c32e30",
+        "c4": "#f6e068"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "ECU",
+      "name": "Ecuador",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#fbe601",
+        "c2": "#0f112d",
+        "c3": "#1f3548",
+        "c4": "#f3f2ee"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "PAR",
+      "name": "Paraguay",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#ed4d51",
+        "c2": "#efeef3",
+        "c3": "#0494bc",
+        "c4": "#2b2f42"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "URU",
+      "name": "Uruguay",
+      "confederation": "CONMEBOL",
+      "palette": {
+        "c1": "#cbddf1",
+        "c2": "#1e5cbf",
+        "c3": "#1d2538",
+        "c4": "#7984c4"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "NZL",
+      "name": "New Zealand",
+      "confederation": "OFC",
+      "palette": {
+        "c1": "#383844",
+        "c2": "#b6b9cc",
+        "c3": "#171928",
+        "c4": "#f4f5fe"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "AUT",
+      "name": "Austria",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#1c1a1b",
+        "c2": "#d5cdb8",
+        "c3": "#d81223",
+        "c4": "#c6e6d9"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "BEL",
+      "name": "Belgium",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#e48d93",
+        "c2": "#f4d54a",
+        "c3": "#b1d5d5",
+        "c4": "#9a1a1b"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "BIH",
+      "name": "Bosnia and Herzegovina",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#002395",
+        "c2": "#FECB00",
+        "c3": "#FFFFFF",
+        "c4": "#001560"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "CRO",
+      "name": "Croatia",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#FF0000",
+        "c2": "#FFFFFF",
+        "c3": "#171796",
+        "c4": "#B80000"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "CZE",
+      "name": "Czechia",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#242333",
+        "c2": "#ad9058",
+        "c3": "#ae122b",
+        "c4": "#e7e7e7"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "ENG",
+      "name": "England",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#212c42",
+        "c2": "#f1f1f1",
+        "c3": "#e1213a",
+        "c4": "#1d1a2d"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "FRA",
+      "name": "France",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#000b32",
+        "c2": "#83172f",
+        "c3": "#1562c4",
+        "c4": "#57a1e0"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "GER",
+      "name": "Germany",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#f1b41f",
+        "c2": "#151419",
+        "c3": "#a21a26",
+        "c4": "#d9dbdd"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "NED",
+      "name": "Netherlands",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#fe910e",
+        "c2": "#cea27d",
+        "c3": "#d63214",
+        "c4": "#e2ecee"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "NOR",
+      "name": "Norway",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#ed212d",
+        "c2": "#dadbec",
+        "c3": "#0d2c5b",
+        "c4": "#1e3d6c"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "POR",
+      "name": "Portugal",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#b31e31",
+        "c2": "#558d80",
+        "c3": "#15646b",
+        "c4": "#8a1527"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "SCO",
+      "name": "Scotland",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#2c3f77",
+        "c2": "#c0775f",
+        "c3": "#7087c7",
+        "c4": "#bc5f4d"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "ESP",
+      "name": "Spain",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#AA151B",
+        "c2": "#F1BF00",
+        "c3": "#FFFFFF",
+        "c4": "#720E12"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "SWE",
+      "name": "Sweden",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#ceb030",
+        "c2": "#dedad5",
+        "c3": "#093f7f",
+        "c4": "#00113f"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "SUI",
+      "name": "Switzerland",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#cf0d27",
+        "c2": "#7ece51",
+        "c3": "#e6e5e8",
+        "c4": "#a5c6bf"
+      },
+      "paletteSource": "figma"
+    },
+    {
+      "code": "TUR",
+      "name": "Türkiye",
+      "confederation": "UEFA",
+      "palette": {
+        "c1": "#62010a",
+        "c2": "#ce0613",
+        "c3": "#fa062c",
+        "c4": "#a7213c"
+      },
+      "paletteSource": "figma"
+    }
+  ]
+}

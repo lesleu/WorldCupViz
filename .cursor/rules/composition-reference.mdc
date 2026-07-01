@@ -1,0 +1,111 @@
+---
+description: Target layout rules from MEX-KOR full-time composition reference
+globs: src/design-system/layout/**,src/design-system/state/artState.ts,src/design-system/render/**,src/config/composition.config.ts
+alwaysApply: false
+---
+
+# Composition reference — MEX vs KOR full time
+
+**Source image:** `design-tokens/reference/compositions/MEX-KOR-fulltime.png`  
+(Figma Section E export at 1920×1080 — static poster, no motion.)
+
+Read this file + the PNG before changing placement, draw order, overlap, or zone logic.
+
+---
+
+## Canvas structure
+
+| Region | Rule |
+|--------|------|
+| Background | Flat warm paper (`paper/background`) — no gradient |
+| Center | Empty vertical gutter (~12% artwork width). **Nothing** crosses it |
+| Header | "World Cup" centered, top band |
+| Footer | `{Home} VS {Away}` large centered above waveform; venue · date below |
+| Left zone | Mexico (MEX palette) — all home marks stay here |
+| Right zone | South Korea (KOR palette) — all away marks stay here |
+
+---
+
+## Per-side cluster anatomy (back → front)
+
+Each team side is one **dense collage**, not a scattered field. Build in this draw order:
+
+1. **Goal** — largest vertical jagged panel; acts as a **backdrop anchor** inside the zone (MEX: green body + orange accent spike; KOR: burgundy/lavender body + lighter accent). Goals are tall relative to other marks (several× shot size).
+2. **Foul** — black ink fracture marks (`ink.mark` only); flame-like, vertical; overlap goals and mid-layer marks.
+3. **PossessionGrid** — 10×10 circle grid in the **corner only** (see below); sits above goal plane visually in the reference.
+4. **Shot** — pixelated diamond squares (`c1` + `c2`); orthogonal (0° or 90° only); medium size; overlap freely.
+5. **Offside** — stacked wave bars (`c3`); often read as vertical “S” stacks in the reference; orthogonal.
+6. **Corner** — pinwheel (`c2`); orthogonal.
+7. **ShotOnTarget** — bold starburst (`c2`); larger than shots; centered on placement point.
+8. **Cards** — small rectangles + ink detail; yellow/red from global event tokens.
+9. **PassAccuracy** — small **black** `ink.mark` sparks; highest visual layer; scattered across the whole mark area (not only near grid).
+
+**Do not** use random rotation on shots/corners/offsides. Use 0°, 90°, or 180° only.
+
+---
+
+## PossessionGrid placement
+
+| Side | Anchor | Token sizing |
+|------|--------|--------------|
+| Home (MEX) | **Top-left** of team zone | `gridSize` 604px, `circleSize` 60px at 1920×1080 via `resolvePossessionGridMetrics()` |
+| Away (KOR) | **Top-right** of team zone (grid flush to outer edge) | Same tokens, mirrored |
+
+- Filled circles = `c1`; empty = `paper.cream`
+- Grid is a **square** footprint; do not stretch to fill the whole zone
+- Grid occupies only `gridRegion`; marks use `markRegion` below (+ full width beside grid)
+
+---
+
+## Event mark placement (markRegion)
+
+Target behavior from the reference:
+
+| Parameter | Target | Config key |
+|-----------|--------|------------|
+| Spread | Marks fill **full height** of markRegion — dense mid and lower zone, not piled at top | `placementRows`, `placementCols` |
+| Overlap | **Heavy** intentional overlap (~20–28% bbox overlap OK) | `composition.maxOverlapRatio` ≈ **0.24** |
+| Inner bias | Marks drift **toward center gap** (inner edge of each side) | `homeInnerBias` / `awayInnerBias` ≈ **0.38** |
+| Scale variance | Goals largest; cards/smallest; shots medium | `markScale`, Figma min/max per component |
+| Static | **No** frame vibration, breathing, pulse, shake, or rotation wobble | `animation.staticRender: true` |
+
+Placement engine: `findPlacement()` in `markRegion` with light overlap — **not** `clusterPoint`, not global Y ratios.
+
+PassAccuracy sparks: random positions across **entire markRegion** (not tied to events); count from `passAccuracy.cleanSparkCount` / `brokenSparkCount`; always `ink.mark`.
+
+---
+
+## Color mapping (MEX left / KOR right)
+
+| Component | Layer ids | MEX (left) reads as | KOR (right) reads as |
+|-----------|-----------|---------------------|----------------------|
+| PossessionGrid | `c1`, `paper.cream` | Green filled circles | Burgundy filled circles |
+| Goal | `c1`, `c4` | Green panel + orange spike | Burgundy panel + light accent |
+| Shot | `c1`, `c2` | Green + mint pattern | Burgundy + lavender pattern |
+| ShotOnTarget | `c2` | Mint/red burst | Lavender burst |
+| Offside | `c3` | Blue-violet bars | Team tertiary |
+| Corner | `c2` | Mint pinwheel | Lavender pinwheel |
+| Foul | `ink.mark` | Black fractures only | Black fractures only |
+| PassAccuracy | `ink.mark` | Black thin sparks | Black thin sparks |
+| Cards | `event.cardYellow/Red`, `ink.mark` | Global yellow/red | Global yellow/red |
+
+Same geometry both sides — **palette only** differs.
+
+---
+
+## What “match the reference” means in code
+
+1. Compare replay at **90'** side-by-side with `MEX-KOR-fulltime.png`
+2. Tune only: `composition.config.ts`, `placementEngine.ts`, `posterLayout.ts` subregions, draw order in `posterRenderer.ts`
+3. Enable `composition.showZoneDebug: true` to verify grid vs mark regions
+4. Do **not** hand-place coordinates — adjust algorithm parameters until density and spread match
+
+---
+
+## Anti-patterns (reference does NOT do these)
+
+- Marks clustered only at top of zone
+- 6-point star polygons for pass accuracy
+- Different shapes per side
+- Orange fill on foul marks (foul = ink fractures only)
+- Animated jitter, breathing circles, goal shake, or rotating wobble on marks
