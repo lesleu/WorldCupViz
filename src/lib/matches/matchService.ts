@@ -16,6 +16,10 @@ import {
 import { buildFeedResponse } from "@/lib/matches/buildFeed";
 import { feedRevalidateSeconds, getMatchApiConfig } from "@/lib/matches/config";
 import {
+  mapFixtureStatus,
+  parseFixtureId,
+} from "@/lib/matches/matchAdapter";
+import {
   feedHasReplayContent,
   maxFeedMinute,
 } from "@/lib/matches/feedAdapter";
