@@ -7,7 +7,7 @@ export const typographyConfig: TypographyConfig = {
   scoreSize: 28,
   timelineLabelSize: 9,
   logoLabelSize: 8,
-  fontFamily: "Helvetica, Arial, sans-serif",
+  fontFamily: "Inter, sans-serif",
   kickoffCodeFontFamily: "Inter, sans-serif",
   kickoffCodeFontWeight: 800,
   kickoffCodeFillWidthRatio: 0.98,

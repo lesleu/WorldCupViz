@@ -28,6 +28,12 @@ import {
 import { paletteForSide, type MatchData } from "@/data/mockMatch";
 import { drawTeamCodeStretchedText } from "@/lib/stretchedInterText";
 import {
+  applyCanvasFont,
+  resolveInterSemiBoldFontFamily,
+  resolveKickoffCanvasFontFamily,
+  waitForMatchChromeFonts,
+} from "@/lib/canvasFontReady";
+import {
   computeLayout,
   computeArtworkLayout,
   gridRegionForSide,
@@ -120,6 +126,13 @@ export function createReplaySketch(
     };
     let possessionCircleSize: { home: number; away: number } = { home: 0, away: 0 };
     let lastFrameMs = 0;
+
+    const chromeBoldFamily = () => resolveKickoffCanvasFontFamily();
+    const chromeMetaFamily = () => resolveInterSemiBoldFontFamily();
+
+    function fillChromeRgb(ctx: CanvasRenderingContext2D, rgb: Rgb, alpha = 255) {
+      ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha / 255})`;
+    }
 
     const chrome = hexToRgb(cfg.colors.cream);
     const ink = hexToRgb(cfg.colors.text);
@@ -678,6 +691,7 @@ export function createReplaySketch(
 
     /** MatchChrome — title + centered meta on dark chrome, off-white type. */
     function drawMatchChrome(_snapshot: ReplaySnapshot) {
+      const ctx = p.drawingContext as CanvasRenderingContext2D;
       const matchTitleSize = cfg.typography.teamNameSize * 0.5;
       const vsSize = cfg.typography.vsSize;
       const metaSize = cfg.typography.metaSize + 1;
@@ -689,48 +703,49 @@ export function createReplaySketch(
       const venueY = titleBottom + metaGap;
       const dateY = venueY + metaSize + 2;
 
-      p.textFont(cfg.typography.fontFamily);
-      p.noStroke();
+      const homeLabel = match.homeTeam.toUpperCase();
+      const awayLabel = match.awayTeam.toUpperCase();
+      const vsLabel = "vs";
+      const boldFamily = chromeBoldFamily();
+      const metaFamily = chromeMetaFamily();
 
-      p.textSize(matchTitleSize);
-      p.textStyle(p.BOLD);
-      const homeW = p.textWidth(match.homeTeam);
-      p.textSize(vsSize);
-      p.textStyle(p.NORMAL);
-      const vsW = p.textWidth("VS");
-      p.textSize(matchTitleSize);
-      p.textStyle(p.BOLD);
-      const awayW = p.textWidth(match.awayTeam);
+      applyCanvasFont(ctx, 800, matchTitleSize, boldFamily);
+      const homeW = ctx.measureText(homeLabel).width;
+      applyCanvasFont(ctx, 800, vsSize, boldFamily);
+      const vsW = ctx.measureText(vsLabel).width;
+      applyCanvasFont(ctx, 800, matchTitleSize, boldFamily);
+      const awayW = ctx.measureText(awayLabel).width;
+
       const gap = 10;
       const totalW = homeW + gap + vsW + gap + awayW;
       let x = p.width / 2 - totalW / 2;
 
-      p.textAlign(p.LEFT, p.CENTER);
-      fillRgb(p, ink);
-      p.textSize(matchTitleSize);
-      p.textStyle(p.BOLD);
-      p.text(match.homeTeam, x, titleY);
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+
+      applyCanvasFont(ctx, 800, matchTitleSize, boldFamily);
+      fillChromeRgb(ctx, ink);
+      ctx.fillText(homeLabel, x, titleY);
       x += homeW + gap;
-      p.textSize(vsSize);
-      p.textStyle(p.NORMAL);
-      fillRgb(p, inkMuted);
-      p.text("VS", x, titleY);
+
+      applyCanvasFont(ctx, 800, vsSize, boldFamily);
+      fillChromeRgb(ctx, inkMuted);
+      ctx.fillText(vsLabel, x, titleY);
       x += vsW + gap;
-      p.textSize(matchTitleSize);
-      p.textStyle(p.BOLD);
-      fillRgb(p, ink);
-      p.text(match.awayTeam, x, titleY);
+
+      applyCanvasFont(ctx, 800, matchTitleSize, boldFamily);
+      fillChromeRgb(ctx, ink);
+      ctx.fillText(awayLabel, x, titleY);
 
       const venue = match.venue ?? match.stage;
-      p.textAlign(p.CENTER, p.TOP);
-      p.textSize(metaSize);
-      p.textStyle(p.BOLD);
-      fillRgb(p, ink);
-      p.text(venue, p.width / 2, venueY);
-      p.textStyle(p.NORMAL);
-      p.textSize(dateSize);
-      fillRgb(p, inkMuted);
-      p.text(match.date, p.width / 2, dateY);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      applyCanvasFont(ctx, 600, metaSize, metaFamily);
+      fillChromeRgb(ctx, ink);
+      ctx.fillText(venue, p.width / 2, venueY);
+      applyCanvasFont(ctx, 600, dateSize, metaFamily);
+      fillChromeRgb(ctx, inkMuted);
+      ctx.fillText(match.date, p.width / 2, dateY);
     }
 
     function drawMatchProgress(snapshot: ReplaySnapshot) {
@@ -769,8 +784,12 @@ export function createReplaySketch(
       p.pixelDensity(1);
       rebuildLayout();
       warnIfSvgAssetsMissing();
+      const titleSize = cfg.typography.teamNameSize * 0.5;
+      const metaSize = cfg.typography.metaSize + 1;
+      const vsSize = cfg.typography.vsSize;
       const { kickoffCodeFontFamily, kickoffCodeFontWeight } = cfg.typography;
       void document.fonts?.load(`${kickoffCodeFontWeight} 64px ${kickoffCodeFontFamily}`);
+      void waitForMatchChromeFonts(titleSize, metaSize, vsSize);
       lastFrameMs = p.millis();
       p.loop();
     };

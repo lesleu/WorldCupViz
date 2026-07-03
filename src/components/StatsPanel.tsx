@@ -16,6 +16,10 @@ const panelBg = VISUALIZER_CONFIG.colors.background;
 const panelText = VISUALIZER_CONFIG.colors.text;
 const panelMuted = VISUALIZER_CONFIG.colors.textMuted;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
+const interSemi =
+  "font-[family-name:var(--font-inter-semibold)] font-semibold";
+const interExtra =
+  "font-[family-name:var(--font-inter-extrabold)] font-extrabold";
 
 interface StatRow {
   label: string;
@@ -80,7 +84,7 @@ function TeamBlock({
   return (
     <section className="space-y-3">
       <h2
-        className="text-center font-mono text-xs uppercase tracking-[0.25em]"
+        className={`text-center text-xs uppercase tracking-[0.25em] ${interExtra}`}
         style={{ color: accent }}
       >
         {teamName}
@@ -94,13 +98,13 @@ function TeamBlock({
           >
             <StatRowIcon component={icon} />
             <dt
-              className="text-center text-[11px] uppercase tracking-wider"
+              className={`text-center text-[11px] uppercase tracking-wider ${interSemi}`}
               style={{ color: panelMuted }}
             >
               {label}
             </dt>
             <dd
-              className="font-mono text-sm tabular-nums"
+              className={`text-sm tabular-nums ${interSemi}`}
               style={{ color: panelText }}
             >
               {value}
@@ -170,13 +174,13 @@ function LiveModePanel({
     <div className="space-y-4">
       <div>
         <p
-          className="font-mono text-xs uppercase tracking-[0.25em]"
+          className={`text-xs uppercase tracking-[0.25em] ${interExtra}`}
           style={{ color: panelText }}
         >
           Live Match Mode
         </p>
         <p
-          className="mt-2 font-mono text-xs leading-relaxed"
+          className={`mt-2 text-xs leading-relaxed ${interSemi}`}
           style={{ color: panelMuted }}
         >
           {matchStatus === "live"
@@ -189,7 +193,7 @@ function LiveModePanel({
 
       {match && (
         <p
-          className="font-mono text-[10px] uppercase tracking-wider"
+          className={`text-[10px] uppercase tracking-wider ${interSemi}`}
           style={{ color: panelMuted }}
         >
           {match.homeTeam} vs {match.awayTeam}
@@ -228,13 +232,13 @@ export default function StatsPanel({
     >
       <div className="border-b p-5" style={{ borderColor: panelBorder }}>
         <p
-          className="font-mono text-[10px] uppercase tracking-[0.35em]"
+          className={`text-[10px] uppercase tracking-[0.35em] ${interSemi}`}
           style={{ color: panelMuted }}
         >
           Match Data
         </p>
         <h1
-          className="mt-2 text-lg font-semibold"
+          className={`mt-2 text-lg ${interExtra}`}
           style={{ color: panelText }}
         >
           World Cup Vizi
@@ -264,7 +268,7 @@ export default function StatsPanel({
             {match && (
               <div className="mt-4 space-y-3">
                 <p
-                  className="font-mono text-[10px] uppercase tracking-wider"
+                  className={`text-[10px] uppercase tracking-wider ${interSemi}`}
                   style={{ color: panelMuted }}
                 >
                   {match.homeTeam} vs {match.awayTeam}
@@ -272,7 +276,7 @@ export default function StatsPanel({
 
                 {!hasReplayFeed && (
                   <p
-                    className="font-mono text-[10px] uppercase tracking-wider"
+                    className={`text-[10px] uppercase tracking-wider ${interSemi}`}
                     style={{ color: panelMuted }}
                   >
                     Replay coming soon
@@ -281,7 +285,7 @@ export default function StatsPanel({
 
                 {!replayUi.ready && (
                   <p
-                    className="font-mono text-[10px] uppercase tracking-wider"
+                    className={`text-[10px] uppercase tracking-wider ${interSemi}`}
                     style={{ color: panelMuted }}
                   >
                     Starting visualizer…
@@ -353,7 +357,7 @@ export default function StatsPanel({
                     </div>
 
                     <p
-                      className="font-mono text-[10px] uppercase tracking-wider"
+                      className={`text-[10px] uppercase tracking-wider ${interSemi}`}
                       style={{ color: panelMuted }}
                     >
                       Minute: {formatReplayMinute(replayUi.minute, replayUi.isPlaying)}
@@ -389,7 +393,7 @@ export default function StatsPanel({
           </>
         ) : !match ? (
           <p
-            className="font-mono text-xs leading-relaxed"
+            className={`text-xs leading-relaxed ${interSemi}`}
             style={{ color: panelMuted }}
           >
             Demo match: Mexico vs South Korea.
