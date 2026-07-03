@@ -36,7 +36,7 @@ export const compositionConfig: CompositionConfig = {
   minCrowdingScale: 0.34,
   crowdingExponent: 0.52,
   timelineYWeight: 0.65,
-  markAgeOpacityDecay: 0.85,
+  markAgeOpacityDecay: 1,
   usePoissonCandidates: true,
   eventPlacementProfiles: {
     [VISUAL_COMPONENT.Goal]: {

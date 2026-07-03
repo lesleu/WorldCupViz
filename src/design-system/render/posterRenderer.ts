@@ -169,8 +169,7 @@ export function createReplaySketch(
     }
 
     function gameArtPresence(minute: number) {
-      if (minute >= cfg.replay.kickoffPhaseMinutes) return 1;
-      return minute / cfg.replay.kickoffPhaseMinutes;
+      return minute > 0 ? 1 : 0;
     }
 
     /** Per-component live pulse — each asset type breathes at its own pace. */
@@ -221,7 +220,7 @@ export function createReplaySketch(
         : cfg.animation.updateSpeed;
     }
 
-    /** One-by-one fade-in for continuous assets during the kickoff reveal window. */
+    /** One-by-one reveal for continuous assets during the kickoff window (full opacity when visible). */
     function staggeredItemPresence(minute: number, index: number, total: number): number {
       if (total <= 0 || minute <= 0) return 0;
       const phase = cfg.replay.kickoffPhaseMinutes;
@@ -229,10 +228,8 @@ export function createReplaySketch(
 
       const step = phase / total;
       const start = index * step;
-      const end = (index + 1) * step;
       if (minute <= start) return 0;
-      if (minute >= end) return 1;
-      return (minute - start) / (end - start);
+      return 1;
     }
 
     /** Inter ExtraBold — tight tracking, width-fill then vertical stretch per gradient half. */
