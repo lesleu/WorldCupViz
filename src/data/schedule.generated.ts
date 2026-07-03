@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-03T03:47:04.473Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-03T12:52:06.486Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -17,7 +17,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 11, 2026",
     "dateSort": "2026-06-11",
     "kickoffAt": "2026-06-11T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "Estadio Banorte",
     "homeTeam": "Mexico",
     "awayTeam": "South Africa",
@@ -42,6 +42,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -54,6 +56,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -71,7 +75,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 12, 2026",
     "dateSort": "2026-06-12",
     "kickoffAt": "2026-06-12T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Estadio Akron",
     "homeTeam": "Korea Republic",
     "awayTeam": "Czechia",
@@ -96,6 +100,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -108,6 +114,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -125,7 +133,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 13, 2026",
     "dateSort": "2026-06-13",
     "kickoffAt": "2026-06-13T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "SoFi Stadium",
     "homeTeam": "United States",
     "awayTeam": "Paraguay",
@@ -150,6 +158,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -162,6 +172,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -179,7 +191,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 13, 2026",
     "dateSort": "2026-06-13",
     "kickoffAt": "2026-06-13T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "Levi's Stadium",
     "homeTeam": "Qatar",
     "awayTeam": "Switzerland",
@@ -204,6 +216,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -216,6 +230,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -233,7 +249,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 13, 2026",
     "dateSort": "2026-06-13",
     "kickoffAt": "2026-06-13T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "Brazil",
     "awayTeam": "Morocco",
@@ -258,6 +274,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -270,6 +288,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -287,7 +307,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 14, 2026",
     "dateSort": "2026-06-14",
     "kickoffAt": "2026-06-14T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Gillette Stadium",
     "homeTeam": "Haiti",
     "awayTeam": "Scotland",
@@ -312,6 +332,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -324,6 +346,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -341,7 +365,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 14, 2026",
     "dateSort": "2026-06-14",
     "kickoffAt": "2026-06-14T04:00:00+00:00",
-    "kickoffTime": "12:00 AM",
+    "kickoffTime": "4:00 AM",
     "venue": "BC Place",
     "homeTeam": "Australia",
     "awayTeam": "Türkiye",
@@ -366,6 +390,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -378,6 +404,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -395,7 +423,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 14, 2026",
     "dateSort": "2026-06-14",
     "kickoffAt": "2026-06-14T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Germany",
     "awayTeam": "Curaçao",
@@ -420,6 +448,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 7,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -432,6 +462,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -449,7 +481,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 14, 2026",
     "dateSort": "2026-06-14",
     "kickoffAt": "2026-06-14T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "Netherlands",
     "awayTeam": "Japan",
@@ -474,6 +506,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -486,6 +520,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -503,7 +539,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 14, 2026",
     "dateSort": "2026-06-14",
     "kickoffAt": "2026-06-14T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "Côte d'Ivoire",
     "awayTeam": "Ecuador",
@@ -528,6 +564,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -540,6 +578,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -557,7 +597,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 15, 2026",
     "dateSort": "2026-06-15",
     "kickoffAt": "2026-06-15T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Estadio BBVA",
     "homeTeam": "Sweden",
     "awayTeam": "Tunisia",
@@ -582,6 +622,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 5,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -594,6 +636,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -611,7 +655,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 15, 2026",
     "dateSort": "2026-06-15",
     "kickoffAt": "2026-06-15T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "Lumen Field",
     "homeTeam": "Belgium",
     "awayTeam": "Egypt",
@@ -636,6 +680,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -648,6 +694,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -665,7 +713,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 15, 2026",
     "dateSort": "2026-06-15",
     "kickoffAt": "2026-06-15T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "Hard Rock Stadium",
     "homeTeam": "Saudi Arabia",
     "awayTeam": "Uruguay",
@@ -690,6 +738,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -702,6 +752,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -719,7 +771,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 16, 2026",
     "dateSort": "2026-06-16",
     "kickoffAt": "2026-06-16T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "SoFi Stadium",
     "homeTeam": "IR Iran",
     "awayTeam": "New Zealand",
@@ -744,6 +796,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -756,6 +810,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -773,7 +829,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 16, 2026",
     "dateSort": "2026-06-16",
     "kickoffAt": "2026-06-16T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "France",
     "awayTeam": "Senegal",
@@ -798,6 +854,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -810,6 +868,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -827,7 +887,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 16, 2026",
     "dateSort": "2026-06-16",
     "kickoffAt": "2026-06-16T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "Gillette Stadium",
     "homeTeam": "Iraq",
     "awayTeam": "Norway",
@@ -852,6 +912,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -864,6 +926,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -881,7 +945,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 17, 2026",
     "dateSort": "2026-06-17",
     "kickoffAt": "2026-06-17T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Arrowhead Stadium",
     "homeTeam": "Argentina",
     "awayTeam": "Algeria",
@@ -906,6 +970,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -918,6 +984,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -935,7 +1003,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 17, 2026",
     "dateSort": "2026-06-17",
     "kickoffAt": "2026-06-17T04:00:00+00:00",
-    "kickoffTime": "12:00 AM",
+    "kickoffTime": "4:00 AM",
     "venue": "Levi's Stadium",
     "homeTeam": "Austria",
     "awayTeam": "Jordan",
@@ -960,6 +1028,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -972,6 +1042,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -989,7 +1061,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 17, 2026",
     "dateSort": "2026-06-17",
     "kickoffAt": "2026-06-17T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Portugal",
     "awayTeam": "Congo DR",
@@ -1014,6 +1086,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1026,6 +1100,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1043,7 +1119,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 17, 2026",
     "dateSort": "2026-06-17",
     "kickoffAt": "2026-06-17T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "England",
     "awayTeam": "Croatia",
@@ -1068,6 +1144,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1080,6 +1158,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1097,7 +1177,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 17, 2026",
     "dateSort": "2026-06-17",
     "kickoffAt": "2026-06-17T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "BMO Field",
     "homeTeam": "Ghana",
     "awayTeam": "Panama",
@@ -1122,6 +1202,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1134,6 +1216,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1151,7 +1235,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 18, 2026",
     "dateSort": "2026-06-18",
     "kickoffAt": "2026-06-18T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Estadio Banorte",
     "homeTeam": "Uzbekistan",
     "awayTeam": "Colombia",
@@ -1176,6 +1260,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1188,6 +1274,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1205,7 +1293,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 18, 2026",
     "dateSort": "2026-06-18",
     "kickoffAt": "2026-06-18T16:00:00+00:00",
-    "kickoffTime": "12:00 PM",
+    "kickoffTime": "4:00 PM",
     "venue": "Mercedes-Benz Stadium",
     "homeTeam": "Czechia",
     "awayTeam": "South Africa",
@@ -1230,6 +1318,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1242,6 +1332,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1259,7 +1351,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 18, 2026",
     "dateSort": "2026-06-18",
     "kickoffAt": "2026-06-18T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "BC Place",
     "homeTeam": "Canada",
     "awayTeam": "Qatar",
@@ -1284,6 +1376,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 6,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1296,6 +1390,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1313,7 +1409,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 19, 2026",
     "dateSort": "2026-06-19",
     "kickoffAt": "2026-06-19T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Estadio Akron",
     "homeTeam": "Mexico",
     "awayTeam": "Korea Republic",
@@ -1338,6 +1434,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1350,6 +1448,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1367,7 +1467,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 19, 2026",
     "dateSort": "2026-06-19",
     "kickoffAt": "2026-06-19T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "Lumen Field",
     "homeTeam": "United States",
     "awayTeam": "Australia",
@@ -1392,6 +1492,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1404,6 +1506,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1421,7 +1525,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 19, 2026",
     "dateSort": "2026-06-19",
     "kickoffAt": "2026-06-19T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "Gillette Stadium",
     "homeTeam": "Scotland",
     "awayTeam": "Morocco",
@@ -1446,6 +1550,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1458,6 +1564,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1475,7 +1583,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 20, 2026",
     "dateSort": "2026-06-20",
     "kickoffAt": "2026-06-20T00:30:00+00:00",
-    "kickoffTime": "8:30 PM",
+    "kickoffTime": "12:30 AM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "Brazil",
     "awayTeam": "Haiti",
@@ -1500,6 +1608,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1512,6 +1622,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1529,7 +1641,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 20, 2026",
     "dateSort": "2026-06-20",
     "kickoffAt": "2026-06-20T03:00:00+00:00",
-    "kickoffTime": "11:00 PM",
+    "kickoffTime": "3:00 AM",
     "venue": "Levi's Stadium",
     "homeTeam": "Türkiye",
     "awayTeam": "Paraguay",
@@ -1554,6 +1666,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1566,6 +1680,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1583,7 +1699,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 20, 2026",
     "dateSort": "2026-06-20",
     "kickoffAt": "2026-06-20T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Netherlands",
     "awayTeam": "Sweden",
@@ -1608,6 +1724,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 5,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1620,6 +1738,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1637,7 +1757,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 20, 2026",
     "dateSort": "2026-06-20",
     "kickoffAt": "2026-06-20T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "BMO Field",
     "homeTeam": "Germany",
     "awayTeam": "Côte d'Ivoire",
@@ -1662,6 +1782,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1674,6 +1796,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1691,7 +1815,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 21, 2026",
     "dateSort": "2026-06-21",
     "kickoffAt": "2026-06-21T00:00:00+00:00",
-    "kickoffTime": "8:00 PM",
+    "kickoffTime": "12:00 AM",
     "venue": "Arrowhead Stadium",
     "homeTeam": "Ecuador",
     "awayTeam": "Curaçao",
@@ -1716,6 +1840,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1728,6 +1854,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1745,7 +1873,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 21, 2026",
     "dateSort": "2026-06-21",
     "kickoffAt": "2026-06-21T04:00:00+00:00",
-    "kickoffTime": "12:00 AM",
+    "kickoffTime": "4:00 AM",
     "venue": "Estadio BBVA",
     "homeTeam": "Tunisia",
     "awayTeam": "Japan",
@@ -1770,6 +1898,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1782,6 +1912,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1799,7 +1931,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 21, 2026",
     "dateSort": "2026-06-21",
     "kickoffAt": "2026-06-21T16:00:00+00:00",
-    "kickoffTime": "12:00 PM",
+    "kickoffTime": "4:00 PM",
     "venue": "Mercedes-Benz Stadium",
     "homeTeam": "Spain",
     "awayTeam": "Saudi Arabia",
@@ -1824,6 +1956,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1836,6 +1970,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1853,7 +1989,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 21, 2026",
     "dateSort": "2026-06-21",
     "kickoffAt": "2026-06-21T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "SoFi Stadium",
     "homeTeam": "Belgium",
     "awayTeam": "IR Iran",
@@ -1878,6 +2014,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1890,6 +2028,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1907,7 +2047,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 22, 2026",
     "dateSort": "2026-06-22",
     "kickoffAt": "2026-06-22T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "BC Place",
     "homeTeam": "New Zealand",
     "awayTeam": "Egypt",
@@ -1932,6 +2072,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1944,6 +2086,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -1961,7 +2105,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 22, 2026",
     "dateSort": "2026-06-22",
     "kickoffAt": "2026-06-22T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "Argentina",
     "awayTeam": "Austria",
@@ -1986,6 +2130,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -1998,6 +2144,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2015,7 +2163,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 22, 2026",
     "dateSort": "2026-06-22",
     "kickoffAt": "2026-06-22T21:00:00+00:00",
-    "kickoffTime": "5:00 PM",
+    "kickoffTime": "9:00 PM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "France",
     "awayTeam": "Iraq",
@@ -2040,6 +2188,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2052,6 +2202,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2069,7 +2221,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 23, 2026",
     "dateSort": "2026-06-23",
     "kickoffAt": "2026-06-23T00:00:00+00:00",
-    "kickoffTime": "8:00 PM",
+    "kickoffTime": "12:00 AM",
     "venue": "MetLife Stadium",
     "homeTeam": "Norway",
     "awayTeam": "Senegal",
@@ -2094,6 +2246,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2106,6 +2260,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2123,7 +2279,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 23, 2026",
     "dateSort": "2026-06-23",
     "kickoffAt": "2026-06-23T03:00:00+00:00",
-    "kickoffTime": "11:00 PM",
+    "kickoffTime": "3:00 AM",
     "venue": "Levi's Stadium",
     "homeTeam": "Jordan",
     "awayTeam": "Algeria",
@@ -2148,6 +2304,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2160,6 +2318,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2177,7 +2337,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 23, 2026",
     "dateSort": "2026-06-23",
     "kickoffAt": "2026-06-23T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Portugal",
     "awayTeam": "Uzbekistan",
@@ -2202,6 +2362,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 5,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2214,6 +2376,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2231,7 +2395,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 23, 2026",
     "dateSort": "2026-06-23",
     "kickoffAt": "2026-06-23T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "Gillette Stadium",
     "homeTeam": "England",
     "awayTeam": "Ghana",
@@ -2256,6 +2420,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2268,6 +2434,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2285,7 +2453,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 23, 2026",
     "dateSort": "2026-06-23",
     "kickoffAt": "2026-06-23T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "BMO Field",
     "homeTeam": "Panama",
     "awayTeam": "Croatia",
@@ -2310,6 +2478,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2322,6 +2492,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2339,7 +2511,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 24, 2026",
     "dateSort": "2026-06-24",
     "kickoffAt": "2026-06-24T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Estadio Akron",
     "homeTeam": "Colombia",
     "awayTeam": "Congo DR",
@@ -2364,6 +2536,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2376,6 +2550,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2393,7 +2569,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 24, 2026",
     "dateSort": "2026-06-24",
     "kickoffAt": "2026-06-24T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "BC Place",
     "homeTeam": "Switzerland",
     "awayTeam": "Canada",
@@ -2418,6 +2594,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2430,6 +2608,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2447,7 +2627,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 24, 2026",
     "dateSort": "2026-06-24",
     "kickoffAt": "2026-06-24T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "Mercedes-Benz Stadium",
     "homeTeam": "Morocco",
     "awayTeam": "Haiti",
@@ -2472,6 +2652,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2484,6 +2666,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2501,7 +2685,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 24, 2026",
     "dateSort": "2026-06-24",
     "kickoffAt": "2026-06-24T22:00:00+00:00",
-    "kickoffTime": "6:00 PM",
+    "kickoffTime": "10:00 PM",
     "venue": "Hard Rock Stadium",
     "homeTeam": "Scotland",
     "awayTeam": "Brazil",
@@ -2526,6 +2710,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2538,6 +2724,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2555,7 +2743,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Estadio Banorte",
     "homeTeam": "Czechia",
     "awayTeam": "Mexico",
@@ -2580,6 +2768,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2592,6 +2782,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2609,7 +2801,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Estadio BBVA",
     "homeTeam": "South Africa",
     "awayTeam": "Korea Republic",
@@ -2634,6 +2826,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2646,6 +2840,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2663,7 +2859,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "Ecuador",
     "awayTeam": "Germany",
@@ -2688,6 +2884,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2700,6 +2898,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2717,7 +2917,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "Curaçao",
     "awayTeam": "Côte d'Ivoire",
@@ -2742,6 +2942,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2754,6 +2956,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2771,7 +2975,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "Japan",
     "awayTeam": "Sweden",
@@ -2796,6 +3000,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2808,6 +3014,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2825,7 +3033,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 25, 2026",
     "dateSort": "2026-06-25",
     "kickoffAt": "2026-06-25T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "Arrowhead Stadium",
     "homeTeam": "Tunisia",
     "awayTeam": "Netherlands",
@@ -2850,6 +3058,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2862,6 +3072,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2879,7 +3091,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 26, 2026",
     "dateSort": "2026-06-26",
     "kickoffAt": "2026-06-26T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "SoFi Stadium",
     "homeTeam": "Türkiye",
     "awayTeam": "United States",
@@ -2904,6 +3116,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2916,6 +3130,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2933,7 +3149,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 26, 2026",
     "dateSort": "2026-06-26",
     "kickoffAt": "2026-06-26T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Levi's Stadium",
     "homeTeam": "Paraguay",
     "awayTeam": "Australia",
@@ -2958,6 +3174,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -2970,6 +3188,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -2987,7 +3207,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 26, 2026",
     "dateSort": "2026-06-26",
     "kickoffAt": "2026-06-26T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "BMO Field",
     "homeTeam": "Senegal",
     "awayTeam": "Iraq",
@@ -3012,6 +3232,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 5,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3024,6 +3246,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3041,7 +3265,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 26, 2026",
     "dateSort": "2026-06-26",
     "kickoffAt": "2026-06-26T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "Gillette Stadium",
     "homeTeam": "Norway",
     "awayTeam": "France",
@@ -3066,6 +3290,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3078,6 +3304,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 4,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3095,7 +3323,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T00:00:00+00:00",
-    "kickoffTime": "8:00 PM",
+    "kickoffTime": "12:00 AM",
     "venue": "Estadio Akron",
     "homeTeam": "Uruguay",
     "awayTeam": "Spain",
@@ -3120,6 +3348,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3132,6 +3362,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3149,7 +3381,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T03:00:00+00:00",
-    "kickoffTime": "11:00 PM",
+    "kickoffTime": "3:00 AM",
     "venue": "Lumen Field",
     "homeTeam": "Egypt",
     "awayTeam": "IR Iran",
@@ -3174,6 +3406,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3186,6 +3420,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3203,7 +3439,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T03:00:00+00:00",
-    "kickoffTime": "11:00 PM",
+    "kickoffTime": "3:00 AM",
     "venue": "BC Place",
     "homeTeam": "New Zealand",
     "awayTeam": "Belgium",
@@ -3228,6 +3464,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3240,6 +3478,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 5,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3257,7 +3497,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T21:00:00+00:00",
-    "kickoffTime": "5:00 PM",
+    "kickoffTime": "9:00 PM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "Croatia",
     "awayTeam": "Ghana",
@@ -3282,6 +3522,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3294,6 +3536,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3311,7 +3555,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T21:00:00+00:00",
-    "kickoffTime": "5:00 PM",
+    "kickoffTime": "9:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "Panama",
     "awayTeam": "England",
@@ -3336,6 +3580,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3348,6 +3594,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3365,7 +3613,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T23:30:00+00:00",
-    "kickoffTime": "7:30 PM",
+    "kickoffTime": "11:30 PM",
     "venue": "Hard Rock Stadium",
     "homeTeam": "Colombia",
     "awayTeam": "Portugal",
@@ -3390,6 +3638,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3402,6 +3652,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3419,7 +3671,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 27, 2026",
     "dateSort": "2026-06-27",
     "kickoffAt": "2026-06-27T23:30:00+00:00",
-    "kickoffTime": "7:30 PM",
+    "kickoffTime": "11:30 PM",
     "venue": "Mercedes-Benz Stadium",
     "homeTeam": "Congo DR",
     "awayTeam": "Uzbekistan",
@@ -3444,6 +3696,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3456,6 +3710,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3473,7 +3729,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 28, 2026",
     "dateSort": "2026-06-28",
     "kickoffAt": "2026-06-28T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "Arrowhead Stadium",
     "homeTeam": "Algeria",
     "awayTeam": "Austria",
@@ -3498,6 +3754,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3510,6 +3768,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3527,7 +3787,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 28, 2026",
     "dateSort": "2026-06-28",
     "kickoffAt": "2026-06-28T02:00:00+00:00",
-    "kickoffTime": "10:00 PM",
+    "kickoffTime": "2:00 AM",
     "venue": "AT&T Stadium",
     "homeTeam": "Jordan",
     "awayTeam": "Argentina",
@@ -3552,6 +3812,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3564,6 +3826,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3581,7 +3845,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 28, 2026",
     "dateSort": "2026-06-28",
     "kickoffAt": "2026-06-28T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "SoFi Stadium",
     "homeTeam": "South Africa",
     "awayTeam": "Canada",
@@ -3606,6 +3870,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3618,6 +3884,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3635,7 +3903,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 29, 2026",
     "dateSort": "2026-06-29",
     "kickoffAt": "2026-06-29T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Brazil",
     "awayTeam": "Japan",
@@ -3660,6 +3928,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3672,6 +3942,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3689,7 +3961,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 29, 2026",
     "dateSort": "2026-06-29",
     "kickoffAt": "2026-06-29T20:30:00+00:00",
-    "kickoffTime": "4:30 PM",
+    "kickoffTime": "8:30 PM",
     "venue": "Gillette Stadium",
     "homeTeam": "Germany",
     "awayTeam": "Paraguay",
@@ -3714,6 +3986,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3726,6 +4000,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3743,7 +4019,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 30, 2026",
     "dateSort": "2026-06-30",
     "kickoffAt": "2026-06-30T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Estadio BBVA",
     "homeTeam": "Netherlands",
     "awayTeam": "Morocco",
@@ -3768,6 +4044,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3780,6 +4058,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3797,7 +4077,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 30, 2026",
     "dateSort": "2026-06-30",
     "kickoffAt": "2026-06-30T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "Côte d'Ivoire",
     "awayTeam": "Norway",
@@ -3822,6 +4102,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3834,6 +4116,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3851,7 +4135,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "June 30, 2026",
     "dateSort": "2026-06-30",
     "kickoffAt": "2026-06-30T21:00:00+00:00",
-    "kickoffTime": "5:00 PM",
+    "kickoffTime": "9:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "France",
     "awayTeam": "Sweden",
@@ -3876,6 +4160,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3888,6 +4174,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3905,7 +4193,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 1, 2026",
     "dateSort": "2026-07-01",
     "kickoffAt": "2026-07-01T01:00:00+00:00",
-    "kickoffTime": "9:00 PM",
+    "kickoffTime": "1:00 AM",
     "venue": "Estadio Banorte",
     "homeTeam": "Mexico",
     "awayTeam": "Ecuador",
@@ -3930,6 +4218,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3942,6 +4232,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -3959,7 +4251,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 1, 2026",
     "dateSort": "2026-07-01",
     "kickoffAt": "2026-07-01T16:00:00+00:00",
-    "kickoffTime": "12:00 PM",
+    "kickoffTime": "4:00 PM",
     "venue": "Mercedes-Benz Stadium",
     "homeTeam": "England",
     "awayTeam": "Congo DR",
@@ -3984,6 +4276,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3996,6 +4290,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4013,7 +4309,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 1, 2026",
     "dateSort": "2026-07-01",
     "kickoffAt": "2026-07-01T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "Lumen Field",
     "homeTeam": "Belgium",
     "awayTeam": "Senegal",
@@ -4038,6 +4334,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4050,6 +4348,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4067,7 +4367,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 2, 2026",
     "dateSort": "2026-07-02",
     "kickoffAt": "2026-07-02T19:00:00+00:00",
-    "kickoffTime": "3:00 PM",
+    "kickoffTime": "7:00 PM",
     "venue": "SoFi Stadium",
     "homeTeam": "Spain",
     "awayTeam": "Austria",
@@ -4092,6 +4392,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 3,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4104,6 +4406,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4121,7 +4425,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 2, 2026",
     "dateSort": "2026-07-02",
     "kickoffAt": "2026-07-02T23:00:00+00:00",
-    "kickoffTime": "7:00 PM",
+    "kickoffTime": "11:00 PM",
     "venue": "BMO Field",
     "homeTeam": "Portugal",
     "awayTeam": "Croatia",
@@ -4146,6 +4450,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4158,6 +4464,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4169,18 +4477,19 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_32",
     "stageLabel": "Round of 32",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1567312,
     "date": "July 3, 2026",
     "dateSort": "2026-07-03",
     "kickoffAt": "2026-07-03T03:00:00+00:00",
-    "kickoffTime": "11:00 PM",
+    "kickoffTime": "3:00 AM",
     "venue": "BC Place",
     "homeTeam": "Switzerland",
     "awayTeam": "Algeria",
     "homeTeamCode": "SUI",
     "awayTeamCode": "ALG",
+    "finalMinute": 90,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Switzerland",
@@ -4198,7 +4507,9 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 1,
+        "goals": 2,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4211,6 +4522,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4228,7 +4541,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 3, 2026",
     "dateSort": "2026-07-03",
     "kickoffAt": "2026-07-03T18:00:00+00:00",
-    "kickoffTime": "2:00 PM",
+    "kickoffTime": "6:00 PM",
     "venue": "AT&T Stadium",
     "homeTeam": "Australia",
     "awayTeam": "Egypt",
@@ -4252,6 +4565,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4264,6 +4579,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4281,7 +4598,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 4, 2026",
     "dateSort": "2026-07-04",
     "kickoffAt": "2026-07-04T01:30:00+00:00",
-    "kickoffTime": "9:30 PM",
+    "kickoffTime": "1:30 AM",
     "venue": "Arrowhead Stadium",
     "homeTeam": "Colombia",
     "awayTeam": "Ghana",
@@ -4305,6 +4622,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4317,6 +4636,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4334,7 +4655,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 4, 2026",
     "dateSort": "2026-07-04",
     "kickoffAt": "2026-07-04T17:00:00+00:00",
-    "kickoffTime": "1:00 PM",
+    "kickoffTime": "5:00 PM",
     "venue": "NRG Stadium",
     "homeTeam": "Canada",
     "awayTeam": "Morocco",
@@ -4358,6 +4679,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4370,6 +4693,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4387,7 +4712,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 4, 2026",
     "dateSort": "2026-07-04",
     "kickoffAt": "2026-07-04T21:00:00+00:00",
-    "kickoffTime": "5:00 PM",
+    "kickoffTime": "9:00 PM",
     "venue": "Lincoln Financial Field",
     "homeTeam": "Paraguay",
     "awayTeam": "France",
@@ -4411,6 +4736,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4423,6 +4750,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4440,7 +4769,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 5, 2026",
     "dateSort": "2026-07-05",
     "kickoffAt": "2026-07-05T20:00:00+00:00",
-    "kickoffTime": "4:00 PM",
+    "kickoffTime": "8:00 PM",
     "venue": "MetLife Stadium",
     "homeTeam": "Brazil",
     "awayTeam": "Norway",
@@ -4464,6 +4793,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4476,6 +4807,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4493,7 +4826,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 6, 2026",
     "dateSort": "2026-07-06",
     "kickoffAt": "2026-07-06T00:00:00+00:00",
-    "kickoffTime": "8:00 PM",
+    "kickoffTime": "12:00 AM",
     "venue": "Estadio Banorte",
     "homeTeam": "Mexico",
     "awayTeam": "England",
@@ -4517,6 +4850,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4529,6 +4864,63 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1576756",
+    "providerFixtureId": 1576756,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "round_of_16",
+    "stageLabel": "Round of 16",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1576756,
+    "date": "July 6, 2026",
+    "dateSort": "2026-07-06",
+    "kickoffAt": "2026-07-06T19:00:00+00:00",
+    "kickoffTime": "7:00 PM",
+    "homeTeam": "Portugal",
+    "awayTeam": "Spain",
+    "homeTeamCode": "POR",
+    "awayTeamCode": "ESP",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Portugal",
+      "awayTeam": "Spain",
+      "homeTeamCode": "POR",
+      "awayTeamCode": "ESP",
+      "stage": "ROUND OF 16",
+      "date": "July 6, 2026",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4546,7 +4938,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "date": "July 7, 2026",
     "dateSort": "2026-07-07",
     "kickoffAt": "2026-07-07T00:00:00+00:00",
-    "kickoffTime": "8:00 PM",
+    "kickoffTime": "12:00 AM",
     "venue": "Lumen Field",
     "homeTeam": "United States",
     "awayTeam": "Belgium",
@@ -4570,6 +4962,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4582,6 +4976,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }

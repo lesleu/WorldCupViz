@@ -79,6 +79,7 @@ export const STATIC_FEED_IDS: string[] = [
   "1567308",
   "1567309",
   "1567311",
+  "1567312",
   "2026-group-a-mex-kor",
   "2026-group-b-usa-ecu"
 ];
