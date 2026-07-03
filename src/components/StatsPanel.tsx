@@ -5,9 +5,13 @@ import type { MatchData, TeamStats } from "@/data/mockMatch";
 import type { MatchStatus } from "@/data/matchCatalog";
 import type { AppMode } from "@/components/MatchVisualizer";
 import type { ReplayActions, ReplayUiState } from "@/engine/replayControls";
-import { cfg, VISUALIZER_CONFIG } from "@/config";
+import { cfg } from "@/config";
+import { foundationsGenerated } from "@/config/foundations.generated";
 import { getTeamPalette } from "@/data/mockMatch";
 import LiveBadge from "@/components/LiveBadge";
+
+const panelInk = foundationsGenerated.ink;
+const panelPaper = foundationsGenerated.paper;
 
 interface StatsPanelProps {
   match: MatchData | null;
@@ -68,13 +72,13 @@ function TeamBlock({
           >
             <dt
               className="text-[11px] uppercase tracking-wider"
-              style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+              style={{ color: panelInk.textMuted }}
             >
               {label}
             </dt>
             <dd
               className="font-mono text-sm"
-              style={{ color: VISUALIZER_CONFIG.colors.text }}
+              style={{ color: panelInk.text }}
             >
               {value}
             </dd>
@@ -123,10 +127,10 @@ function ModeButton({
       className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition"
       style={{
         backgroundColor: active
-          ? VISUALIZER_CONFIG.colors.text
-          : VISUALIZER_CONFIG.colors.background,
-        color: active ? VISUALIZER_CONFIG.colors.cream : VISUALIZER_CONFIG.colors.text,
-        borderColor: active ? VISUALIZER_CONFIG.colors.text : "rgba(0,0,0,0.2)",
+          ? panelInk.text
+          : panelPaper.cream,
+        color: active ? panelPaper.cream : panelInk.text,
+        borderColor: active ? panelInk.text : "rgba(0,0,0,0.2)",
       }}
     >
       {label}
@@ -146,13 +150,13 @@ function LiveModePanel({
       <div>
         <p
           className="font-mono text-xs uppercase tracking-[0.25em]"
-          style={{ color: VISUALIZER_CONFIG.colors.text }}
+          style={{ color: panelInk.text }}
         >
           Live Match Mode
         </p>
         <p
           className="mt-2 font-mono text-xs leading-relaxed"
-          style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+          style={{ color: panelInk.textMuted }}
         >
           {matchStatus === "live"
             ? "Polling API-Football every 20s for events and statistics."
@@ -165,7 +169,7 @@ function LiveModePanel({
       {match && (
         <p
           className="font-mono text-[10px] uppercase tracking-wider"
-          style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+          style={{ color: panelInk.textMuted }}
         >
           {match.homeTeam} vs {match.awayTeam}
         </p>
@@ -193,19 +197,19 @@ export default function StatsPanel({
 
   return (
     <aside
-      className="flex h-full w-72 shrink-0 flex-col border-l border-black/10"
-      style={{ backgroundColor: VISUALIZER_CONFIG.colors.cream }}
+      className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l border-black/10"
+      style={{ backgroundColor: panelPaper.cream }}
     >
       <div className="border-b border-black/10 p-5">
         <p
           className="font-mono text-[10px] uppercase tracking-[0.35em]"
-          style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+          style={{ color: panelInk.textMuted }}
         >
           Match Data
         </p>
         <h1
           className="mt-2 text-lg font-semibold"
-          style={{ color: VISUALIZER_CONFIG.colors.text }}
+          style={{ color: panelInk.text }}
         >
           World Cup Vizi
         </h1>
@@ -235,7 +239,7 @@ export default function StatsPanel({
               <div className="mt-4 space-y-3">
                 <p
                   className="font-mono text-[10px] uppercase tracking-wider"
-                  style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+                  style={{ color: panelInk.textMuted }}
                 >
                   {match.homeTeam} vs {match.awayTeam}
                 </p>
@@ -243,7 +247,7 @@ export default function StatsPanel({
                 {!hasReplayFeed && (
                   <p
                     className="font-mono text-[10px] uppercase tracking-wider"
-                    style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+                    style={{ color: panelInk.textMuted }}
                   >
                     Replay coming soon
                   </p>
@@ -252,7 +256,7 @@ export default function StatsPanel({
                 {!replayUi.ready && (
                   <p
                     className="font-mono text-[10px] uppercase tracking-wider"
-                    style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+                    style={{ color: panelInk.textMuted }}
                   >
                     Starting visualizer…
                   </p>
@@ -270,8 +274,8 @@ export default function StatsPanel({
                         }}
                         className="flex-1 border border-black/20 px-2 py-2 font-mono text-[10px] uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40"
                         style={{
-                          backgroundColor: VISUALIZER_CONFIG.colors.background,
-                          color: VISUALIZER_CONFIG.colors.text,
+                          backgroundColor: panelPaper.cream,
+                          color: panelInk.text,
                         }}
                       >
                         {replayUi.isPlaying ? "Pause" : "Play"}
@@ -282,8 +286,8 @@ export default function StatsPanel({
                         onClick={() => actions().reset()}
                         className="flex-1 border border-black/20 px-2 py-2 font-mono text-[10px] uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40"
                         style={{
-                          backgroundColor: VISUALIZER_CONFIG.colors.background,
-                          color: VISUALIZER_CONFIG.colors.text,
+                          backgroundColor: panelPaper.cream,
+                          color: panelInk.text,
                         }}
                       >
                         Reset
@@ -293,7 +297,7 @@ export default function StatsPanel({
                     <div>
                       <p
                         className="mb-2 font-mono text-[10px] uppercase tracking-wider"
-                        style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+                        style={{ color: panelInk.textMuted }}
                       >
                         Speed
                       </p>
@@ -308,15 +312,15 @@ export default function StatsPanel({
                             style={{
                               backgroundColor:
                                 replayUi.speed === speed
-                                  ? VISUALIZER_CONFIG.colors.text
-                                  : VISUALIZER_CONFIG.colors.background,
+                                  ? panelInk.text
+                                  : panelPaper.cream,
                               color:
                                 replayUi.speed === speed
-                                  ? VISUALIZER_CONFIG.colors.cream
-                                  : VISUALIZER_CONFIG.colors.text,
+                                  ? panelPaper.cream
+                                  : panelInk.text,
                               borderColor:
                                 replayUi.speed === speed
-                                  ? VISUALIZER_CONFIG.colors.text
+                                  ? panelInk.text
                                   : "rgba(0,0,0,0.2)",
                             }}
                           >
@@ -328,7 +332,7 @@ export default function StatsPanel({
 
                     <p
                       className="font-mono text-[10px] uppercase tracking-wider"
-                      style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+                      style={{ color: panelInk.textMuted }}
                     >
                       Minute: {formatReplayMinute(replayUi.minute, replayUi.isPlaying)}
                     </p>
@@ -364,7 +368,7 @@ export default function StatsPanel({
         ) : !match ? (
           <p
             className="font-mono text-xs leading-relaxed"
-            style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+            style={{ color: panelInk.textMuted }}
           >
             Demo match: Mexico vs South Korea.
           </p>

@@ -1,7 +1,7 @@
 import type { TeamSide } from "@/design-system/state/artState";
 import type { MatchEventType, LiveFeedUpdate, StateUpdate } from "@/data/mockLiveFeed";
 import { initialMatchState } from "@/data/mockLiveFeed";
-import type { TeamStats } from "@/data/mockMatch";
+import type { TeamStats, MatchData } from "@/data/mockMatch";
 import type {
   ApiFootballEvent,
   ApiFootballFixture,
@@ -149,6 +149,90 @@ function countFeedEvents(feed: LiveFeedUpdate[]): Record<TeamSide, EventCounts> 
   }
 
   return counts;
+}
+
+function latestStateUpdate(
+  feed: LiveFeedUpdate[],
+  upToMinute: number
+): StateUpdate | null {
+  let latest: StateUpdate | null = null;
+  for (const update of feed) {
+    if (update.type !== "state_update" || update.minute > upToMinute) continue;
+    latest = update;
+  }
+  return latest;
+}
+
+function teamStatsFromFeedSide(
+  side: TeamSide,
+  counts: Record<TeamSide, EventCounts>,
+  continuous: StateUpdate["home"] | undefined,
+  fallbackGoals: number
+): TeamStats {
+  const events = counts[side];
+  const goals = Math.max(events.goal, fallbackGoals);
+
+  return {
+    possession: continuous?.possession ?? 50,
+    passAccuracy: continuous?.passAccuracy ?? 0,
+    shots: events.shot + events.shot_on_target + goals,
+    shotsOnTarget: events.shot_on_target + goals,
+    fouls: events.foul,
+    yellowCards: events.yellow_card,
+    redCards: events.red_card,
+    goals,
+    penaltyShootoutScored: events.penalty_scored,
+    penaltyShootoutMissed: events.penalty_missed,
+  };
+}
+
+/** Build panel stats from a replay feed (optionally capped at a replay minute). */
+export function deriveTeamStatsFromFeed(
+  feed: LiveFeedUpdate[],
+  options?: {
+    upToMinute?: number;
+    homeGoals?: number;
+    awayGoals?: number;
+  }
+): { home: TeamStats; away: TeamStats } {
+  const upToMinute =
+    options?.upToMinute ?? feed.reduce((max, update) => Math.max(max, update.minute), 0);
+  const scoped = feed.filter((update) => update.minute <= upToMinute);
+  const counts = countFeedEvents(scoped);
+  const state = latestStateUpdate(feed, upToMinute);
+
+  return {
+    home: teamStatsFromFeedSide(
+      "home",
+      counts,
+      state?.home,
+      options?.homeGoals ?? 0
+    ),
+    away: teamStatsFromFeedSide(
+      "away",
+      counts,
+      state?.away,
+      options?.awayGoals ?? 0
+    ),
+  };
+}
+
+export function mergeMatchDataWithFeedStats(
+  matchData: MatchData,
+  feed: LiveFeedUpdate[],
+  upToMinute?: number
+): MatchData {
+  const derived = deriveTeamStatsFromFeed(feed, {
+    upToMinute,
+    homeGoals: upToMinute != null ? 0 : matchData.home.goals,
+    awayGoals: upToMinute != null ? 0 : matchData.away.goals,
+  });
+
+  return {
+    ...matchData,
+    home: { ...matchData.home, ...derived.home },
+    away: { ...matchData.away, ...derived.away },
+  };
 }
 
 /** Deterministic minute slots spread across the elapsed match window. */

@@ -15,7 +15,9 @@ import {
   type ReplayControlBundle,
   type ReplayUiState,
 } from "@/engine/replayControls";
-import { fetchMatchFromApi } from "@/lib/matches/clientApi";
+import { fetchMatchFeedFromApi, fetchMatchFromApi } from "@/lib/matches/clientApi";
+import { mergeMatchDataWithFeedStats } from "@/lib/matches/feedAdapter";
+import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
 const MatchVisualizer = dynamic(() => import("@/components/MatchVisualizer"), {
@@ -47,6 +49,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
   );
   const [matchStatus, setMatchStatus] = useState<MatchStatus>(entry.status);
   const [matchData, setMatchData] = useState<MatchData>(entry.matchData);
+  const [feedBundle, setFeedBundle] = useState<MatchFeedResponse | null>(null);
   const [hasReplayFeed, setHasReplayFeed] = useState(entry.hasReplayFeed);
   const [finalMinute, setFinalMinute] = useState(entry.finalMinute);
   const [replayUi, setReplayUi] = useState<ReplayUiState>(EMPTY_REPLAY_UI);
@@ -73,12 +76,28 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
 
     const refresh = async () => {
       try {
-        const updated = await fetchMatchFromApi(entry.id);
-        if (!cancelled && updated) {
-          setMatchData(updated.matchData);
+        const [updated, feed] = await Promise.all([
+          fetchMatchFromApi(entry.id),
+          fetchMatchFeedFromApi(entry.id),
+        ]);
+        if (cancelled) return;
+
+        if (feed?.feed?.length) {
+          setFeedBundle(feed);
+        }
+
+        if (updated) {
+          const baseData = updated.matchData;
+          const enriched =
+            feed && feed.feed.length > 1
+              ? mergeMatchDataWithFeedStats(baseData, feed.feed)
+              : baseData;
+          setMatchData(enriched);
           setMatchStatus(updated.status);
           setHasReplayFeed(updated.hasReplayFeed);
           setFinalMinute(updated.finalMinute);
+        } else if (feed && feed.feed.length > 1) {
+          setMatchData((prev) => mergeMatchDataWithFeedStats(prev, feed.feed));
         }
       } catch (error) {
         console.warn("Match refresh failed:", error);
@@ -93,6 +112,14 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
       clearInterval(timer);
     };
   }, [entry.id]);
+
+  useEffect(() => {
+    if (mode !== "replay" || !feedBundle || feedBundle.feed.length <= 1) return;
+
+    setMatchData((prev) =>
+      mergeMatchDataWithFeedStats(prev, feedBundle.feed, replayUi.minute)
+    );
+  }, [mode, feedBundle, replayUi.minute]);
 
   useEffect(() => {
     if (prevStatusRef.current !== "live" && matchStatus === "live") {

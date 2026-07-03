@@ -22,6 +22,7 @@ import {
 import {
   feedHasReplayContent,
   maxFeedMinute,
+  mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
 import { getPollMeta, getRuntimeFeed } from "@/lib/matches/runtimeStore";
 import {
@@ -88,7 +89,27 @@ export async function listMatches(
 export async function getMatch(id: string): Promise<MatchCatalogEntry | null> {
   const base = getStaticMatchById(id);
   if (!base) return null;
-  return getMergedMatchById(base);
+  const merged = await getMergedMatchById(base);
+  if (!merged) return null;
+  return enrichMatchEntryWithFeedStats(merged);
+}
+
+async function enrichMatchEntryWithFeedStats(
+  entry: MatchCatalogEntry
+): Promise<MatchCatalogEntry> {
+  const runtimeFeed = await getRuntimeFeed(entry.id);
+  const feed = runtimeFeedHasContent(runtimeFeed)
+    ? runtimeFeed!
+    : await getStaticFeed(entry.id);
+
+  if (!feed || !feedHasReplayContent(feed.feed)) {
+    return entry;
+  }
+
+  return {
+    ...entry,
+    matchData: mergeMatchDataWithFeedStats(entry.matchData, feed.feed),
+  };
 }
 
 async function loadLiveFeedFromApi(
