@@ -43,6 +43,7 @@ import {
   mapFixtureStatus,
   parseFixtureId,
 } from "../src/lib/matches/matchAdapter";
+import { fixturesToCatalogEntries } from "../src/lib/matches/fixtureCatalog";
 import type { MatchFeedResponse } from "../src/lib/matches/types";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -96,19 +97,10 @@ function fixtureIdForEntry(entry: MatchCatalogEntry): number | null {
   return parseFixtureId(entry.id);
 }
 
-function fixturesToCatalogEntries(
+function fixturesToCatalogEntriesFromApi(
   fixtures: Awaited<ReturnType<typeof fetchLeagueFixtures>>
 ): MatchCatalogEntry[] {
-  return fixtures
-    .map((fixture) => {
-      try {
-        return adaptFixtureToCatalogEntry(fixture);
-      } catch {
-        return null;
-      }
-    })
-    .filter((entry): entry is MatchCatalogEntry => entry !== null)
-    .sort((a, b) => a.dateSort.localeCompare(b.dateSort));
+  return fixturesToCatalogEntries(fixtures);
 }
 
 async function buildFeedFromFixture(
@@ -259,7 +251,7 @@ function reconcileScheduleWithFeeds(schedule: MatchCatalogEntry[]): MatchCatalog
 async function syncSchedule(): Promise<MatchCatalogEntry[]> {
   console.log("\nSyncing full schedule…");
   const fixtures = await fetchLeagueFixtures(0);
-  const entries = fixturesToCatalogEntries(fixtures);
+  const entries = fixturesToCatalogEntriesFromApi(fixtures);
   if (entries.length === 0) {
     throw new Error("No fixtures returned from API-Football");
   }

@@ -1,21 +1,48 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import { VISUALIZER_CONFIG } from "@/config";
 import HomeMatchBrowser from "@/components/home/HomeMatchBrowser";
 import DateMatchSection from "@/components/home/DateMatchSection";
+import { fetchMatchesFromApi } from "@/lib/matches/clientApi";
 import {
   groupMatchesByDate,
   localDateKey,
   pickScrollTargetGroup,
 } from "@/lib/homeDateGroups";
 
+const HOME_MATCH_POLL_MS = 20_000;
+
 interface GameGridHomeProps {
   initialMatches: MatchCatalogEntry[];
 }
 
 export default function GameGridHome({ initialMatches }: GameGridHomeProps) {
+  const [matches, setMatches] = useState(initialMatches);
   const todayKey = localDateKey();
-  const dateGroups = groupMatchesByDate(initialMatches, todayKey);
+  const dateGroups = groupMatchesByDate(matches, todayKey);
   const scrollTarget = pickScrollTargetGroup(dateGroups, todayKey);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshMatches = async () => {
+      try {
+        const { matches: nextMatches } = await fetchMatchesFromApi();
+        if (!cancelled) setMatches(nextMatches);
+      } catch (error) {
+        console.warn("Home match list refresh failed:", error);
+      }
+    };
+
+    const intervalId = window.setInterval(refreshMatches, HOME_MATCH_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <HomeMatchBrowser scrollTargetDateSort={scrollTarget?.dateSort}>
       {dateGroups.length === 0 ? (

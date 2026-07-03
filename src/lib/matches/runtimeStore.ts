@@ -14,7 +14,21 @@ const KEYS = {
 
 export type ScheduleOverlayEntry = Pick<
   MatchCatalogEntry,
-  "status" | "finalMinute" | "hasReplayFeed" | "matchData"
+  | "status"
+  | "finalMinute"
+  | "hasReplayFeed"
+  | "matchData"
+  | "date"
+  | "dateSort"
+  | "kickoffAt"
+  | "kickoffTime"
+  | "venue"
+  | "stage"
+  | "stageLabel"
+  | "homeTeam"
+  | "awayTeam"
+  | "homeTeamCode"
+  | "awayTeamCode"
 >;
 
 export type ScheduleOverlay = Record<string, ScheduleOverlayEntry>;

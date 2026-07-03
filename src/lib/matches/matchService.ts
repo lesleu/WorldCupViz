@@ -12,9 +12,18 @@ import {
   fetchFixtureById,
   fetchFixtureEvents,
   fetchFixtureStatistics,
+  fetchLeagueFixtures,
 } from "@/lib/matches/apiFootballClient";
 import { buildFeedResponse } from "@/lib/matches/buildFeed";
-import { feedRevalidateSeconds, getMatchApiConfig } from "@/lib/matches/config";
+import {
+  feedRevalidateSeconds,
+  getMatchApiConfig,
+  scheduleRevalidateSeconds,
+} from "@/lib/matches/config";
+import {
+  fixturesToCatalogEntries,
+  mergeCatalogEntries,
+} from "@/lib/matches/fixtureCatalog";
 import {
   mapFixtureStatus,
   parseFixtureId,
@@ -24,7 +33,7 @@ import {
   maxFeedMinute,
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
-import { getPollMeta, getRuntimeFeed } from "@/lib/matches/runtimeStore";
+import { getPollMeta, getRuntimeFeed, getScheduleOverlay } from "@/lib/matches/runtimeStore";
 import {
   getDemoCatalog,
   getStaticMatchById,
@@ -34,7 +43,10 @@ import {
 } from "@/lib/matches/scheduleLoader";
 import {
   getMergedMatchById,
+  getOverlayDiscoveredMatchById,
+  mergeEntryWithOverlay,
   mergeScheduleWithOverlay,
+  overlayEntryFromFixture,
 } from "@/lib/matches/scheduleOverlay";
 import {
   emptyFeedBundle,
@@ -54,6 +66,82 @@ function demoCatalog(stage?: TournamentStage): MatchListResponse {
   };
 }
 
+function filterByStage(
+  entries: MatchCatalogEntry[],
+  stage?: TournamentStage
+): MatchCatalogEntry[] {
+  return stage ? entries.filter((entry) => entry.stage === stage) : entries;
+}
+
+async function supplementCatalogFromApi(
+  entries: MatchCatalogEntry[]
+): Promise<MatchCatalogEntry[]> {
+  if (!getMatchApiConfig().enabled) return entries;
+
+  try {
+    const fixtures = await fetchLeagueFixtures(scheduleRevalidateSeconds());
+    const apiEntries = fixturesToCatalogEntries(fixtures);
+    const overlay = await getScheduleOverlay();
+
+    const merged = mergeCatalogEntries(entries, apiEntries).map((entry) =>
+      mergeEntryWithOverlay(entry, overlay[entry.id])
+    );
+
+    return merged;
+  } catch (error) {
+    console.warn("Failed to supplement match catalog from API:", error);
+    return entries;
+  }
+}
+
+async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null> {
+  const base = getStaticMatchById(id);
+  if (base) {
+    return getMergedMatchById(base);
+  }
+
+  const fromOverlay = await getOverlayDiscoveredMatchById(id);
+  if (fromOverlay) return fromOverlay;
+
+  if (!getMatchApiConfig().enabled) return null;
+
+  const fixtureId = parseFixtureId(id);
+  if (!fixtureId) return null;
+
+  try {
+    const fixture = await fetchFixtureById(fixtureId, scheduleRevalidateSeconds());
+    if (!fixture) return null;
+    const entry = overlayEntryFromFixture(fixture);
+    if (!entry) return null;
+
+    return {
+      id,
+      providerFixtureId: fixtureId,
+      tournament: "FIFA World Cup 2026",
+      stage: entry.stage ?? "round_of_32",
+      stageLabel: entry.stageLabel ?? "Round of 32",
+      status: entry.status ?? "scheduled",
+      isTbd: false,
+      matchNumber: fixtureId,
+      date: entry.date ?? entry.matchData!.date,
+      dateSort: entry.dateSort ?? "",
+      kickoffAt: entry.kickoffAt,
+      kickoffTime: entry.kickoffTime,
+      venue: entry.venue ?? entry.matchData!.venue,
+      homeTeam: entry.homeTeam ?? entry.matchData!.homeTeam,
+      awayTeam: entry.awayTeam ?? entry.matchData!.awayTeam,
+      homeTeamCode: entry.homeTeamCode ?? entry.matchData!.homeTeamCode,
+      awayTeamCode: entry.awayTeamCode ?? entry.matchData!.awayTeamCode,
+      finalMinute: entry.finalMinute,
+      hasReplayFeed: entry.hasReplayFeed ?? false,
+      matchData: entry.matchData!,
+    };
+  } catch (error) {
+    console.warn(`Failed to resolve match ${id} from API:`, error);
+    return null;
+  }
+}
+
 async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse> {
   const scheduleMatches = getStaticSchedule(stage);
   const tbd = stage
@@ -66,8 +154,9 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
   }
 
+  const supplemented = await supplementCatalogFromApi([...byId.values()]);
   const merged = enrichCatalogKickoff(
-    await mergeScheduleWithOverlay([...byId.values()])
+    filterByStage(await mergeScheduleWithOverlay(supplemented), stage)
   );
   const pollMeta = await getPollMeta();
 
@@ -95,9 +184,7 @@ export async function listMatches(
 }
 
 export async function getMatch(id: string): Promise<MatchCatalogEntry | null> {
-  const base = getStaticMatchById(id);
-  if (!base) return null;
-  const merged = await getMergedMatchById(base);
+  const merged = await resolveCatalogEntry(id);
   if (!merged) return null;
   return enrichMatchEntryWithFeedStats(merged);
 }
