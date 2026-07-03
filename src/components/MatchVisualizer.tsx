@@ -6,8 +6,8 @@ import type { MatchData } from "@/data/mockMatch";
 import type { MatchStatus } from "@/data/matchCatalog";
 import { initialMatchState } from "@/data/mockLiveFeed";
 import {
-  computeArtworkLayout,
   computeSingleTeamArtworkLayout,
+  resolveArtworkLayout,
 } from "@/design-system/layout/posterLayout";
 import { createReplayEngine, type ReplayEngine } from "@/engine/replayEngine";
 import type { ReplayControlBundle, ReplayUiState } from "@/engine/replayControls";
@@ -351,7 +351,11 @@ export default function MatchVisualizer({
           feedBundle.feed.length > 1 ||
           hasReplayFeedRef.current;
 
-        const layout = computeArtworkLayout(getSize().width, getSize().height);
+        const layout = resolveArtworkLayout(
+          getSize().width,
+          getSize().height,
+          teamSide
+        );
         const finalMinute = resolveFinalMinute(feedBundle, finalMinuteProp);
         const canReplay = hasReplayFeedRef.current || feedAvailable;
 
@@ -365,8 +369,15 @@ export default function MatchVisualizer({
           engine.pause();
         } else if (isCompletedMatch && mode === "replay" && canReplay) {
           engine.reset();
+          if (teamSide) {
+            engine.seekToMinute(0, layout, match);
+          }
           engine.play();
         } else if (canReplay) {
+          engine.reset();
+          if (teamSide) {
+            engine.seekToMinute(0, layout, match);
+          }
           engine.play();
         } else {
           engine.reset();

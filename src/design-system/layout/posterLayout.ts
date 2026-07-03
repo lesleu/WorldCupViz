@@ -68,8 +68,15 @@ function computeSubregions(
   zoneRight: number,
   zoneTop: number,
   zoneBottom: number,
-  side: "home" | "away"
+  side: "home" | "away",
+  options: { fillGrid?: boolean } = {}
 ): { gridRegion: ZoneRegion; markRegion: ZoneRegion } {
+  const markRegion = buildRegion(zoneLeft, zoneRight, zoneTop, zoneBottom);
+
+  if (options.fillGrid) {
+    return { gridRegion: markRegion, markRegion };
+  }
+
   const zones = cfg.composition.zones;
   const zoneW = zoneRight - zoneLeft;
   const zoneH = zoneBottom - zoneTop;
@@ -81,7 +88,6 @@ function computeSubregions(
       ? buildRegion(zoneLeft, zoneLeft + gridW, zoneTop, zoneTop + gridH)
       : buildRegion(zoneRight - gridW, zoneRight, zoneTop, zoneTop + gridH);
 
-  const markRegion = buildRegion(zoneLeft, zoneRight, zoneTop, zoneBottom);
   return { gridRegion, markRegion };
 }
 
@@ -92,11 +98,19 @@ function buildTeamZone(
   bottom: number,
   anchorXRatio: number,
   clusterRadiusRatio: number,
-  side: "home" | "away"
+  side: "home" | "away",
+  options: { fillGrid?: boolean } = {}
 ): TeamZone {
   const width = right - left;
   const height = bottom - top;
-  const { gridRegion, markRegion } = computeSubregions(left, right, top, bottom, side);
+  const { gridRegion, markRegion } = computeSubregions(
+    left,
+    right,
+    top,
+    bottom,
+    side,
+    options
+  );
 
   return {
     left,
@@ -203,6 +217,18 @@ export function computeArtworkLayout(width: number, height: number): PosterLayou
   return buildPosterLayout(width, height, 0, height, 0, height, height);
 }
 
+/** Layout for engine + renderer — full poster or single-team mobile panel. */
+export function resolveArtworkLayout(
+  width: number,
+  height: number,
+  teamSide?: "home" | "away"
+): PosterLayout {
+  if (teamSide) {
+    return computeSingleTeamArtworkLayout(width, height, teamSide);
+  }
+  return computeArtworkLayout(width, height);
+}
+
 /** One team's artwork fills the canvas — for mobile stacked team panels. */
 export function computeSingleTeamArtworkLayout(
   width: number,
@@ -234,7 +260,8 @@ export function computeSingleTeamArtworkLayout(
       height,
       zones.homeAnchorXRatio,
       zones.homeClusterRadiusRatio,
-      "home"
+      "home",
+      { fillGrid: side === "home" }
     ),
     awayZone: buildTeamZone(
       awayLeft,
@@ -243,7 +270,8 @@ export function computeSingleTeamArtworkLayout(
       height,
       zones.awayAnchorXRatio,
       zones.awayClusterRadiusRatio,
-      "away"
+      "away",
+      { fillGrid: side === "away" }
     ),
   };
 }
