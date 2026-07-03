@@ -5,8 +5,11 @@ import { VISUALIZER_CONFIG } from "@/config";
 import HomeHeaderIntro from "@/components/home/HomeHeaderIntro";
 import HomeHeaderTitle from "@/components/home/HomeHeaderTitle";
 import {
+  HEADER_COMPACT_BOTTOM_PADDING,
+  HEADER_HORIZONTAL_PADDING,
   HEADER_TOP_PADDING,
   HEADER_TRANSITION,
+  headerLayoutScale,
 } from "@/lib/homeHeaderLayout";
 
 interface HomeStickyHeaderProps {
@@ -30,8 +33,18 @@ export default function HomeStickyHeader({
 }: HomeStickyHeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
   const titleBoxRef = useRef<HTMLDivElement>(null);
+  const compactBottomPadding = Math.max(
+    8,
+    Math.round(
+      HEADER_COMPACT_BOTTOM_PADDING *
+        headerLayoutScale(titleWidth + HEADER_HORIZONTAL_PADDING)
+    )
+  );
   const artHeight = compact
-    ? Math.max(compactHeaderHeight - HEADER_TOP_PADDING, 1)
+    ? Math.max(
+        compactHeaderHeight - HEADER_TOP_PADDING - compactBottomPadding,
+        1
+      )
     : canvasHeight;
   const [titleSize, setTitleSize] = useState({
     width: titleWidth,
@@ -81,6 +94,7 @@ export default function HomeStickyHeader({
         height: compact ? compactHeaderHeight : "auto",
         minHeight: compact ? undefined : expandedHeaderHeight,
         paddingTop: HEADER_TOP_PADDING,
+        paddingBottom: compact ? compactBottomPadding : undefined,
         boxSizing: "border-box",
         backgroundColor: VISUALIZER_CONFIG.colors.background,
         borderColor: "rgba(234, 234, 234, 0.2)",
