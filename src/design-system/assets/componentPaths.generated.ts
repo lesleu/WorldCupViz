@@ -10,6 +10,7 @@ export type PathCommand =
 
 export interface SvgLayerDef {
   paths: PathCommand[][];
+  fillRules?: ("evenodd" | "nonzero")[];
 }
 
 export interface SvgComponentDef {
@@ -128,6 +129,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       }
     }
@@ -192,6 +196,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero"
         ]
       },
       "c2": {
@@ -414,6 +422,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "evenodd"
         ]
       }
     }
@@ -662,6 +673,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       }
     }
@@ -726,6 +740,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero"
         ]
       },
       "c4": {
@@ -880,6 +898,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       }
     }
@@ -1038,6 +1059,11 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero",
+          "nonzero"
         ]
       }
     }
@@ -1152,6 +1178,12 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero",
+          "nonzero",
+          "nonzero"
         ]
       }
     }
@@ -1214,6 +1246,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       },
       "c2": {
@@ -1266,6 +1301,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       },
       "c3": {
@@ -1318,6 +1356,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       }
     }
@@ -1382,6 +1423,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero"
         ]
       },
       "ink.mark": {
@@ -1530,6 +1575,12 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero",
+          "nonzero",
+          "nonzero"
         ]
       }
     }
@@ -1594,6 +1645,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero",
+          "nonzero"
         ]
       },
       "ink.mark": {
@@ -1752,6 +1807,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
               "t": "Z"
             }
           ]
+        ],
+        "fillRules": [
+          "nonzero"
         ]
       }
     }

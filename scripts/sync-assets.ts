@@ -208,10 +208,18 @@ function isFoulFill(fill: string | undefined): boolean {
 
 type ShapeKind = "path" | "rect" | "ellipse";
 
+type FillRule = "evenodd" | "nonzero";
+
 interface FlatShape {
   kind: ShapeKind;
   fill?: string;
+  fillRule: FillRule;
   paths: PathCommand[][];
+}
+
+function parseFillRule(tag: string): FillRule {
+  const rule = tag.match(/\bfill-rule=["']([^"']+)["']/i)?.[1]?.toLowerCase();
+  return rule === "evenodd" ? "evenodd" : "nonzero";
 }
 
 function parseShapesFromFragment(fragment: string): FlatShape[] {
@@ -222,7 +230,12 @@ function parseShapesFromFragment(fragment: string): FlatShape[] {
   while ((m = pathRe.exec(fragment))) {
     const d = m[1].match(/\bd=["']([^"']+)["']/i)?.[1];
     if (!d) continue;
-    shapes.push({ kind: "path", fill: parseFill(m[1]), paths: [parsePathD(d)] });
+    shapes.push({
+      kind: "path",
+      fill: parseFill(m[1]),
+      fillRule: parseFillRule(m[1]),
+      paths: [parsePathD(d)],
+    });
   }
 
   const rectRe = /<rect\b([^>]*)\/?>/gi;
@@ -233,7 +246,12 @@ function parseShapesFromFragment(fragment: string): FlatShape[] {
     const w = Number(attrs.match(/\bwidth=["']([^"']+)["']/i)?.[1] ?? 0);
     const h = Number(attrs.match(/\bheight=["']([^"']+)["']/i)?.[1] ?? 0);
     if (w <= 0 || h <= 0) continue;
-    shapes.push({ kind: "rect", fill: parseFill(attrs), paths: [rectToPath(x, y, w, h)] });
+    shapes.push({
+      kind: "rect",
+      fill: parseFill(attrs),
+      fillRule: parseFillRule(attrs),
+      paths: [rectToPath(x, y, w, h)],
+    });
   }
 
   const ellipseRe = /<ellipse\b([^>]*)\/?>/gi;
@@ -247,6 +265,7 @@ function parseShapesFromFragment(fragment: string): FlatShape[] {
     shapes.push({
       kind: "ellipse",
       fill: parseFill(attrs),
+      fillRule: parseFillRule(attrs),
       paths: [[
         { t: "M", x: cx - rx, y: cy },
         { t: "C", x1: cx - rx, y1: cy - ry * 0.552, x2: cx - rx * 0.552, y2: cy - ry, x: cx, y: cy - ry },
@@ -265,13 +284,22 @@ function extractFlatShapes(svg: string): FlatShape[] {
   return parseShapesFromFragment(stripDefs(svg));
 }
 
+interface LayerBuild {
+  paths: PathCommand[][];
+  fillRules: FillRule[];
+}
+
 function pushToLayer(
-  layers: Record<string, PathCommand[][]>,
+  layers: Record<string, LayerBuild>,
   layerName: string,
-  paths: PathCommand[][]
+  paths: PathCommand[][],
+  fillRule: FillRule = "nonzero"
 ) {
-  if (!layers[layerName]) layers[layerName] = [];
-  layers[layerName].push(...paths);
+  if (!layers[layerName]) layers[layerName] = { paths: [], fillRules: [] };
+  for (const path of paths) {
+    layers[layerName].paths.push(path);
+    layers[layerName].fillRules.push(fillRule);
+  }
 }
 
 /** Split a compound SVG path (multiple M…Z subpaths) into separate contours. */
@@ -295,8 +323,8 @@ function assignFlatLayers(
   component: string,
   shapes: FlatShape[],
   ruleKeys: string[]
-): Record<string, PathCommand[][]> {
-  const layers: Record<string, PathCommand[][]> = {};
+): Record<string, LayerBuild> {
+  const layers: Record<string, LayerBuild> = {};
   const has = (key: string) => ruleKeys.includes(key);
 
   const singleLayer = ruleKeys.length === 1 ? ruleKeys[0] : undefined;
@@ -305,26 +333,36 @@ function assignFlatLayers(
     const fill = shape.fill;
 
     if (component === "PassAccuracy" && has("ink.mark")) {
-      pushToLayer(layers, "ink.mark", shape.paths);
+      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
       continue;
     }
 
     if (component === "YellowCard") {
-      if (isInkFill(fill) && has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
-      else if (has("event.cardYellow")) pushToLayer(layers, "event.cardYellow", shape.paths);
+      if (isInkFill(fill) && has("ink.mark")) {
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      } else if (has("event.cardYellow")) {
+        pushToLayer(layers, "event.cardYellow", shape.paths, shape.fillRule);
+      }
       continue;
     }
 
     if (component === "RedCard") {
-      if (isInkFill(fill) && has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
-      else if (has("event.cardRed")) pushToLayer(layers, "event.cardRed", shape.paths);
+      if (isInkFill(fill) && has("ink.mark")) {
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      } else if (has("event.cardRed")) {
+        pushToLayer(layers, "event.cardRed", shape.paths, shape.fillRule);
+      }
       continue;
     }
 
     if (component === "Foul") {
-      if (isInkFill(fill) && has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
-      else if (has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
-      else if (isFoulFill(fill) && has("event.foul")) pushToLayer(layers, "event.foul", shape.paths);
+      if (isInkFill(fill) && has("ink.mark")) {
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      } else if (has("ink.mark")) {
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      } else if (isFoulFill(fill) && has("event.foul")) {
+        pushToLayer(layers, "event.foul", shape.paths, shape.fillRule);
+      }
       continue;
     }
 
@@ -333,37 +371,43 @@ function assignFlatLayers(
       if (path) {
         const segments = splitPathSubpaths(path);
         if (segments.length >= 3 && has("c1") && has("c2") && has("c3")) {
-          pushToLayer(layers, "c3", [segments[0]]);
-          pushToLayer(layers, "c2", [segments[1]]);
-          pushToLayer(layers, "c1", [segments[2]]);
+          pushToLayer(layers, "c3", [segments[0]], shape.fillRule);
+          pushToLayer(layers, "c2", [segments[1]], shape.fillRule);
+          pushToLayer(layers, "c1", [segments[2]], shape.fillRule);
         } else if (has("c3")) {
-          pushToLayer(layers, "c3", shape.paths);
+          pushToLayer(layers, "c3", shape.paths, shape.fillRule);
         }
       }
       continue;
     }
 
     if (component === "Goal") {
-      if (shape.kind === "rect" && has("c1")) pushToLayer(layers, "c1", shape.paths);
-      else if (has("c4")) pushToLayer(layers, "c4", shape.paths);
+      if (shape.kind === "rect" && has("c1")) {
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule);
+      } else if (has("c4")) {
+        pushToLayer(layers, "c4", shape.paths, shape.fillRule);
+      }
       continue;
     }
 
     if (component === "Shot") {
-      if (shape.kind === "rect" && has("c1")) pushToLayer(layers, "c1", shape.paths);
-      else if (has("c2")) pushToLayer(layers, "c2", shape.paths);
+      if (shape.kind === "rect" && has("c1")) {
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule);
+      } else if (has("c2")) {
+        pushToLayer(layers, "c2", shape.paths, shape.fillRule);
+      }
       continue;
     }
 
     if (singleLayer) {
-      pushToLayer(layers, singleLayer, shape.paths);
+      pushToLayer(layers, singleLayer, shape.paths, shape.fillRule);
       continue;
     }
 
     if (isInkFill(fill) && has("ink.mark")) {
-      pushToLayer(layers, "ink.mark", shape.paths);
+      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
     } else if (ruleKeys[0]) {
-      pushToLayer(layers, ruleKeys[0], shape.paths);
+      pushToLayer(layers, ruleKeys[0], shape.paths, shape.fillRule);
     }
   }
 
@@ -374,13 +418,13 @@ function layersFromSvg(
   svg: string,
   component: string,
   rules: Record<string, string>
-): { layers: Record<string, { paths: PathCommand[][] }>; mode: "groups" | "flat" } {
-  const layers: Record<string, { paths: PathCommand[][] }> = {};
+): { layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[] }>; mode: "groups" | "flat" } {
+  const layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[] }> = {};
   const ruleKeys = Object.keys(rules);
 
   for (const layerName of ruleKeys) {
     const layerPaths = extractLayerPaths(svg, layerName);
-    if (layerPaths.length > 0) layers[layerName] = { paths: layerPaths };
+    if (layerPaths.paths.length > 0) layers[layerName] = layerPaths;
   }
 
   if (Object.keys(layers).length > 0) {
@@ -389,42 +433,68 @@ function layersFromSvg(
 
   const flat = assignFlatLayers(component, extractFlatShapes(svg), ruleKeys);
   for (const layerName of ruleKeys) {
-    const paths = flat[layerName];
-    if (paths?.length) layers[layerName] = { paths };
+    const built = flat[layerName];
+    if (built?.paths.length) {
+      layers[layerName] = {
+        paths: built.paths,
+        fillRules: built.fillRules,
+      };
+    }
   }
-  for (const [layerName, paths] of Object.entries(flat)) {
-    if (!layers[layerName] && paths.length > 0) layers[layerName] = { paths };
+  for (const [layerName, built] of Object.entries(flat)) {
+    if (!layers[layerName] && built.paths.length > 0) {
+      layers[layerName] = {
+        paths: built.paths,
+        fillRules: built.fillRules,
+      };
+    }
   }
   return { layers, mode: "flat" };
 }
 
-function extractLayerPaths(svg: string, layerId: string): PathCommand[][] {
+function extractLayerPaths(
+  svg: string,
+  layerId: string
+): { paths: PathCommand[][]; fillRules: FillRule[] } {
   const paths: PathCommand[][] = [];
+  const fillRules: FillRule[] = [];
   const groupRe = new RegExp(
     `<g[^>]*\\bid=["']${layerId}["'][^>]*>([\\s\\S]*?)<\\/g>`,
     "i"
   );
   const groupMatch = svg.match(groupRe);
-  if (!groupMatch) return paths;
+  if (!groupMatch) return { paths, fillRules };
   const inner = groupMatch[1];
 
-  const pathRe = /<path[^>]*\bd=["']([^"']+)["'][^>]*\/?>/gi;
+  const pathRe = /<path\b([^>]*)\/?>/gi;
   let m: RegExpExecArray | null;
   while ((m = pathRe.exec(inner))) {
-    paths.push(parsePathD(m[1]));
+    const d = m[1].match(/\bd=["']([^"']+)["']/i)?.[1];
+    if (!d) continue;
+    paths.push(parsePathD(d));
+    fillRules.push(parseFillRule(m[1]));
   }
 
-  const rectRe = /<rect[^>]*\bx=["']([^"']+)["'][^>]*\by=["']([^"']+)["'][^>]*\bwidth=["']([^"']+)["'][^>]*\bheight=["']([^"']+)["'][^>]*\/?>/gi;
+  const rectRe = /<rect\b([^>]*)\/?>/gi;
   while ((m = rectRe.exec(inner))) {
-    paths.push(rectToPath(Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])));
+    const attrs = m[1];
+    const x = Number(attrs.match(/\bx=["']([^"']+)["']/i)?.[1] ?? 0);
+    const y = Number(attrs.match(/\by=["']([^"']+)["']/i)?.[1] ?? 0);
+    const w = Number(attrs.match(/\bwidth=["']([^"']+)["']/i)?.[1] ?? 0);
+    const h = Number(attrs.match(/\bheight=["']([^"']+)["']/i)?.[1] ?? 0);
+    if (w <= 0 || h <= 0) continue;
+    paths.push(rectToPath(x, y, w, h));
+    fillRules.push(parseFillRule(attrs));
   }
 
-  const ellipseRe = /<ellipse[^>]*\bcx=["']([^"']+)["'][^>]*\bcy=["']([^"']+)["'][^>]*\brx=["']([^"']+)["'][^>]*\bry=["']([^"']+)["'][^>]*\/?>/gi;
+  const ellipseRe = /<ellipse\b([^>]*)\/?>/gi;
   while ((m = ellipseRe.exec(inner))) {
-    const cx = Number(m[1]);
-    const cy = Number(m[2]);
-    const rx = Number(m[3]);
-    const ry = Number(m[4]);
+    const attrs = m[1];
+    const cx = Number(attrs.match(/\bcx=["']([^"']+)["']/i)?.[1] ?? 0);
+    const cy = Number(attrs.match(/\bcy=["']([^"']+)["']/i)?.[1] ?? 0);
+    const rx = Number(attrs.match(/\brx=["']([^"']+)["']/i)?.[1] ?? 0);
+    const ry = Number(attrs.match(/\bry=["']([^"']+)["']/i)?.[1] ?? 0);
+    if (rx <= 0 || ry <= 0) continue;
     paths.push([
       { t: "M", x: cx - rx, y: cy },
       { t: "C", x1: cx - rx, y1: cy - ry * 0.552, x2: cx - rx * 0.552, y2: cy - ry, x: cx, y: cy - ry },
@@ -433,9 +503,10 @@ function extractLayerPaths(svg: string, layerId: string): PathCommand[][] {
       { t: "C", x1: cx - rx * 0.552, y1: cy + ry, x2: cx - rx, y2: cy + ry * 0.552, x: cx - rx, y: cy },
       { t: "Z" },
     ]);
+    fillRules.push(parseFillRule(attrs));
   }
 
-  return paths;
+  return { paths, fillRules };
 }
 
 function main() {
@@ -481,6 +552,7 @@ export type PathCommand =
 
 export interface SvgLayerDef {
   paths: PathCommand[][];
+  fillRules?: ("evenodd" | "nonzero")[];
 }
 
 export interface SvgComponentDef {

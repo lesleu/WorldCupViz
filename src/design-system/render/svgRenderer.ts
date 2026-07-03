@@ -20,36 +20,23 @@ function layerDrawOrder(component: VisualComponent, layers: Record<string, unkno
   return ordered;
 }
 
-function drawPathCommands(p: p5, commands: PathCommand[]) {
-  p.beginShape();
+function tracePathCommands(ctx: CanvasRenderingContext2D, commands: PathCommand[]) {
   for (const cmd of commands) {
     switch (cmd.t) {
       case "M":
-        p.vertex(cmd.x, cmd.y);
+        ctx.moveTo(cmd.x, cmd.y);
         break;
       case "L":
-        p.vertex(cmd.x, cmd.y);
+        ctx.lineTo(cmd.x, cmd.y);
         break;
       case "C":
-        p.bezierVertex(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
+        ctx.bezierCurveTo(cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         break;
       case "Z":
-        p.endShape(p.CLOSE);
-        p.beginShape();
+        ctx.closePath();
         break;
     }
   }
-  p.endShape(p.CLOSE);
-}
-
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return [0, 0, 0];
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
 }
 
 export function getSvgComponentDef(component: VisualComponent): SvgComponentDef | undefined {
@@ -116,17 +103,21 @@ export function drawSvgComponent(
   p.scale(scale);
   p.translate(-viewBox.x - viewBox.w / 2, -viewBox.y - viewBox.h / 2);
 
+  const ctx = p.drawingContext as CanvasRenderingContext2D;
+
   for (const layerName of layerDrawOrder(component, layers)) {
     const layerDef = layers[layerName];
     if (!layerDef) continue;
     const color =
       options.colorOverrides?.[layerName] ??
       getComponentColor(component, palette, layerName, "c1");
-    const rgb = hexToRgb(color);
-    p.fill(rgb[0], rgb[1], rgb[2]);
-    p.noStroke();
-    for (const path of layerDef.paths) {
-      drawPathCommands(p, path);
+    ctx.fillStyle = color;
+    for (let i = 0; i < layerDef.paths.length; i++) {
+      const path = layerDef.paths[i];
+      const fillRule = layerDef.fillRules?.[i] ?? "nonzero";
+      ctx.beginPath();
+      tracePathCommands(ctx, path);
+      ctx.fill(fillRule);
     }
   }
 

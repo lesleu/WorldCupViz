@@ -82,10 +82,12 @@ export function drawSvgComponent2d(
       options.colorOverrides?.[layerName] ??
       getComponentColor(component, palette, layerName, "c1");
     ctx.fillStyle = color;
-    for (const path of layerDef.paths) {
+    for (let i = 0; i < layerDef.paths.length; i++) {
+      const path = layerDef.paths[i];
+      const fillRule = layerDef.fillRules?.[i] ?? "nonzero";
       ctx.beginPath();
       tracePathCommands(ctx, path);
-      ctx.fill();
+      ctx.fill(fillRule);
     }
   }
 
