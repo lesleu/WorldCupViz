@@ -25,8 +25,8 @@ export default function GameGridHome({
   const subtitle =
     dataSource === "static"
       ? syncedAt
-        ? `Full tournament schedule (synced ${new Date(syncedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}). Live matches update only on the match page.`
-        : "Full tournament schedule from committed match data. Live matches update only on the match page."
+        ? `Full tournament schedule (synced ${new Date(syncedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}). Live scores refresh from the match poll when Redis is configured.`
+        : "Full tournament schedule from committed match data. Live scores refresh from the match poll when Redis is configured."
       : "Demo fixtures — run npm run sync:matches when API quota is available to populate the full schedule.";
 
   const liveCount = initialMatches.filter((entry) => entry.status === "live").length;

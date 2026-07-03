@@ -4,7 +4,9 @@ import { cfg } from "@/config";
 import KickoffCoverPreview from "@/components/KickoffCoverPreview";
 import MatchCoverCanvas from "@/components/MatchCoverCanvas";
 import TbdCoverPreview from "@/components/TbdCoverPreview";
-import { getStaticFeed } from "@/lib/matches/feedLoader";
+import { getMatchFeed } from "@/lib/matches/matchService";
+import { hasStaticFeed } from "@/lib/matches/feedLoader";
+import { hasCompletedFeed } from "@/lib/matches/runtimeStore";
 
 interface MatchCoverPreviewProps {
   entry: MatchCatalogEntry;
@@ -30,19 +32,25 @@ export default async function MatchCoverPreview({ entry }: MatchCoverPreviewProp
     );
   }
 
-  if (entry.status === "completed" && entry.hasReplayFeed) {
-    const feed = await getStaticFeed(entry.id);
-    if (feed?.hasReplayFeed) {
-      return (
-        <MatchCoverCanvas
-          matchId={entry.id}
-          match={entry.matchData}
-          homeTeamCode={entry.homeTeamCode}
-          awayTeamCode={entry.awayTeamCode}
-          frozenMinute={coverFrozenMinute(entry)}
-          feed={feed}
-        />
-      );
+  if (entry.status === "completed") {
+    const canReplay =
+      entry.hasReplayFeed ||
+      hasStaticFeed(entry.id) ||
+      (await hasCompletedFeed(entry.id));
+    if (canReplay) {
+      const feed = await getMatchFeed(entry.id);
+      if (feed?.hasReplayFeed) {
+        return (
+          <MatchCoverCanvas
+            matchId={entry.id}
+            match={entry.matchData}
+            homeTeamCode={entry.homeTeamCode}
+            awayTeamCode={entry.awayTeamCode}
+            frozenMinute={coverFrozenMinute(entry)}
+            feed={feed}
+          />
+        );
+      }
     }
   }
 

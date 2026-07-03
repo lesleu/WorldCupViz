@@ -13,19 +13,13 @@ import {
   fetchFixtureEvents,
   fetchFixtureStatistics,
 } from "@/lib/matches/apiFootballClient";
+import { buildFeedResponse } from "@/lib/matches/buildFeed";
 import { feedRevalidateSeconds, getMatchApiConfig } from "@/lib/matches/config";
 import {
-  emptyFeedBundle,
-  getStaticFeed,
-} from "@/lib/matches/feedLoader";
-import {
-  adaptFixtureFeed,
   feedHasReplayContent,
+  maxFeedMinute,
 } from "@/lib/matches/feedAdapter";
-import {
-  mapFixtureStatus,
-  parseFixtureId,
-} from "@/lib/matches/matchAdapter";
+import { getPollMeta, getRuntimeFeed } from "@/lib/matches/runtimeStore";
 import {
   getDemoCatalog,
   getStaticMatchById,
@@ -33,6 +27,14 @@ import {
   getStaticScheduleSyncedAt,
   hasStaticSchedule,
 } from "@/lib/matches/scheduleLoader";
+import {
+  getMergedMatchById,
+  mergeScheduleWithOverlay,
+} from "@/lib/matches/scheduleOverlay";
+import {
+  emptyFeedBundle,
+  getStaticFeed,
+} from "@/lib/matches/feedLoader";
 import type { MatchFeedResponse, MatchListResponse } from "@/lib/matches/types";
 
 function isDemoMatchId(id: string): boolean {
@@ -46,7 +48,7 @@ function demoCatalog(stage?: TournamentStage): MatchListResponse {
   };
 }
 
-function staticCatalog(stage?: TournamentStage): MatchListResponse {
+async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse> {
   const scheduleMatches = getStaticSchedule(stage);
   const tbd = stage
     ? TBD_PLACEHOLDER_CATALOG.filter((entry) => entry.stage === stage)
@@ -58,85 +60,15 @@ function staticCatalog(stage?: TournamentStage): MatchListResponse {
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
   }
 
+  const merged = await mergeScheduleWithOverlay([...byId.values()]);
+  const pollMeta = await getPollMeta();
+
   return {
     source: "static",
-    matches: [...byId.values()].sort((a, b) => a.dateSort.localeCompare(b.dateSort)),
+    matches: merged.sort((a, b) => a.dateSort.localeCompare(b.dateSort)),
     syncedAt: getStaticScheduleSyncedAt() ?? undefined,
+    runtimePollAt: pollMeta.lastPollAt,
   };
-}
-
-interface LiveFeedCacheEntry {
-  expires: number;
-  data: MatchFeedResponse;
-}
-
-const liveFeedCache = new Map<string, LiveFeedCacheEntry>();
-const liveFeedInFlight = new Map<string, Promise<MatchFeedResponse>>();
-
-function liveFeedCacheKey(fixtureId: number, sinceMinute?: number): string {
-  return `${fixtureId}:${sinceMinute ?? "full"}`;
-}
-
-async function loadLiveMatchFeed(
-  fixtureId: number,
-  sinceMinute?: number
-): Promise<MatchFeedResponse> {
-  const cacheKey = liveFeedCacheKey(fixtureId, sinceMinute);
-  const now = Date.now();
-  const cached = liveFeedCache.get(cacheKey);
-  if (cached && cached.expires > now) {
-    return cached.data;
-  }
-
-  const pending = liveFeedInFlight.get(cacheKey);
-  if (pending) return pending;
-
-  const promise = (async () => {
-    const fixture = await fetchFixtureById(fixtureId, 0);
-    if (!fixture) return emptyFeedBundle();
-
-    const status = mapFixtureStatus(fixture.fixture.status.short);
-    if (status !== "live") {
-      const staticFeed = await getStaticFeed(String(fixtureId), sinceMinute);
-      if (staticFeed) return staticFeed;
-      return emptyFeedBundle();
-    }
-
-    const revalidate = feedRevalidateSeconds("live");
-    let events: Awaited<ReturnType<typeof fetchFixtureEvents>> = [];
-    let statistics: Awaited<ReturnType<typeof fetchFixtureStatistics>> = [];
-    try {
-      [events, statistics] = await Promise.all([
-        fetchFixtureEvents(fixtureId, revalidate),
-        fetchFixtureStatistics(fixtureId, revalidate),
-      ]);
-    } catch (error) {
-      console.warn(`Live feed ${fixtureId} fetch failed:`, error);
-    }
-
-    const bundle = adaptFixtureFeed(fixture, events, statistics);
-    const feed =
-      sinceMinute != null
-        ? bundle.feed.filter((update) => update.minute > sinceMinute)
-        : bundle.feed;
-
-    const result: MatchFeedResponse = {
-      ...bundle,
-      feed,
-      hasReplayFeed: feedHasReplayContent(feed),
-    };
-
-    liveFeedCache.set(cacheKey, {
-      data: result,
-      expires: Date.now() + 15_000,
-    });
-    return result;
-  })().finally(() => {
-    liveFeedInFlight.delete(cacheKey);
-  });
-
-  liveFeedInFlight.set(cacheKey, promise);
-  return promise;
 }
 
 export async function listMatches(
@@ -150,8 +82,53 @@ export async function listMatches(
 }
 
 export async function getMatch(id: string): Promise<MatchCatalogEntry | null> {
-  const match = getStaticMatchById(id);
-  return match ?? null;
+  const base = getStaticMatchById(id);
+  if (!base) return null;
+  return getMergedMatchById(base);
+}
+
+async function loadLiveFeedFromApi(
+  fixtureId: number,
+  sinceMinute?: number
+): Promise<MatchFeedResponse | null> {
+  if (!getMatchApiConfig().enabled) return null;
+
+  const fixture = await fetchFixtureById(fixtureId, 0);
+  if (!fixture) return null;
+
+  const status = mapFixtureStatus(fixture.fixture.status.short);
+  if (status !== "live") return null;
+
+  const revalidate = feedRevalidateSeconds("live");
+  let events: Awaited<ReturnType<typeof fetchFixtureEvents>> = [];
+  let statistics: Awaited<ReturnType<typeof fetchFixtureStatistics>> = [];
+  try {
+    [events, statistics] = await Promise.all([
+      fetchFixtureEvents(fixtureId, revalidate),
+      fetchFixtureStatistics(fixtureId, revalidate),
+    ]);
+  } catch (error) {
+    console.warn(`Live feed ${fixtureId} fetch failed:`, error);
+  }
+
+  const built = buildFeedResponse(fixture, events, statistics);
+  const feed =
+    sinceMinute != null
+      ? built.feed.filter((update) => update.minute > sinceMinute)
+      : built.feed;
+
+  return {
+    ...built,
+    feed,
+    hasReplayFeed: feedHasReplayContent(feed),
+    status: "live",
+    currentMinute: maxFeedMinute(built.feed) || undefined,
+  };
+}
+
+function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
+  if (!feed) return false;
+  return feed.hasReplayFeed || feed.feed.length > 1;
 }
 
 export async function getMatchFeed(
@@ -174,13 +151,15 @@ export async function getMatchFeed(
     };
   }
 
-  const entry = getStaticMatchById(id);
-  const matchStatus = entry?.status ?? "scheduled";
+  const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
+  if (runtimeFeedHasContent(runtimeFeed)) return runtimeFeed!;
 
-  if (matchStatus === "live" && getMatchApiConfig().enabled) {
+  const entry = await getMatch(id);
+  if (entry?.status === "live") {
     const fixtureId = parseFixtureId(id);
     if (fixtureId) {
-      return loadLiveMatchFeed(fixtureId, sinceMinute);
+      const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
+      if (runtimeFeedHasContent(liveFeed)) return liveFeed!;
     }
   }
 

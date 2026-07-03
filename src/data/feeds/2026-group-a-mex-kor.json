@@ -1,0 +1,415 @@
+{
+  "feed": [
+    {
+      "minute": 0,
+      "type": "state_update",
+      "home": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 8,
+      "type": "state_update",
+      "home": {
+        "possession": 44,
+        "passAccuracy": 72,
+        "totalPasses": 62,
+        "passesAccurate": 45
+      },
+      "away": {
+        "possession": 56,
+        "passAccuracy": 78,
+        "totalPasses": 78,
+        "passesAccurate": 61
+      }
+    },
+    {
+      "minute": 5,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 9,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 12,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 14,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul"
+    },
+    {
+      "minute": 16,
+      "type": "event",
+      "team": "home",
+      "eventType": "yellow_card"
+    },
+    {
+      "minute": 18,
+      "type": "state_update",
+      "home": {
+        "possession": 40,
+        "passAccuracy": 74,
+        "totalPasses": 110,
+        "passesAccurate": 81
+      },
+      "away": {
+        "possession": 60,
+        "passAccuracy": 81,
+        "totalPasses": 142,
+        "passesAccurate": 115
+      }
+    },
+    {
+      "minute": 22,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner"
+    },
+    {
+      "minute": 24,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 27,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot_on_target"
+    },
+    {
+      "minute": 29,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 32,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 31,
+      "type": "state_update",
+      "home": {
+        "possession": 43,
+        "passAccuracy": 76,
+        "totalPasses": 168,
+        "passesAccurate": 128
+      },
+      "away": {
+        "possession": 57,
+        "passAccuracy": 82,
+        "totalPasses": 198,
+        "passesAccurate": 162
+      }
+    },
+    {
+      "minute": 34,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul"
+    },
+    {
+      "minute": 38,
+      "type": "event",
+      "team": "away",
+      "eventType": "offside"
+    },
+    {
+      "minute": 41,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 44,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 47,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 45,
+      "type": "state_update",
+      "home": {
+        "possession": 41,
+        "passAccuracy": 77,
+        "totalPasses": 210,
+        "passesAccurate": 162
+      },
+      "away": {
+        "possession": 59,
+        "passAccuracy": 83,
+        "totalPasses": 248,
+        "passesAccurate": 206
+      }
+    },
+    {
+      "minute": 50,
+      "type": "event",
+      "team": "home",
+      "eventType": "goal"
+    },
+    {
+      "minute": 52,
+      "type": "event",
+      "team": "away",
+      "eventType": "red_card"
+    },
+    {
+      "minute": 52,
+      "type": "state_update",
+      "home": {
+        "possession": 48,
+        "passAccuracy": 78,
+        "totalPasses": 252,
+        "passesAccurate": 197
+      },
+      "away": {
+        "possession": 52,
+        "passAccuracy": 80,
+        "totalPasses": 268,
+        "passesAccurate": 214
+      }
+    },
+    {
+      "minute": 55,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 58,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot_on_target"
+    },
+    {
+      "minute": 61,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul"
+    },
+    {
+      "minute": 64,
+      "type": "state_update",
+      "home": {
+        "possession": 42,
+        "passAccuracy": 77,
+        "totalPasses": 298,
+        "passesAccurate": 229
+      },
+      "away": {
+        "possession": 58,
+        "passAccuracy": 83,
+        "totalPasses": 322,
+        "passesAccurate": 267
+      }
+    },
+    {
+      "minute": 63,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 67,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner"
+    },
+    {
+      "minute": 68,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 70,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 73,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot_on_target"
+    },
+    {
+      "minute": 76,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul"
+    },
+    {
+      "minute": 79,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul"
+    },
+    {
+      "minute": 82,
+      "type": "state_update",
+      "home": {
+        "possession": 42,
+        "passAccuracy": 77,
+        "totalPasses": 340,
+        "passesAccurate": 262
+      },
+      "away": {
+        "possession": 58,
+        "passAccuracy": 83,
+        "totalPasses": 368,
+        "passesAccurate": 305
+      }
+    },
+    {
+      "minute": 77,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 81,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 84,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 87,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 89,
+      "type": "event",
+      "team": "away",
+      "eventType": "offside"
+    },
+    {
+      "minute": 91,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 95,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot"
+    },
+    {
+      "minute": 96,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot_on_target"
+    },
+    {
+      "minute": 99,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot"
+    },
+    {
+      "minute": 102,
+      "type": "event",
+      "team": "home",
+      "eventType": "corner"
+    },
+    {
+      "minute": 121,
+      "type": "event",
+      "team": "home",
+      "eventType": "penalty_scored",
+      "sequence": 0
+    },
+    {
+      "minute": 122,
+      "type": "event",
+      "team": "away",
+      "eventType": "penalty_missed",
+      "sequence": 0
+    },
+    {
+      "minute": 123,
+      "type": "event",
+      "team": "home",
+      "eventType": "penalty_scored",
+      "sequence": 1
+    },
+    {
+      "minute": 124,
+      "type": "event",
+      "team": "away",
+      "eventType": "penalty_scored",
+      "sequence": 1
+    },
+    {
+      "minute": 125,
+      "type": "event",
+      "team": "home",
+      "eventType": "penalty_missed",
+      "sequence": 2
+    },
+    {
+      "minute": 126,
+      "type": "event",
+      "team": "away",
+      "eventType": "penalty_scored",
+      "sequence": 2
+    }
+  ],
+  "kickoff": {
+    "minute": 0,
+    "type": "state_update",
+    "home": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    },
+    "away": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    }
+  },
+  "hasReplayFeed": true,
+  "status": "completed",
+  "currentMinute": 126
+}

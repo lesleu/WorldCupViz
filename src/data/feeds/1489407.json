@@ -1,0 +1,416 @@
+{
+  "feed": [
+    {
+      "minute": 0,
+      "type": "state_update",
+      "home": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 4,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 0
+    },
+    {
+      "minute": 5,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 0
+    },
+    {
+      "minute": 6,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 0
+    },
+    {
+      "minute": 8,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 0
+    },
+    {
+      "minute": 9,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot",
+      "sequence": 0
+    },
+    {
+      "minute": 11,
+      "type": "event",
+      "team": "home",
+      "eventType": "corner",
+      "sequence": 0
+    },
+    {
+      "minute": 12,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 1
+    },
+    {
+      "minute": 13,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 1
+    },
+    {
+      "minute": 14,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot_on_target",
+      "sequence": 0
+    },
+    {
+      "minute": 14,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot_on_target",
+      "sequence": 0
+    },
+    {
+      "minute": 15,
+      "type": "event",
+      "team": "home",
+      "eventType": "offside",
+      "sequence": 0
+    },
+    {
+      "minute": 17,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 1
+    },
+    {
+      "minute": 21,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 1
+    },
+    {
+      "minute": 25,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot",
+      "sequence": 1
+    },
+    {
+      "minute": 26,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 2
+    },
+    {
+      "minute": 27,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 2
+    },
+    {
+      "minute": 32,
+      "type": "event",
+      "team": "home",
+      "eventType": "corner",
+      "sequence": 1
+    },
+    {
+      "minute": 34,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 2
+    },
+    {
+      "minute": 34,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 3
+    },
+    {
+      "minute": 35,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 3
+    },
+    {
+      "minute": 40,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 2
+    },
+    {
+      "minute": 43,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot_on_target",
+      "sequence": 1
+    },
+    {
+      "minute": 43,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 4
+    },
+    {
+      "minute": 43,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 4
+    },
+    {
+      "minute": 44,
+      "type": "event",
+      "team": "home",
+      "eventType": "offside",
+      "sequence": 1
+    },
+    {
+      "minute": 45,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 3
+    },
+    {
+      "minute": 46,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot",
+      "sequence": 2
+    },
+    {
+      "minute": 48,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot_on_target",
+      "sequence": 1
+    },
+    {
+      "minute": 53,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 3
+    },
+    {
+      "minute": 56,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 4
+    },
+    {
+      "minute": 56,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 5
+    },
+    {
+      "minute": 57,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 5
+    },
+    {
+      "minute": 58,
+      "type": "event",
+      "team": "home",
+      "eventType": "corner",
+      "sequence": 2
+    },
+    {
+      "minute": 63,
+      "type": "event",
+      "team": "home",
+      "eventType": "goal"
+    },
+    {
+      "minute": 63,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot",
+      "sequence": 3
+    },
+    {
+      "minute": 65,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 6
+    },
+    {
+      "minute": 65,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 6
+    },
+    {
+      "minute": 66,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 4
+    },
+    {
+      "minute": 72,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 5
+    },
+    {
+      "minute": 73,
+      "type": "event",
+      "team": "home",
+      "eventType": "yellow_card"
+    },
+    {
+      "minute": 73,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 7
+    },
+    {
+      "minute": 73,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 7
+    },
+    {
+      "minute": 76,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot_on_target",
+      "sequence": 2
+    },
+    {
+      "minute": 76,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot_on_target",
+      "sequence": 2
+    },
+    {
+      "minute": 77,
+      "type": "event",
+      "team": "home",
+      "eventType": "offside",
+      "sequence": 2
+    },
+    {
+      "minute": 79,
+      "type": "event",
+      "team": "away",
+      "eventType": "yellow_card"
+    },
+    {
+      "minute": 79,
+      "type": "event",
+      "team": "home",
+      "eventType": "corner",
+      "sequence": 3
+    },
+    {
+      "minute": 79,
+      "type": "event",
+      "team": "away",
+      "eventType": "shot",
+      "sequence": 4
+    },
+    {
+      "minute": 83,
+      "type": "event",
+      "team": "home",
+      "eventType": "foul",
+      "sequence": 6
+    },
+    {
+      "minute": 85,
+      "type": "event",
+      "team": "away",
+      "eventType": "corner",
+      "sequence": 5
+    },
+    {
+      "minute": 87,
+      "type": "event",
+      "team": "home",
+      "eventType": "shot",
+      "sequence": 8
+    },
+    {
+      "minute": 87,
+      "type": "event",
+      "team": "away",
+      "eventType": "foul",
+      "sequence": 8
+    },
+    {
+      "minute": 90,
+      "type": "state_update",
+      "home": {
+        "possession": 32,
+        "passAccuracy": 81,
+        "totalPasses": 162,
+        "passesAccurate": 81
+      },
+      "away": {
+        "possession": 68,
+        "passAccuracy": 89,
+        "totalPasses": 178,
+        "passesAccurate": 89
+      }
+    }
+  ],
+  "kickoff": {
+    "minute": 0,
+    "type": "state_update",
+    "home": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    },
+    "away": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    }
+  },
+  "currentMinute": 90,
+  "status": "completed",
+  "hasReplayFeed": true
+}

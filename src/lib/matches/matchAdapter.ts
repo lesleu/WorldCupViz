@@ -21,6 +21,14 @@ const kickoffStats: TeamStats = {
 const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "INT"]);
 const COMPLETED_STATUSES = new Set(["FT", "AET", "PEN"]);
 
+export function isLiveApiStatus(short: string): boolean {
+  return LIVE_STATUSES.has(short);
+}
+
+export function isCompletedApiStatus(short: string): boolean {
+  return COMPLETED_STATUSES.has(short);
+}
+
 export function mapFixtureStatus(short: string): MatchStatus {
   if (COMPLETED_STATUSES.has(short)) return "completed";
   if (LIVE_STATUSES.has(short)) return "live";
@@ -154,10 +162,7 @@ export function adaptFixtureToCatalogEntry(
     finalMinute,
     hasReplayFeed: isTbd
       ? false
-      : (options?.hasReplayFeed ??
-        (status === "live" ||
-          (status === "completed" &&
-            ((fixture.goals.home ?? 0) + (fixture.goals.away ?? 0) > 0)))),
+      : (options?.hasReplayFeed ?? (status === "live" || status === "completed")),
     matchData: buildMatchData(
       fixture,
       homeCode,

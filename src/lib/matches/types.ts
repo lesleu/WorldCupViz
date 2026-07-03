@@ -19,6 +19,8 @@ export interface MatchListResponse {
   matches: import("@/data/matchCatalog").MatchCatalogEntry[];
   /** ISO timestamp of last `npm run sync:matches` schedule write. */
   syncedAt?: string;
+  /** ISO timestamp of last runtime cron poll (KV overlay). */
+  runtimePollAt?: string;
 }
 
 export interface MatchFeedResponse extends MatchFeedBundle {
