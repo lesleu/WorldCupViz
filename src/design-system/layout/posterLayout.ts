@@ -203,6 +203,51 @@ export function computeArtworkLayout(width: number, height: number): PosterLayou
   return buildPosterLayout(width, height, 0, height, 0, height, height);
 }
 
+/** One team's artwork fills the canvas — for mobile stacked team panels. */
+export function computeSingleTeamArtworkLayout(
+  width: number,
+  height: number,
+  side: "home" | "away"
+): PosterLayout {
+  const zones = cfg.composition.zones;
+  const homeRight = side === "home" ? width : 0;
+  const awayLeft = side === "away" ? 0 : width;
+
+  return {
+    margin: 0,
+    width,
+    height,
+    titleBandBottom: 0,
+    headerBottom: 0,
+    artworkTop: 0,
+    artworkBottom: height,
+    waveformTop: height,
+    waveformBottom: height,
+    centerGapLeft: homeRight,
+    centerGapRight: awayLeft,
+    artworkWidth: width,
+    artworkHeight: height,
+    homeZone: buildTeamZone(
+      0,
+      homeRight,
+      0,
+      height,
+      zones.homeAnchorXRatio,
+      zones.homeClusterRadiusRatio,
+      "home"
+    ),
+    awayZone: buildTeamZone(
+      awayLeft,
+      width,
+      0,
+      height,
+      zones.awayAnchorXRatio,
+      zones.awayClusterRadiusRatio,
+      "away"
+    ),
+  };
+}
+
 export function computeCompositionAnchors(layout: PosterLayout): CompositionAnchors {
   const zones = cfg.composition.zones;
   return {

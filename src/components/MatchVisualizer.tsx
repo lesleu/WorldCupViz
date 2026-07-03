@@ -5,9 +5,12 @@ import type p5 from "p5";
 import type { MatchData } from "@/data/mockMatch";
 import type { MatchStatus } from "@/data/matchCatalog";
 import { initialMatchState } from "@/data/mockLiveFeed";
-import { computeArtworkLayout } from "@/design-system/layout/posterLayout";
+import {
+  computeArtworkLayout,
+  computeSingleTeamArtworkLayout,
+} from "@/design-system/layout/posterLayout";
 import { createReplayEngine, type ReplayEngine } from "@/engine/replayEngine";
-import type { ReplayControlBundle } from "@/engine/replayControls";
+import type { ReplayControlBundle, ReplayUiState } from "@/engine/replayControls";
 import { EMPTY_REPLAY_UI, NOOP_REPLAY_ACTIONS } from "@/engine/replayControls";
 import { fetchMatchFeedFromApi } from "@/lib/matches/clientApi";
 import { getFeedForMatch } from "@/data/matchFeeds";
@@ -15,6 +18,7 @@ import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG, cfg } from "@/config";
 
 export type AppMode = "replay" | "live";
+export type TeamSide = "home" | "away";
 
 interface MatchVisualizerProps {
   matchId: string;
@@ -24,6 +28,11 @@ interface MatchVisualizerProps {
   hasReplayFeed?: boolean;
   finalMinute?: number;
   onControls?: (controls: ReplayControlBundle) => void;
+  /** Render one team's artwork full-width (mobile stacked panels). */
+  teamSide?: TeamSide;
+  /** Sync play state from the primary canvas (mobile away panel). */
+  replayUi?: ReplayUiState;
+  className?: string;
 }
 
 type P5Constructor = new (sketch: (p: p5) => void, node?: HTMLElement) => p5;
@@ -183,8 +192,12 @@ export default function MatchVisualizer({
   hasReplayFeed = false,
   finalMinute: finalMinuteProp,
   onControls,
+  teamSide,
+  replayUi,
+  className = "",
 }: MatchVisualizerProps) {
   const sketchHostRef = useRef<HTMLDivElement>(null);
+  const engineRef = useRef<ReplayEngine | null>(null);
   const onControlsRef = useRef(onControls);
   const hasReplayFeedRef = useRef(hasReplayFeed);
   const [initError, setInitError] = useState<string | null>(null);
@@ -331,6 +344,7 @@ export default function MatchVisualizer({
           feedBundle.feed,
           feedBundle.kickoff ?? initialMatchState
         );
+        engineRef.current = engine;
         engine.setLiveClockMode(useLiveClock);
         feedAvailable =
           Boolean(feedBundle.hasReplayFeed) ||
@@ -367,6 +381,8 @@ export default function MatchVisualizer({
         p5Instance = new P5(
           createReplaySketch(match, getSize, () => engine, {
             liveAssetMotion: isLiveMatch,
+            artworkOnly: Boolean(teamSide),
+            teamSide,
           }),
           sketchHostRef.current
         );
@@ -411,14 +427,39 @@ export default function MatchVisualizer({
       p5Instance?.remove();
       p5Instance = null;
       engine = null;
+      engineRef.current = null;
     };
-  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, match]);
+  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, match, teamSide]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    const host = sketchHostRef.current;
+    if (!engine || !host || !match || !replayUi || teamSide !== "away") return;
+
+    const width = Math.max(host.clientWidth, 1);
+    const height = Math.max(host.clientHeight, 1);
+    const layout = computeSingleTeamArtworkLayout(width, height, "away");
+
+    if (engine.speed !== replayUi.speed) {
+      engine.setSpeed(replayUi.speed);
+    }
+
+    if (Math.abs(engine.minute - replayUi.minute) > 0.12) {
+      engine.seekToMinute(replayUi.minute, layout, match);
+    }
+
+    if (replayUi.isPlaying && !engine.isPlaying) {
+      engine.play();
+    } else if (!replayUi.isPlaying && engine.isPlaying) {
+      engine.pause();
+    }
+  }, [match, replayUi, teamSide]);
 
   const showIdle = !match;
 
   return (
     <div
-      className="relative h-full min-h-0 w-full overflow-hidden"
+      className={`relative h-full min-h-0 w-full overflow-hidden ${className}`}
       style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
     >
       <div ref={sketchHostRef} className="absolute inset-0 h-full w-full" />

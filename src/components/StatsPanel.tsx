@@ -36,6 +36,7 @@ interface StatsPanelProps {
   replayUi: ReplayUiState;
   replayActions: RefObject<ReplayActions>;
   onModeChange: (mode: AppMode) => void;
+  className?: string;
 }
 
 function buildStatRows(
@@ -69,58 +70,120 @@ function buildStatRows(
   return rows;
 }
 
-function TeamBlock({
+export function MatchTeamHeader({
+  match,
+  matchStatus,
+  homeAccent,
+  awayAccent,
+}: {
+  match: MatchData;
+  matchStatus?: MatchStatus;
+  homeAccent: string;
+  awayAccent: string;
+}) {
+  return (
+    <div className="mt-4 space-y-2 text-center">
+      <div className="flex items-center justify-center gap-3">
+        <span
+          className={`min-w-0 flex-1 text-right text-sm leading-tight ${interExtra}`}
+          style={{ color: homeAccent }}
+        >
+          {match.homeTeam}
+        </span>
+        <div className="shrink-0 px-1">
+          <p
+            className={`font-mono text-lg tabular-nums ${interExtra}`}
+            style={{ color: panelText }}
+          >
+            {match.home.goals}–{match.away.goals}
+          </p>
+          <p
+            className={`text-[9px] uppercase tracking-[0.2em] ${interSemi}`}
+            style={{ color: panelMuted }}
+          >
+            vs
+          </p>
+        </div>
+        <span
+          className={`min-w-0 flex-1 text-left text-sm leading-tight ${interExtra}`}
+          style={{ color: awayAccent }}
+        >
+          {match.awayTeam}
+        </span>
+      </div>
+      <p
+        className={`text-[10px] uppercase tracking-[0.2em] ${interSemi}`}
+        style={{ color: panelMuted }}
+      >
+        {match.stage}
+        {match.date ? ` · ${match.date}` : ""}
+      </p>
+      {matchStatus === "live" && (
+        <div className="flex justify-center pt-1">
+          <LiveBadge />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TeamStatsBlock({
   teamName,
   stats,
   accent,
   teamPalette,
   showPenaltyShootout = false,
+  className = "",
 }: {
   teamName: string;
   stats: TeamStats;
   accent: string;
   teamPalette: TeamPalette;
   showPenaltyShootout?: boolean;
+  className?: string;
 }) {
   const rows = buildStatRows(stats, showPenaltyShootout);
+  const coreRows = rows.slice(0, 10);
+  const extraRows = rows.slice(10);
+
+  const renderStatCell = ({ label, value, icon }: StatRow) => (
+    <div
+      key={label}
+      className="flex min-w-0 flex-col items-center gap-1 rounded-sm border px-2 py-2.5 min-[615px]:grid min-[615px]:grid-cols-[20px_minmax(0,1fr)_auto] min-[615px]:items-center min-[615px]:gap-x-2 min-[615px]:rounded-none min-[615px]:border-0 min-[615px]:border-b min-[615px]:px-0 min-[615px]:py-0 min-[615px]:pb-2"
+      style={{ borderColor: panelBorder }}
+    >
+      <StatRowIcon
+        component={icon}
+        colorOverrides={
+          icon === VISUAL_COMPONENT.Corner ? { c5: teamPalette.c5 } : undefined
+        }
+      />
+      <dt
+        className={`text-center text-[10px] uppercase leading-tight tracking-wide min-[615px]:text-[11px] min-[615px]:tracking-wider ${interSemi}`}
+        style={{ color: panelMuted }}
+      >
+        {label}
+      </dt>
+      <dd
+        className={`text-sm tabular-nums min-[615px]:text-right ${interSemi}`}
+        style={{ color: panelText }}
+      >
+        {value}
+      </dd>
+    </div>
+  );
 
   return (
-    <section className="space-y-3">
+    <section className={`space-y-3 ${className}`}>
       <h2
         className={`text-center text-xs uppercase tracking-[0.25em] ${interExtra}`}
         style={{ color: accent }}
       >
         {teamName}
       </h2>
-      <dl className="space-y-2">
-        {rows.map(({ label, value, icon }) => (
-          <div
-            key={label}
-            className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2 border-b pb-2"
-            style={{ borderColor: panelBorder }}
-          >
-            <StatRowIcon
-              component={icon}
-              colorOverrides={
-                icon === VISUAL_COMPONENT.Corner
-                  ? { c5: teamPalette.c5 }
-                  : undefined
-              }
-            />
-            <dt
-              className={`text-center text-[11px] uppercase tracking-wider ${interSemi}`}
-              style={{ color: panelMuted }}
-            >
-              {label}
-            </dt>
-            <dd
-              className={`text-sm tabular-nums ${interSemi}`}
-              style={{ color: panelText }}
-            >
-              {value}
-            </dd>
-          </div>
-        ))}
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-3 min-[615px]:grid-cols-1 min-[615px]:gap-y-0 min-[615px]:space-y-2">
+        {coreRows.map(renderStatCell)}
+        {extraRows.map(renderStatCell)}
       </dl>
     </section>
   );
@@ -213,6 +276,168 @@ function LiveModePanel({
   );
 }
 
+export function MatchModeControls({
+  match,
+  mode,
+  matchStatus,
+  hasReplayFeed = false,
+  replayUi,
+  replayActions,
+  onModeChange,
+  className = "",
+}: {
+  match: MatchData | null;
+  mode: AppMode;
+  matchStatus?: MatchStatus;
+  hasReplayFeed?: boolean;
+  replayUi: ReplayUiState;
+  replayActions: RefObject<ReplayActions>;
+  onModeChange: (mode: AppMode) => void;
+  className?: string;
+}) {
+  const actions = () => replayActions.current;
+
+  return (
+    <div
+      className={`border-b p-4 min-[615px]:p-5 ${className}`}
+      style={{ borderColor: panelBorder, backgroundColor: panelBg }}
+    >
+      <p
+        className={`text-[10px] uppercase tracking-[0.35em] ${interSemi}`}
+        style={{ color: panelMuted }}
+      >
+        Match Data
+      </p>
+      <h1
+        className={`mt-2 hidden text-lg min-[615px]:block ${interExtra}`}
+        style={{ color: panelText }}
+      >
+        World Cup Vizi
+      </h1>
+
+      {matchStatus === "live" && (
+        <div className="mt-3 hidden min-[615px]:block">
+          <LiveBadge />
+        </div>
+      )}
+
+      <div className="mt-4 flex gap-2">
+        <ModeButton
+          active={mode === "replay"}
+          label="Replay Match"
+          onClick={() => onModeChange("replay")}
+        />
+        <ModeButton
+          active={mode === "live"}
+          label="Live Match"
+          onClick={() => onModeChange("live")}
+        />
+      </div>
+
+      {mode === "replay" && match && (
+        <div className="mt-4 space-y-3">
+          <p
+            className={`hidden text-[10px] uppercase tracking-wider min-[615px]:block ${interSemi}`}
+            style={{ color: panelMuted }}
+          >
+            {match.homeTeam} vs {match.awayTeam}
+          </p>
+
+          {!hasReplayFeed && (
+            <p
+              className={`text-[10px] uppercase tracking-wider ${interSemi}`}
+              style={{ color: panelMuted }}
+            >
+              Replay coming soon
+            </p>
+          )}
+
+          {!replayUi.ready && (
+            <p
+              className={`text-[10px] uppercase tracking-wider ${interSemi}`}
+              style={{ color: panelMuted }}
+            >
+              Starting visualizer…
+            </p>
+          )}
+
+          {hasReplayFeed && (
+            <>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={!replayUi.ready}
+                  onClick={() => {
+                    if (replayUi.isPlaying) actions().pause();
+                    else actions().play();
+                  }}
+                  className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: panelText,
+                    borderColor: panelBorder,
+                  }}
+                >
+                  {replayUi.isPlaying ? "Pause" : "Play"}
+                </button>
+                <button
+                  type="button"
+                  disabled={!replayUi.ready}
+                  onClick={() => actions().reset()}
+                  className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: panelText,
+                    borderColor: panelBorder,
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+
+              <div>
+                <p
+                  className="mb-2 font-mono text-[10px] uppercase tracking-wider"
+                  style={{ color: panelMuted }}
+                >
+                  Speed
+                </p>
+                <div className="flex gap-1">
+                  {cfg.replay.speedOptions.map((speed) => (
+                    <button
+                      key={speed}
+                      type="button"
+                      disabled={!replayUi.ready}
+                      onClick={() => actions().setSpeed(speed)}
+                      className="flex-1 border px-1 py-1.5 font-mono text-[10px] uppercase transition disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        backgroundColor:
+                          replayUi.speed === speed ? panelText : "transparent",
+                        color: replayUi.speed === speed ? panelBg : panelText,
+                        borderColor:
+                          replayUi.speed === speed ? panelText : panelBorder,
+                      }}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p
+                className={`text-[10px] uppercase tracking-wider ${interSemi}`}
+                style={{ color: panelMuted }}
+              >
+                Minute: {formatReplayMinute(replayUi.minute, replayUi.isPlaying)}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StatsPanel({
   match,
   mode,
@@ -221,8 +446,8 @@ export default function StatsPanel({
   replayUi,
   replayActions,
   onModeChange,
+  className = "",
 }: StatsPanelProps) {
-  const actions = () => replayActions.current;
   const showPenaltyShootout =
     Boolean(match) &&
     (match!.home.penaltyShootoutScored > 0 ||
@@ -237,163 +462,36 @@ export default function StatsPanel({
 
   return (
     <aside
-      className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l"
+      className={`flex w-full shrink-0 flex-col overflow-visible border-t min-[615px]:h-full min-[615px]:w-72 min-[615px]:overflow-hidden min-[615px]:border-l min-[615px]:border-t-0 ${className}`}
       style={{ backgroundColor: panelBg, borderColor: panelBorder }}
     >
-      <div className="border-b p-5" style={{ borderColor: panelBorder }}>
-        <p
-          className={`text-[10px] uppercase tracking-[0.35em] ${interSemi}`}
-          style={{ color: panelMuted }}
-        >
-          Match Data
-        </p>
-        <h1
-          className={`mt-2 text-lg ${interExtra}`}
-          style={{ color: panelText }}
-        >
-          World Cup Vizi
-        </h1>
+      <MatchModeControls
+        match={match}
+        mode={mode}
+        matchStatus={matchStatus}
+        hasReplayFeed={hasReplayFeed}
+        replayUi={replayUi}
+        replayActions={replayActions}
+        onModeChange={onModeChange}
+        className="border-b"
+      />
 
-        {matchStatus === "live" && (
-          <div className="mt-3">
-            <LiveBadge />
-          </div>
-        )}
-
-        <div className="mt-4 flex gap-2">
-          <ModeButton
-            active={mode === "replay"}
-            label="Replay Match"
-            onClick={() => onModeChange("replay")}
-          />
-          <ModeButton
-            active={mode === "live"}
-            label="Live Match"
-            onClick={() => onModeChange("live")}
-          />
-        </div>
-
-        {mode === "replay" && (
-          <>
-            {match && (
-              <div className="mt-4 space-y-3">
-                <p
-                  className={`text-[10px] uppercase tracking-wider ${interSemi}`}
-                  style={{ color: panelMuted }}
-                >
-                  {match.homeTeam} vs {match.awayTeam}
-                </p>
-
-                {!hasReplayFeed && (
-                  <p
-                    className={`text-[10px] uppercase tracking-wider ${interSemi}`}
-                    style={{ color: panelMuted }}
-                  >
-                    Replay coming soon
-                  </p>
-                )}
-
-                {!replayUi.ready && (
-                  <p
-                    className={`text-[10px] uppercase tracking-wider ${interSemi}`}
-                    style={{ color: panelMuted }}
-                  >
-                    Starting visualizer…
-                  </p>
-                )}
-
-                {hasReplayFeed && (
-                  <>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={!replayUi.ready}
-                        onClick={() => {
-                          if (replayUi.isPlaying) actions().pause();
-                          else actions().play();
-                        }}
-                        className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
-                        style={{
-                          backgroundColor: "transparent",
-                          color: panelText,
-                          borderColor: panelBorder,
-                        }}
-                      >
-                        {replayUi.isPlaying ? "Pause" : "Play"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!replayUi.ready}
-                        onClick={() => actions().reset()}
-                        className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
-                        style={{
-                          backgroundColor: "transparent",
-                          color: panelText,
-                          borderColor: panelBorder,
-                        }}
-                      >
-                        Reset
-                      </button>
-                    </div>
-
-                    <div>
-                      <p
-                        className="mb-2 font-mono text-[10px] uppercase tracking-wider"
-                        style={{ color: panelMuted }}
-                      >
-                        Speed
-                      </p>
-                      <div className="flex gap-1">
-                        {cfg.replay.speedOptions.map((speed) => (
-                          <button
-                            key={speed}
-                            type="button"
-                            disabled={!replayUi.ready}
-                            onClick={() => actions().setSpeed(speed)}
-                            className="flex-1 border px-1 py-1.5 font-mono text-[10px] uppercase transition disabled:cursor-not-allowed disabled:opacity-40"
-                            style={{
-                              backgroundColor:
-                                replayUi.speed === speed ? panelText : "transparent",
-                              color:
-                                replayUi.speed === speed ? panelBg : panelText,
-                              borderColor:
-                                replayUi.speed === speed ? panelText : panelBorder,
-                            }}
-                          >
-                            {speed}x
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <p
-                      className={`text-[10px] uppercase tracking-wider ${interSemi}`}
-                      style={{ color: panelMuted }}
-                    >
-                      Minute: {formatReplayMinute(replayUi.minute, replayUi.isPlaying)}
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="p-4 min-[615px]:flex-1 min-[615px]:overflow-y-auto min-[615px]:p-5">
         {mode === "live" ? (
           <>
-            <LiveModePanel match={match} matchStatus={matchStatus} />
+            <div className="hidden min-[615px]:block">
+              <LiveModePanel match={match} matchStatus={matchStatus} />
+            </div>
             {match && (
-              <div className="mt-8 space-y-8">
-                <TeamBlock
+              <div className="space-y-8 min-[615px]:mt-8">
+                <TeamStatsBlock
                   teamName={match.homeTeam}
                   stats={match.home}
                   accent={homeAccent}
                   teamPalette={homePalette}
                   showPenaltyShootout={showPenaltyShootout}
                 />
-                <TeamBlock
+                <TeamStatsBlock
                   teamName={match.awayTeam}
                   stats={match.away}
                   accent={awayAccent}
@@ -412,14 +510,14 @@ export default function StatsPanel({
           </p>
         ) : (
           <div className="space-y-8">
-            <TeamBlock
+            <TeamStatsBlock
               teamName={match.homeTeam}
               stats={match.home}
               accent={homeAccent}
               teamPalette={homePalette}
               showPenaltyShootout={showPenaltyShootout}
             />
-            <TeamBlock
+            <TeamStatsBlock
               teamName={match.awayTeam}
               stats={match.away}
               accent={awayAccent}

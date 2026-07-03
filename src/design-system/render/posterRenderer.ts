@@ -33,6 +33,7 @@ import {
 import {
   computeLayout,
   computeArtworkLayout,
+  computeSingleTeamArtworkLayout,
   gridRegionForSide,
   markRegionForSide,
   type PosterLayout,
@@ -109,10 +110,14 @@ export function createReplaySketch(
   match: MatchData,
   getSize: () => { width: number; height: number },
   getEngine: () => ReplayEngine | null,
-  options: { artworkOnly?: boolean; liveAssetMotion?: boolean } = {}
+  options: { artworkOnly?: boolean; liveAssetMotion?: boolean; teamSide?: TeamSide } = {}
 ) {
   const artworkOnly = options.artworkOnly ?? false;
   const liveAssetMotion = options.liveAssetMotion ?? false;
+  const teamSide = options.teamSide;
+  const drawSides = (): TeamSide[] =>
+    teamSide ? [teamSide] : ["home", "away"];
+  const markSideVisible = (side: TeamSide) => !teamSide || teamSide === side;
 
   return (p: p5) => {
     let time = 0;
@@ -151,9 +156,13 @@ export function createReplaySketch(
 
     function rebuildLayout() {
       const { width, height } = getSize();
-      layout = artworkOnly
-        ? computeArtworkLayout(width, height)
-        : computeLayout(width, height);
+      if (teamSide) {
+        layout = computeSingleTeamArtworkLayout(width, height, teamSide);
+      } else {
+        layout = artworkOnly
+          ? computeArtworkLayout(width, height)
+          : computeLayout(width, height);
+      }
       const seed = cfg.randomness.seed;
       possessionSlots.home = buildPossessionGridSlots(layout, "home", seed);
       possessionSlots.away = buildPossessionGridSlots(layout, "away", seed);
@@ -249,8 +258,9 @@ export function createReplaySketch(
       const white: Rgb = [255, 255, 255];
       const ctx = p.drawingContext as CanvasRenderingContext2D;
 
-      for (const side of ["home", "away"] as const) {
+      for (const side of drawSides()) {
         const zone = side === "home" ? layout.homeZone : layout.awayZone;
+        if (zone.width <= 0 || zone.height <= 0) continue;
         const code = side === "home" ? match.homeTeamCode : match.awayTeamCode;
         if (code.length === 0) continue;
 
@@ -288,7 +298,7 @@ export function createReplaySketch(
       if (minute <= 0) return;
       const intensity = motion(snapshot);
 
-      for (const side of ["home", "away"] as const) {
+      for (const side of drawSides()) {
         const possession =
           side === "home" ? continuous.home.possession : continuous.away.possession;
         const palette = paletteForSide(match, side);
@@ -350,7 +360,7 @@ export function createReplaySketch(
       p.noFill();
       strokeRgb(p, black, 80);
       p.strokeWeight(1);
-      for (const side of ["home", "away"] as const) {
+      for (const side of drawSides()) {
         const grid = gridRegionForSide(layout, side);
         const mark = markRegionForSide(layout, side);
         p.rect(grid.left, grid.top, grid.width, grid.height);
@@ -374,7 +384,7 @@ export function createReplaySketch(
       if (minute <= 0) return;
       const ctx = p.drawingContext as CanvasRenderingContext2D;
 
-      for (const side of ["home", "away"] as const) {
+      for (const side of drawSides()) {
         const accuracy = passAccuracy(continuous, side);
         const zone = side === "home" ? layout.homeZone : layout.awayZone;
         drawPassAccuracyStripes(
@@ -399,6 +409,7 @@ export function createReplaySketch(
       burstScale: number
     ) {
       for (const mark of art.shots) {
+        if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(match, mark.side);
         const poss =
           mark.side === "home" ? continuous.home.possession : continuous.away.possession;
@@ -431,6 +442,7 @@ export function createReplaySketch(
       burstScale: number
     ) {
       for (const mark of art.shotsOnTarget) {
+        if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(match, mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 1.4);
@@ -464,6 +476,7 @@ export function createReplaySketch(
     /** Foul — layered SVG. */
     function drawFoul(art: AccumulatedArtState, intensity: number) {
       for (const mark of art.fouls) {
+        if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(match, mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 1);
@@ -483,6 +496,7 @@ export function createReplaySketch(
     /** Goal — layered SVG panel. */
     function drawGoal(art: AccumulatedArtState, intensity: number) {
       for (const goal of art.goals) {
+        if (!markSideVisible(goal.side)) continue;
         const palette = paletteForSide(match, goal.side);
         const [x, y] = denormPoint(goal.nx, goal.ny, layout);
         const v = vibrate(goal.phase, intensity, 1.2);
@@ -523,6 +537,7 @@ export function createReplaySketch(
       burstScale: number
     ) {
       for (const scar of art.cards) {
+        if (!markSideVisible(scar.side)) continue;
         const palette = paletteForSide(match, scar.side);
         const component =
           scar.kind === "yellow" ? VISUAL_COMPONENT.YellowCard : VISUAL_COMPONENT.RedCard;
@@ -543,6 +558,7 @@ export function createReplaySketch(
     /** Corner — SVG pinwheel. */
     function drawCorner(art: AccumulatedArtState, intensity: number) {
       for (const corner of art.corners) {
+        if (!markSideVisible(corner.side)) continue;
         const palette = paletteForSide(match, corner.side);
         const [x, y] = denormPoint(corner.nx, corner.ny, layout);
         const v = vibrate(corner.phase, intensity);
@@ -565,6 +581,7 @@ export function createReplaySketch(
     /** Offside — SVG wave stack. */
     function drawOffside(art: AccumulatedArtState, intensity: number) {
       for (const mark of art.offsides) {
+        if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(match, mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 0.8);
@@ -609,26 +626,30 @@ export function createReplaySketch(
       const awayPalette = paletteForSide(match, "away");
       const { homeZone, awayZone } = layout;
 
-      drawVerticalGradientRect(
-        p,
-        homeZone.left,
-        homeZone.top,
-        homeZone.width,
-        homeZone.height,
-        hexToRgb(homePalette.c1),
-        hexToRgb(homePalette.c2)
-      );
-      drawVerticalGradientRect(
-        p,
-        awayZone.left,
-        awayZone.top,
-        awayZone.width,
-        awayZone.height,
-        hexToRgb(awayPalette.c1),
-        hexToRgb(awayPalette.c2)
-      );
+      if (homeZone.width > 0 && homeZone.height > 0) {
+        drawVerticalGradientRect(
+          p,
+          homeZone.left,
+          homeZone.top,
+          homeZone.width,
+          homeZone.height,
+          hexToRgb(homePalette.c1),
+          hexToRgb(homePalette.c2)
+        );
+      }
+      if (awayZone.width > 0 && awayZone.height > 0) {
+        drawVerticalGradientRect(
+          p,
+          awayZone.left,
+          awayZone.top,
+          awayZone.width,
+          awayZone.height,
+          hexToRgb(awayPalette.c1),
+          hexToRgb(awayPalette.c2)
+        );
+      }
 
-      if (layout.centerGapRight > layout.centerGapLeft) {
+      if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
         p.noStroke();
         fillRgb(p, chrome);
         p.rect(
