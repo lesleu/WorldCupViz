@@ -27,6 +27,9 @@ jobs:
         run: npm run sync:matches
 
       - name: Commit updated static match data
+        env:
+          COMMIT_SUBJECT: chore(sync) morning World Cup match schedule and feeds
+          COMMIT_BODY: Automated daily pull from API-Football for committed static replay data.
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -35,5 +38,5 @@ jobs:
             echo "No match data changes to commit."
             exit 0
           fi
-          git commit -m "chore: morning sync of World Cup match schedule and feeds" -m "Automated daily pull from API-Football for committed static replay data."
+          git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY"
           git push
