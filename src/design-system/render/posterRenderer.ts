@@ -297,8 +297,8 @@ export function createReplaySketch(
         const color = getComponentColor(
           VISUAL_COMPONENT.PossessionGrid,
           palette,
-          "c3",
-          "c3"
+          "c1",
+          "c1"
         );
         const rgb = hexToRgb(color);
         const slots = possessionSlots[side];
@@ -635,7 +635,7 @@ export function createReplaySketch(
       drawCard(art, intensity, burstScale);
     }
 
-    /** Dark chrome bands + team halves with c1/c4 gradients. */
+    /** Dark chrome bands + team halves with c1 (top) → c2 (bottom) gradients. */
     function drawPosterBackground() {
       backgroundRgb(p, chrome);
 
@@ -649,8 +649,8 @@ export function createReplaySketch(
         homeZone.top,
         homeZone.width,
         homeZone.height,
-        hexToRgb(homePalette.c4),
-        hexToRgb(homePalette.c1)
+        hexToRgb(homePalette.c1),
+        hexToRgb(homePalette.c2)
       );
       drawVerticalGradientRect(
         p,
@@ -659,7 +659,7 @@ export function createReplaySketch(
         awayZone.width,
         awayZone.height,
         hexToRgb(awayPalette.c1),
-        hexToRgb(awayPalette.c4)
+        hexToRgb(awayPalette.c2)
       );
 
       if (layout.centerGapRight > layout.centerGapLeft) {

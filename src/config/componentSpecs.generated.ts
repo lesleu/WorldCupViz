@@ -11,7 +11,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 72
+      "$value": 60
     },
     "grid-size": {
       "$extensions": {
@@ -173,7 +173,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 78
+      "$value": 140
     },
     "size-max": {
       "$extensions": {
@@ -183,7 +183,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 108
+      "$value": 156
     }
   },
   "offsize": {

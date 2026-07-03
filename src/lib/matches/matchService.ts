@@ -40,6 +40,7 @@ import {
   emptyFeedBundle,
   getStaticFeed,
 } from "@/lib/matches/feedLoader";
+import { enrichCatalogKickoff } from "@/lib/matches/enrichKickoff";
 import type { MatchFeedResponse, MatchListResponse } from "@/lib/matches/types";
 
 function isDemoMatchId(id: string): boolean {
@@ -65,12 +66,19 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
   }
 
-  const merged = await mergeScheduleWithOverlay([...byId.values()]);
+  const merged = enrichCatalogKickoff(
+    await mergeScheduleWithOverlay([...byId.values()])
+  );
   const pollMeta = await getPollMeta();
 
   return {
     source: "static",
-    matches: merged.sort((a, b) => a.dateSort.localeCompare(b.dateSort)),
+    matches: merged.sort((a, b) => {
+      const byKickoff =
+        (a.kickoffAt ?? "").localeCompare(b.kickoffAt ?? "") ||
+        a.dateSort.localeCompare(b.dateSort);
+      return byKickoff || a.id.localeCompare(b.id);
+    }),
     syncedAt: getStaticScheduleSyncedAt() ?? undefined,
     runtimePollAt: pollMeta.lastPollAt,
   };

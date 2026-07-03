@@ -274,6 +274,22 @@ function pushToLayer(
   layers[layerName].push(...paths);
 }
 
+/** Split a compound SVG path (multiple M…Z subpaths) into separate contours. */
+function splitPathSubpaths(commands: PathCommand[]): PathCommand[][] {
+  const segments: PathCommand[][] = [];
+  let current: PathCommand[] = [];
+  for (const cmd of commands) {
+    if (cmd.t === "M" && current.length > 0) {
+      segments.push(current);
+      current = [cmd];
+    } else {
+      current.push(cmd);
+    }
+  }
+  if (current.length > 0) segments.push(current);
+  return segments;
+}
+
 /** Map flat Figma exports (no named groups) into color-rule layer ids. */
 function assignFlatLayers(
   component: string,
@@ -307,9 +323,23 @@ function assignFlatLayers(
 
     if (component === "Foul") {
       if (isInkFill(fill) && has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
-      else if (isFoulFill(fill) && has("event.foul")) pushToLayer(layers, "event.foul", shape.paths);
-      else if (shape.kind === "rect" && has("event.foul")) pushToLayer(layers, "event.foul", shape.paths);
       else if (has("ink.mark")) pushToLayer(layers, "ink.mark", shape.paths);
+      else if (isFoulFill(fill) && has("event.foul")) pushToLayer(layers, "event.foul", shape.paths);
+      continue;
+    }
+
+    if (component === "Offside") {
+      const path = shape.paths[0];
+      if (path) {
+        const segments = splitPathSubpaths(path);
+        if (segments.length >= 3 && has("c1") && has("c2") && has("c3")) {
+          pushToLayer(layers, "c3", [segments[0]]);
+          pushToLayer(layers, "c2", [segments[1]]);
+          pushToLayer(layers, "c1", [segments[2]]);
+        } else if (has("c3")) {
+          pushToLayer(layers, "c3", shape.paths);
+        }
+      }
       continue;
     }
 

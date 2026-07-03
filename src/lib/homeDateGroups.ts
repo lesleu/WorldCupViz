@@ -1,4 +1,5 @@
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
+import { easternDateKey } from "@/lib/matchScheduleFormat";
 
 export interface DateMatchGroup {
   dateSort: string;
@@ -10,10 +11,7 @@ export interface DateMatchGroup {
 }
 
 export function localDateKey(date: Date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return easternDateKey(date);
 }
 
 function parseDateKey(key: string): Date {

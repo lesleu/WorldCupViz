@@ -33,6 +33,7 @@ function stubPaletteForCode(code: string): TeamPalette {
     c2: hslToHex((hue + 40) % 360, 0.5, 0.55),
     c3: hslToHex((hue + 80) % 360, 0.45, 0.6),
     c4: hslToHex((hue + 120) % 360, 0.5, 0.35),
+    c5: hslToHex((hue + 160) % 360, 0.45, 0.5),
   };
 }
 

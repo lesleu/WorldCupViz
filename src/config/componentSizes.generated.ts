@@ -20,7 +20,7 @@ export const COMPONENT_SIZES: Partial<
   >
 > = {
   "PossessionGrid": {
-    "circleSize": 72,
+    "circleSize": 60,
     "gridSize": 604
   },
   "PassAccuracy": {
@@ -47,8 +47,8 @@ export const COMPONENT_SIZES: Partial<
     "sizeMax": 100
   },
   "Corner": {
-    "sizeMin": 78,
-    "sizeMax": 108
+    "sizeMin": 140,
+    "sizeMax": 156
   },
   "Offside": {
     "sizeMax": 152,

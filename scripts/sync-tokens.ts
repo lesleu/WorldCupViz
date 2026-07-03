@@ -35,8 +35,13 @@ function tokenNumber(node: unknown): number | null {
   return typeof value === "number" ? value : typeof value === "string" ? Number(value) : null;
 }
 
-function extractTeamPalettes(teamJson: Json): Record<string, { c1: string; c2: string; c3: string; c4: string }> {
-  const palettes: Record<string, { c1: string; c2: string; c3: string; c4: string }> = {};
+function extractTeamPalettes(
+  teamJson: Json
+): Record<string, { c1: string; c2: string; c3: string; c4: string; c5: string }> {
+  const palettes: Record<
+    string,
+    { c1: string; c2: string; c3: string; c4: string; c5: string }
+  > = {};
   for (const [code, slots] of Object.entries(teamJson)) {
     if (!slots || typeof slots !== "object") continue;
     const s = slots as Json;
@@ -44,7 +49,8 @@ function extractTeamPalettes(teamJson: Json): Record<string, { c1: string; c2: s
     const c2 = tokenColor(s.c2);
     const c3 = tokenColor(s.c3);
     const c4 = tokenColor(s.c4);
-    if (c1 && c2 && c3 && c4) palettes[code] = { c1, c2, c3, c4 };
+    const c5 = tokenColor(s.c5) ?? tokenColor(s["c4 2"]) ?? c4;
+    if (c1 && c2 && c3 && c4 && c5) palettes[code] = { c1, c2, c3, c4, c5 };
   }
   return palettes;
 }
@@ -103,6 +109,8 @@ function main() {
   const paper = foundation.paper as Json;
   const ink = foundation.ink as Json;
   const events = foundation.events as Json;
+  const world1 = foundation.world1 as Json;
+  const world2 = foundation.world2 as Json;
 
   const foundations = {
     paper: {
@@ -119,6 +127,15 @@ function main() {
       cardYellow: tokenColor(events?.["card-yellow"]) ?? "#fec702",
       cardRed: tokenColor(events?.["card-red"]) ?? "#f52020",
       offside: tokenColor(events?.offside) ?? "#384cf4",
+    },
+    world1: {
+      c1: tokenColor(world1?.c1) ?? "#fe4802",
+      c2: tokenColor(world1?.c2) ?? "#2ccf8b",
+    },
+    world2: {
+      c1: tokenColor(world2?.c1) ?? "#883f3f",
+      c2: tokenColor(world2?.c2) ?? "#ab99e2",
+      c3: tokenColor(world2?.c3) ?? "#ab98e2",
     },
   };
 
@@ -137,6 +154,7 @@ function main() {
   c2: string;
   c3: string;
   c4: string;
+  c5: string;
 }
 
 export const TEAM_PALETTES: Record<string, TeamPalette> = ${JSON.stringify(palettes, null, 2)};
@@ -193,6 +211,7 @@ export type ColorSlot =
   | "c2"
   | "c3"
   | "c4"
+  | "c5"
   | "paper.cream"
   | "ink.text"
   | "ink.textMuted"
@@ -200,7 +219,12 @@ export type ColorSlot =
   | "event.foul"
   | "event.offside"
   | "event.cardYellow"
-  | "event.cardRed";
+  | "event.cardRed"
+  | "world1.c1"
+  | "world1.c2"
+  | "world2.c1"
+  | "world2.c2"
+  | "world2.c3";
 
 export type ComponentColorRules = Partial<Record<VisualComponent, Record<string, ColorSlot>>>;
 

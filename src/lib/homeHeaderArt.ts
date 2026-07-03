@@ -1,5 +1,8 @@
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
-import { TEAM_PALETTES } from "@/data/teamPalettes.generated";
+import {
+  resolveHeaderArtPalette,
+  type WorldArtPaletteKey,
+} from "@/design-system/color/worldCupArt";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import type { TeamPalette } from "@/data/teamPalettes.generated";
 import {
@@ -36,10 +39,13 @@ export interface HomeHeaderArtPlacement {
   compactScaleMul?: number;
 }
 
-const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
+type HeaderArtPlacementDef = Omit<HomeHeaderArtPlacement, "palette"> & {
+  artPalette?: WorldArtPaletteKey;
+};
+
+const HEADER_ART_PLACEMENTS: HeaderArtPlacementDef[] = [
   {
     component: VISUAL_COMPONENT.Goal,
-    palette: TEAM_PALETTES.KOR,
     xRatio: 0.505,
     yRatio: 0.64,
     sizeScale: 1.4,
@@ -47,7 +53,6 @@ const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
   },
   {
     component: VISUAL_COMPONENT.Goal,
-    palette: TEAM_PALETTES.KOR,
     xRatio: 0.275,
     yRatio: 0.46,
     sizeScale: 0.6,
@@ -55,14 +60,12 @@ const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
   },
   {
     component: VISUAL_COMPONENT.Goal,
-    palette: TEAM_PALETTES.KOR,
     xRatio: 0.805,
     yRatio: 0.36,
     sizeScale: 0.55,
   },
   {
     component: VISUAL_COMPONENT.Corner,
-    palette: TEAM_PALETTES.KOR,
     xRatio: 0.218,
     yRatio: 0.13,
     sizeScale: 0.85,
@@ -70,7 +73,7 @@ const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
   },
   {
     component: VISUAL_COMPONENT.Shot,
-    palette: TEAM_PALETTES.KOR,
+    artPalette: "world2",
     xRatio: 0.072,
     yRatio: 0.74,
     sizeScale: 1.05,
@@ -78,21 +81,18 @@ const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
   },
   {
     component: VISUAL_COMPONENT.Shot,
-    palette: TEAM_PALETTES.MEX,
     xRatio: 0.148,
     yRatio: 0.2,
     sizeScale: 0.4,
   },
   {
     component: VISUAL_COMPONENT.Shot,
-    palette: TEAM_PALETTES.MEX,
     xRatio: 0.392,
     yRatio: 0.8,
     sizeScale: 0.38,
   },
   {
     component: VISUAL_COMPONENT.Shot,
-    palette: TEAM_PALETTES.MEX,
     xRatio: 0.718,
     yRatio: 0.54,
     sizeScale: 0.34,
@@ -100,7 +100,6 @@ const HEADER_ART_PLACEMENTS: HomeHeaderArtPlacement[] = [
   },
   {
     component: VISUAL_COMPONENT.Shot,
-    palette: TEAM_PALETTES.MEX,
     xRatio: 0.918,
     yRatio: 0.73,
     sizeScale: 0.48,
@@ -213,7 +212,10 @@ function fitFullAssetDimensionsForPlacement(
 }
 
 export function buildHomeHeaderArtPlacements(): HomeHeaderArtPlacement[] {
-  return HEADER_ART_PLACEMENTS;
+  return HEADER_ART_PLACEMENTS.map(({ artPalette, ...placement }) => ({
+    ...placement,
+    palette: resolveHeaderArtPalette(placement.component, artPalette),
+  }));
 }
 
 export function resolveHomeHeaderArtPlacement(

@@ -1,5 +1,10 @@
 import type { ColorSlot } from "@/design-system/color/colorRules.generated";
 import { COMPONENT_COLOR_RULES } from "@/design-system/color/colorRules.generated";
+import { getComponentColors } from "@/design-system/color/resolveColor";
+import {
+  isWorldCupArtComponent,
+  WORLD_CUP_ART_PALETTE,
+} from "@/design-system/color/worldCupArt";
 import {
   VISUAL_COMPONENT,
   type VisualComponent,
@@ -12,6 +17,7 @@ export const LEGEND_NEUTRAL_PALETTE: TeamPalette = {
   c2: "#948F87",
   c3: "#6B6B6B",
   c4: "#FFFFFF",
+  c5: "#7A7A7A",
 };
 
 function legendColorForSlot(slot: ColorSlot): string {
@@ -27,6 +33,8 @@ function legendColorForSlot(slot: ColorSlot): string {
     case "c4":
     case "paper.cream":
       return LEGEND_NEUTRAL_PALETTE.c4;
+    case "c5":
+      return LEGEND_NEUTRAL_PALETTE.c5;
     case "ink.mark":
       return "#B8B8B8";
     case "event.foul":
@@ -42,10 +50,14 @@ function legendColorForSlot(slot: ColorSlot): string {
   }
 }
 
-/** Per-layer grey overrides so icons read on dark chrome. */
+/** Per-layer overrides for stat sidebar icons on dark chrome. */
 export function legendIconColorOverrides(
   component: VisualComponent
 ): Record<string, string> {
+  if (isWorldCupArtComponent(component)) {
+    return getComponentColors(component, WORLD_CUP_ART_PALETTE);
+  }
+
   const rules = COMPONENT_COLOR_RULES[component];
   if (!rules) return {};
 
@@ -64,7 +76,7 @@ export function legendIconColorOverrides(
   return overrides;
 }
 
-/** Possession grid cells use palette c3 in the art system. */
+/** Possession grid cells use palette c1 in the art system. */
 export function possessionLegendColor(): string {
-  return legendColorForSlot("c3");
+  return legendColorForSlot("c1");
 }

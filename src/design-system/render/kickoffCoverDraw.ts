@@ -59,8 +59,8 @@ export function drawKickoffCover(
     0,
     midX,
     height,
-    hexToRgb(homePalette.c4),
-    hexToRgb(homePalette.c1)
+    hexToRgb(homePalette.c1),
+    hexToRgb(homePalette.c2)
   );
   drawVerticalGradient(
     ctx,
@@ -69,7 +69,7 @@ export function drawKickoffCover(
     midX,
     height,
     hexToRgb(awayPalette.c1),
-    hexToRgb(awayPalette.c4)
+    hexToRgb(awayPalette.c2)
   );
 
   const drawTeamCodes = (code: string, zone: StretchedTextBox) => {

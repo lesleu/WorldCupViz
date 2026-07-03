@@ -7,6 +7,7 @@ export type ColorSlot =
   | "c2"
   | "c3"
   | "c4"
+  | "c5"
   | "paper.cream"
   | "ink.text"
   | "ink.textMuted"
@@ -14,36 +15,43 @@ export type ColorSlot =
   | "event.foul"
   | "event.offside"
   | "event.cardYellow"
-  | "event.cardRed";
+  | "event.cardRed"
+  | "world1.c1"
+  | "world1.c2"
+  | "world2.c1"
+  | "world2.c2"
+  | "world2.c3";
 
 export type ComponentColorRules = Partial<Record<VisualComponent, Record<string, ColorSlot>>>;
 
 export const COMPONENT_COLOR_RULES: ComponentColorRules = {
   "PossessionGrid": {
-    "c3": "c3",
+    "c1": "c1",
     "paper.cream": "paper.cream"
   },
   "PassAccuracy": {
     "ink.mark": "ink.mark"
   },
   "Shot": {
-    "c1": "c1",
-    "c2": "c2"
+    "c1": "c2",
+    "c2": "c1"
   },
   "ShotOnTarget": {
-    "c2": "c2"
+    "c2": "c4"
   },
   "Goal": {
     "c1": "c1",
-    "c4": "c4"
+    "c4": "c3"
   },
   "Foul": {
     "ink.mark": "ink.mark"
   },
   "Corner": {
-    "c4": "c4"
+    "c4": "c5"
   },
   "Offside": {
+    "c1": "event.offside",
+    "c2": "event.offside",
     "c3": "event.offside"
   },
   "YellowCard": {

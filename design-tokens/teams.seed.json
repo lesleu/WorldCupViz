@@ -1,6 +1,6 @@
 {
   "note": "Draft kit/flag-derived palettes. MEX and KOR are art-directed in Figma — not seeded here. Refine in Figma then run npm run sync:teams.",
-  "figmaOverrides": ["MEX", "KOR"],
+  "figmaOverrides": ["MEX", "KOR", "COL"],
   "palettes": {
     "CAN": { "c1": "#C8102E", "c2": "#FFFFFF", "c3": "#FF4444", "c4": "#7A0C1F", "source": "Canada home red/white" },
     "USA": { "c1": "#002868", "c2": "#BF0A30", "c3": "#FFFFFF", "c4": "#001540", "source": "USA away navy / accent red" },
@@ -27,7 +27,7 @@
     "PAN": { "c1": "#DA121A", "c2": "#FFFFFF", "c3": "#072357", "c4": "#960F12", "source": "Panama red home" },
     "ARG": { "c1": "#75AADB", "c2": "#FFFFFF", "c3": "#FFD700", "c4": "#4A7CA0", "source": "Argentina sky blue/white" },
     "BRA": { "c1": "#FFDF00", "c2": "#009739", "c3": "#002776", "c4": "#BFA700", "source": "Brazil yellow/green" },
-    "COL": { "c1": "#FCD116", "c2": "#003893", "c3": "#CE1126", "c4": "#B8960A", "source": "Colombia yellow/blue/red" },
+    "COL": { "c1": "#459DC6", "c2": "#0E1C42", "c3": "#F6FF4B", "c4": "#E079C8", "c5": "#DFC670", "source": "Colombia Figma palette" },
     "ECU": { "c1": "#FFD100", "c2": "#003087", "c3": "#EF3340", "c4": "#B89A00", "source": "Ecuador yellow/blue" },
     "PAR": { "c1": "#D52B1E", "c2": "#FFFFFF", "c3": "#0038A8", "c4": "#961F15", "source": "Paraguay red/white/blue" },
     "URU": { "c1": "#55B5E5", "c2": "#FFFFFF", "c3": "#FFD700", "c4": "#3689A8", "source": "Uruguay sky blue" },

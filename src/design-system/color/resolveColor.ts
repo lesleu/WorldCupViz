@@ -19,6 +19,8 @@ export function resolveColorSlot(slot: ColorSlot, palette: TeamPalette): string 
       return palette.c3;
     case "c4":
       return palette.c4;
+    case "c5":
+      return palette.c5;
     case "paper.cream":
       return F.paper.cream;
     case "ink.text":
@@ -35,6 +37,16 @@ export function resolveColorSlot(slot: ColorSlot, palette: TeamPalette): string 
       return F.event.cardYellow;
     case "event.cardRed":
       return F.event.cardRed;
+    case "world1.c1":
+      return F.world1.c1;
+    case "world1.c2":
+      return F.world1.c2;
+    case "world2.c1":
+      return F.world2.c1;
+    case "world2.c2":
+      return F.world2.c2;
+    case "world2.c3":
+      return F.world2.c3;
     default:
       return F.ink.text;
   }

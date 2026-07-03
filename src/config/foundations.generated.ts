@@ -15,5 +15,14 @@ export const foundationsGenerated = {
     "cardYellow": "#fec702",
     "cardRed": "#f52020",
     "offside": "#384cf4"
+  },
+  "world1": {
+    "c1": "#fe4802",
+    "c2": "#2ccf8b"
+  },
+  "world2": {
+    "c1": "#883f3f",
+    "c2": "#ab99e2",
+    "c3": "#ab98e2"
   }
 } as const;

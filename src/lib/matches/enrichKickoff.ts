@@ -1,13 +1,22 @@
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import { formatKickoffFromIso } from "@/lib/matchScheduleFormat";
 
-/** Ensure card kickoff labels exist when ISO datetime is available. */
+/** Re-derive Eastern date/time labels from ISO kickoff when available. */
 export function enrichCatalogEntryKickoff(entry: MatchCatalogEntry): MatchCatalogEntry {
-  if (entry.kickoffTime) return entry;
   if (!entry.kickoffAt) return entry;
 
-  const { kickoffTime } = formatKickoffFromIso(entry.kickoffAt);
-  return { ...entry, kickoffTime };
+  const { date, dateSort, kickoffTime } = formatKickoffFromIso(entry.kickoffAt);
+
+  return {
+    ...entry,
+    date,
+    dateSort,
+    kickoffTime,
+    matchData: {
+      ...entry.matchData,
+      date,
+    },
+  };
 }
 
 export function enrichCatalogKickoff(
