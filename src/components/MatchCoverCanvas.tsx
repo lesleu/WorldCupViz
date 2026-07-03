@@ -62,6 +62,8 @@ interface MatchCoverCanvasProps {
   awayTeamCode: string;
   feed: MatchFeedResponse;
   frozenMinute?: number;
+  /** Skip viewport lazy-load when parent already decided to render artwork. */
+  eager?: boolean;
 }
 
 /** Renders a frozen poster frame (e.g. full-time generative art) for card covers. */
@@ -71,12 +73,18 @@ export default function MatchCoverCanvas({
   awayTeamCode,
   feed,
   frozenMinute = cfg.replay.regulationMinutes,
+  eager = false,
 }: MatchCoverCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(eager);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (eager) {
+      setVisible(true);
+      return;
+    }
+
     const host = hostRef.current;
     if (!host) return;
 
@@ -88,7 +96,7 @@ export default function MatchCoverCanvas({
     );
     observer.observe(host);
     return () => observer.disconnect();
-  }, []);
+  }, [eager]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -171,7 +179,7 @@ export default function MatchCoverCanvas({
   return (
     <div
       ref={hostRef}
-      className="aspect-video w-full overflow-hidden bg-[#121212] [&>canvas]:!h-full [&>canvas]:!w-full"
+      className="absolute inset-0 overflow-hidden bg-[#121212] [&>canvas]:!h-full [&>canvas]:!w-full"
     />
   );
 }

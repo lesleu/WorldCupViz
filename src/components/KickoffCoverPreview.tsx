@@ -59,7 +59,10 @@ export default function KickoffCoverPreview({
   }, [homeTeamCode, awayTeamCode]);
 
   return (
-    <div ref={containerRef} className="relative aspect-video w-full bg-[#121212]">
+    <div
+      ref={containerRef}
+      className="relative aspect-video w-full min-w-0 overflow-hidden bg-[#121212]"
+    >
       <canvas ref={canvasRef} className="block h-full w-full" aria-hidden />
     </div>
   );

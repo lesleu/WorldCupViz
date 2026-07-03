@@ -12,9 +12,18 @@ import {
 import { VISUALIZER_CONFIG } from "@/config";
 import HomeStickyHeader from "@/components/home/HomeStickyHeader";
 import { REF_HEADER_FULL_HEIGHT } from "@/lib/homeHeaderLayout";
+import {
+  clearHomeRestorePending,
+  isHomeRestorePending,
+  readHomeScrollState,
+  resolveHomeScrollTop,
+  scrollRestoredWithinTolerance,
+  writeHomeScrollState,
+} from "@/lib/homeScrollState";
 import { homeTitleMetrics } from "@/lib/stretchedInterText";
 
 const SCROLL_DIRECTION_THRESHOLD = 2;
+const SCROLL_PERSIST_MS = 100;
 const DEFAULT_VIEWPORT_WIDTH = 1920;
 
 interface HomeMatchBrowserProps {
@@ -27,9 +36,12 @@ export default function HomeMatchBrowser({
   scrollTargetDateSort,
 }: HomeMatchBrowserProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const hasScrolledToToday = useRef(false);
+  const shouldRestoreRef = useRef(isHomeRestorePending());
+  const hasInitializedScroll = useRef(false);
+  const pendingRestoreRef = useRef<number | null>(null);
   const lastScrollTopRef = useRef(0);
   const prevCompactRef = useRef(false);
+  const compactHeaderRef = useRef(false);
   const expandedHeightRef = useRef(REF_HEADER_FULL_HEIGHT);
 
   const [viewportWidth, setViewportWidth] = useState(DEFAULT_VIEWPORT_WIDTH);
@@ -44,9 +56,27 @@ export default function HomeMatchBrowser({
 
   const headerHeight = compactHeader ? compactHeaderHeight : expandedHeaderHeight;
 
+  compactHeaderRef.current = compactHeader;
+
   const handleExpandedHeightChange = useCallback((height: number) => {
     expandedHeightRef.current = height;
     setExpandedHeaderHeight((prev) => (prev === height ? prev : height));
+  }, []);
+
+  const applyPendingRestore = useCallback((): boolean => {
+    const scroller = scrollRef.current;
+    const target = pendingRestoreRef.current;
+    if (!scroller || target === null || hasInitializedScroll.current) return false;
+
+    scroller.scrollTop = target;
+    lastScrollTopRef.current = scroller.scrollTop;
+
+    if (!scrollRestoredWithinTolerance(scroller, target)) return false;
+
+    pendingRestoreRef.current = null;
+    hasInitializedScroll.current = true;
+    clearHomeRestorePending();
+    return true;
   }, []);
 
   useEffect(() => {
@@ -69,46 +99,104 @@ export default function HomeMatchBrowser({
 
     lastScrollTopRef.current = scroller.scrollTop;
     prevCompactRef.current = compactHeader;
-  }, [compactHeader, compactHeaderHeight]);
+
+    if (pendingRestoreRef.current !== null) {
+      applyPendingRestore();
+    }
+  }, [applyPendingRestore, compactHeader, compactHeaderHeight]);
 
   useLayoutEffect(() => {
     const scroller = scrollRef.current;
-    if (!scroller || !scrollTargetDateSort || hasScrolledToToday.current) return;
+    if (!scroller || hasInitializedScroll.current) return;
+
+    if (shouldRestoreRef.current) {
+      const saved = readHomeScrollState();
+      if (saved) {
+        const target = resolveHomeScrollTop(saved);
+        pendingRestoreRef.current = target;
+        setCompactHeader(saved.compactHeader);
+        compactHeaderRef.current = saved.compactHeader;
+        applyPendingRestore();
+        return;
+      }
+
+      clearHomeRestorePending();
+      shouldRestoreRef.current = false;
+    }
+
+    if (!scrollTargetDateSort) {
+      hasInitializedScroll.current = true;
+      return;
+    }
 
     const target = document.getElementById(`date-${scrollTargetDateSort}`);
     if (!target) return;
 
     scroller.scrollTop = Math.max(0, target.offsetTop - expandedHeaderHeight);
     lastScrollTopRef.current = scroller.scrollTop;
-    hasScrolledToToday.current = true;
+    hasInitializedScroll.current = true;
     setCompactHeader(false);
     prevCompactRef.current = false;
-  }, [expandedHeaderHeight, scrollTargetDateSort]);
+  }, [applyPendingRestore, expandedHeaderHeight, scrollTargetDateSort]);
+
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || pendingRestoreRef.current === null) return;
+
+    const retryRestore = () => {
+      applyPendingRestore();
+    };
+
+    const observer = new ResizeObserver(retryRestore);
+    observer.observe(scroller);
+    retryRestore();
+
+    return () => observer.disconnect();
+  }, [applyPendingRestore, compactHeader, expandedHeaderHeight]);
 
   useEffect(() => {
     const scroller = scrollRef.current;
     if (!scroller) return;
 
-    const onScroll = () => {
-      const current = scroller.scrollTop;
-      const previous = lastScrollTopRef.current;
-      const delta = current - previous;
+    let persistTimer: ReturnType<typeof setTimeout> | undefined;
 
-      if (current <= 0) {
-        setCompactHeader(false);
-      } else if (delta > SCROLL_DIRECTION_THRESHOLD) {
-        setCompactHeader(true);
-      } else if (delta < -SCROLL_DIRECTION_THRESHOLD) {
-        setCompactHeader(false);
+    const persistScroll = () => {
+      if (isHomeRestorePending()) return;
+
+      writeHomeScrollState({
+        scrollTop: scroller.scrollTop,
+        compactHeader: compactHeaderRef.current,
+      });
+    };
+
+    const onScroll = () => {
+      if (hasInitializedScroll.current) {
+        const current = scroller.scrollTop;
+        const previous = lastScrollTopRef.current;
+        const delta = current - previous;
+
+        if (current <= 0) {
+          setCompactHeader(false);
+        } else if (delta > SCROLL_DIRECTION_THRESHOLD) {
+          setCompactHeader(true);
+        } else if (delta < -SCROLL_DIRECTION_THRESHOLD) {
+          setCompactHeader(false);
+        }
       }
 
-      lastScrollTopRef.current = current;
+      lastScrollTopRef.current = scroller.scrollTop;
+
+      clearTimeout(persistTimer);
+      persistTimer = setTimeout(persistScroll, SCROLL_PERSIST_MS);
     };
 
     lastScrollTopRef.current = scroller.scrollTop;
     scroller.addEventListener("scroll", onScroll, { passive: true });
 
-    return () => scroller.removeEventListener("scroll", onScroll);
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      clearTimeout(persistTimer);
+    };
   }, []);
 
   return (
@@ -131,7 +219,9 @@ export default function HomeMatchBrowser({
 
       <div
         ref={scrollRef}
-        className="h-full overflow-y-auto overscroll-none"
+        data-home-scroller
+        data-compact-header={compactHeader ? "true" : "false"}
+        className="h-full overflow-x-hidden overflow-y-auto overscroll-none"
         style={{
           paddingTop: headerHeight,
           overscrollBehavior: "none",

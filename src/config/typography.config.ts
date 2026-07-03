@@ -10,7 +10,7 @@ export const typographyConfig: TypographyConfig = {
   fontFamily: "Helvetica, Arial, sans-serif",
   kickoffCodeFontFamily: "Inter, sans-serif",
   kickoffCodeFontWeight: 800,
-  kickoffCodeFillWidthRatio: 0.96,
-  kickoffCodeFillHeightRatio: 1,
+  kickoffCodeFillWidthRatio: 0.98,
+  kickoffCodeFillHeightRatio: 0.97,
   kickoffCodeLetterGapRatio: -0.03,
 };

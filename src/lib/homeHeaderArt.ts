@@ -4,12 +4,22 @@ import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/
 import type { TeamPalette } from "@/data/teamPalettes.generated";
 import {
   HEADER_ART_EDGE_INSET,
+  HEADER_ART_EDGE_INSET_BOTTOM,
   REF_HEADER_ART_HEIGHT,
   REF_HEADER_COMPACT_ASSET_SIZING_HEIGHT,
 } from "@/lib/homeHeaderLayout";
 
-function headerArtEdgeInset(compact: boolean): number {
-  return compact ? 0 : HEADER_ART_EDGE_INSET;
+function headerArtEdgeInset(compact: boolean): {
+  x: number;
+  top: number;
+  bottom: number;
+} {
+  if (compact) return { x: 0, top: 0, bottom: 0 };
+  return {
+    x: HEADER_ART_EDGE_INSET,
+    top: HEADER_ART_EDGE_INSET,
+    bottom: HEADER_ART_EDGE_INSET_BOTTOM,
+  };
 }
 
 export interface HomeHeaderArtOptions {
@@ -213,8 +223,8 @@ export function resolveHomeHeaderArtPlacement(
   { compact }: HomeHeaderArtOptions
 ) {
   const inset = headerArtEdgeInset(compact);
-  const innerW = Math.max(width - inset * 2, 1);
-  const innerH = Math.max(height - inset * 2, 1);
+  const innerW = Math.max(width - inset.x * 2, 1);
+  const innerH = Math.max(height - inset.top - inset.bottom, 1);
 
   let widthPx: number;
   let heightPx: number;
@@ -235,10 +245,10 @@ export function resolveHomeHeaderArtPlacement(
     ));
   }
 
-  const minX = inset + widthPx * 0.5;
-  const maxX = width - inset - widthPx * 0.5;
-  const minY = inset + heightPx * 0.5;
-  const maxY = height - inset - heightPx * 0.5;
+  const minX = inset.x + widthPx * 0.5;
+  const maxX = width - inset.x - widthPx * 0.5;
+  const minY = inset.top + heightPx * 0.5;
+  const maxY = height - inset.bottom - heightPx * 0.5;
 
   const x = clamp(placement.xRatio * width, minX, maxX);
   const y = clamp(placement.yRatio * height, minY, maxY);
@@ -259,9 +269,9 @@ export function headerArtClipRect(
 ) {
   const inset = headerArtEdgeInset(compact);
   return {
-    left: inset,
-    top: inset,
-    width: Math.max(width - inset * 2, 1),
-    height: Math.max(height - inset * 2, 1),
+    left: inset.x,
+    top: inset.top,
+    width: Math.max(width - inset.x * 2, 1),
+    height: Math.max(height - inset.top - inset.bottom, 1),
   };
 }

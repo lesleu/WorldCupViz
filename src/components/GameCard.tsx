@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import { VISUALIZER_CONFIG } from "@/config";
 import LiveBadge from "@/components/LiveBadge";
 import MatchCardCover from "@/components/MatchCardCover";
+import { prepareHomeReturnNavigation } from "@/lib/homeScrollState";
 
 interface GameCardProps {
   entry: MatchCatalogEntry;
@@ -26,7 +29,7 @@ function CardBody({ entry, hideDateMeta }: GameCardProps) {
 
   return (
     <>
-      <div className="relative overflow-hidden">
+      <div className="relative min-w-0 overflow-hidden">
         {isLive && (
           <div className="absolute left-3 top-3 z-10">
             <LiveBadge />
@@ -68,7 +71,7 @@ export default function GameCard({ entry, hideDateMeta }: GameCardProps) {
   if (isTbd) {
     return (
       <div
-        className="block cursor-default overflow-hidden rounded-2xl border border-white/10 opacity-60"
+        className="block min-w-0 cursor-default overflow-hidden rounded-2xl border border-white/10 opacity-60"
         style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
         aria-disabled
       >
@@ -80,7 +83,8 @@ export default function GameCard({ entry, hideDateMeta }: GameCardProps) {
   return (
     <Link
       href={`/match/${entry.id}`}
-      className={`group block overflow-hidden rounded-2xl border transition hover:border-white/25 ${
+      onClick={prepareHomeReturnNavigation}
+      className={`group block min-w-0 overflow-hidden rounded-2xl border transition hover:border-white/25 ${
         isLive ? "border-red-500/40" : "border-white/10"
       }`}
       style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}

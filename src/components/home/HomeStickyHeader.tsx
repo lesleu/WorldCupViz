@@ -91,7 +91,7 @@ export default function HomeStickyHeader({
       <h1 className="sr-only">World Cup 2026</h1>
       <div
         ref={titleBoxRef}
-        className="w-full shrink-0 overflow-hidden"
+        className="relative w-full min-w-0 shrink-0 overflow-hidden"
         style={{
           height: artHeight,
           width: "100%",
@@ -104,7 +104,7 @@ export default function HomeStickyHeader({
           width={titleSize.width}
           height={titleSize.height}
           compact={compact}
-          className="pointer-events-none block h-full w-full"
+          className="pointer-events-none absolute left-0 top-0 block"
         />
       </div>
       <HomeHeaderIntro compact={compact} width={introWidth} />

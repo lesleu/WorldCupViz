@@ -26,6 +26,7 @@ import {
   rankInDataset,
 } from "@/design-system/layout/compositionDensity";
 import { paletteForSide, type MatchData } from "@/data/mockMatch";
+import { drawTeamCodeStretchedText } from "@/lib/stretchedInterText";
 import {
   computeLayout,
   computeArtworkLayout,
@@ -234,71 +235,25 @@ export function createReplaySketch(
 
     /** Inter ExtraBold — tight tracking, width-fill then vertical stretch per gradient half. */
     function drawTeamBackgroundType() {
-      const type = cfg.typography;
       const white: Rgb = [255, 255, 255];
       const ctx = p.drawingContext as CanvasRenderingContext2D;
 
-      const setZoneTypeFont = (size: number) => {
-        p.textSize(size);
-        ctx.font = `${type.kickoffCodeFontWeight} ${size}px ${type.kickoffCodeFontFamily}`;
-        ctx.textBaseline = "middle";
-      };
-
       for (const side of ["home", "away"] as const) {
         const zone = side === "home" ? layout.homeZone : layout.awayZone;
-        const letters = (side === "home" ? match.homeTeamCode : match.awayTeamCode).split("");
-        const count = letters.length;
-        if (count === 0) continue;
+        const code = side === "home" ? match.homeTeamCode : match.awayTeamCode;
+        if (code.length === 0) continue;
 
-        const topInset = artworkOnly ? 0 : cfg.layout.kickoffTypeTopInset;
-        const drawTop = zone.top + topInset;
-        const drawHeight = Math.max(zone.height - topInset, 1);
-
-        const zoneCx = zone.left + zone.width * 0.5;
-        const zoneCy = drawTop + drawHeight * 0.5;
-        const targetWidth = zone.width * type.kickoffCodeFillWidthRatio;
-        const targetHeight = drawHeight * type.kickoffCodeFillHeightRatio;
-        const baseSize = targetWidth / Math.max(count * 0.55, 1);
-        const gap = baseSize * type.kickoffCodeLetterGapRatio;
-
-        setZoneTypeFont(baseSize);
-        const widths: number[] = [];
-        let maxAscent = 0;
-        let maxDescent = 0;
-        for (const letter of letters) {
-          const metrics = ctx.measureText(letter);
-          widths.push(metrics.width);
-          maxAscent = Math.max(maxAscent, metrics.actualBoundingBoxAscent);
-          maxDescent = Math.max(maxDescent, metrics.actualBoundingBoxDescent);
-        }
-        const naturalW =
-          widths.reduce((sum, w) => sum + w, 0) + gap * Math.max(count - 1, 0);
-        const naturalH = Math.max(maxAscent + maxDescent, baseSize * 0.7);
-
-        const scaleX = targetWidth / Math.max(naturalW, 1);
-        const scaleY = targetHeight / Math.max(naturalH, 1);
-
-        p.push();
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(zone.left, drawTop, zone.width, drawHeight);
-        ctx.clip();
-
-        p.translate(zoneCx, zoneCy);
-        p.scale(scaleX, scaleY);
-        p.noStroke();
-        fillRgb(p, white);
-        p.textAlign(p.CENTER, p.CENTER);
-        setZoneTypeFont(baseSize);
-
-        let x = -naturalW * 0.5;
-        for (let i = 0; i < count; i++) {
-          p.text(letters[i], x + widths[i] * 0.5, 0);
-          x += widths[i] + gap;
-        }
-
-        ctx.restore();
-        p.pop();
+        drawTeamCodeStretchedText(
+          ctx,
+          {
+            left: zone.left,
+            top: zone.top,
+            width: zone.width,
+            height: zone.height,
+          },
+          code,
+          `rgb(${white[0]},${white[1]},${white[2]})`
+        );
       }
 
       p.textStyle(p.NORMAL);
