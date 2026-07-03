@@ -3,6 +3,7 @@ import { STAGE_SECTIONS } from "@/data/matchCatalog";
 import type { MatchData, TeamStats } from "@/data/mockMatch";
 import { getTeamName } from "@/data/teams.generated";
 import type { ApiFootballFixture } from "@/lib/matches/apiFootballClient";
+import { formatKickoffFromIso } from "@/lib/matchScheduleFormat";
 import { requireTeamCode, isTbdTeamName } from "@/lib/matches/teamCodeMap";
 
 const kickoffStats: TeamStats = {
@@ -61,16 +62,13 @@ export function extractGroup(round: string | null): string | undefined {
   return match?.[1]?.toUpperCase();
 }
 
-function formatDisplayDate(isoDate: string): { date: string; dateSort: string } {
-  const parsed = new Date(isoDate);
-  const dateSort = parsed.toISOString().slice(0, 10);
-  const date = parsed.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-  return { date, dateSort };
+function formatDisplayDate(isoDate: string): {
+  date: string;
+  dateSort: string;
+  kickoffAt: string;
+  kickoffTime: string;
+} {
+  return formatKickoffFromIso(isoDate);
 }
 
 function buildMatchData(
@@ -134,7 +132,7 @@ export function adaptFixtureToCatalogEntry(
   const stageLabel =
     STAGE_SECTIONS.find((section) => section.stage === stage)?.label ?? stage;
   const status = isTbd ? "scheduled" : mapFixtureStatus(fixture.fixture.status.short);
-  const { date, dateSort } = formatDisplayDate(fixture.fixture.date);
+  const { date, dateSort, kickoffAt, kickoffTime } = formatDisplayDate(fixture.fixture.date);
   const group = extractGroup(fixture.league.round);
   const elapsed = fixture.fixture.status.elapsed ?? undefined;
   const finalMinute =
@@ -154,6 +152,8 @@ export function adaptFixtureToCatalogEntry(
     matchNumber: fixture.fixture.id,
     date,
     dateSort,
+    kickoffAt,
+    kickoffTime,
     venue: fixture.fixture.venue.name ?? undefined,
     homeTeam,
     awayTeam,

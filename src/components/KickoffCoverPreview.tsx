@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { drawKickoffCover } from "@/design-system/render/kickoffCoverDraw";
+import { waitForKickoffCanvasFont } from "@/lib/canvasFontReady";
 import { resolveTeamPalette } from "@/data/teamPaletteFallback";
 
 interface KickoffCoverPreviewProps {
@@ -49,12 +50,8 @@ export default function KickoffCoverPreview({
       );
     };
 
-    const boot = async () => {
-      await document.fonts?.load("800 64px Inter, sans-serif");
-      render();
-    };
-
-    void boot();
+    render();
+    void waitForKickoffCanvasFont().then(render);
 
     const observer = new ResizeObserver(() => render());
     observer.observe(container);

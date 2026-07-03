@@ -49,6 +49,10 @@ export interface MatchCatalogEntry {
   matchNumber?: number;
   date: string;
   dateSort: string;
+  /** ISO kickoff from API-Football (`fixture.date`). */
+  kickoffAt?: string;
+  /** Localized kickoff time label for cards (e.g. "7:00 PM"). */
+  kickoffTime?: string;
   venue?: string;
   homeTeam: string;
   awayTeam: string;

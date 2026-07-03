@@ -7,8 +7,8 @@ const F = foundationsGenerated;
 export const colorsConfig: ColorsConfig = {
   background: "#121212",
   cream: "#121212",
-  text: "#EDE8E0",
-  textMuted: "#A39E96",
+  text: "#EAEAEA",
+  textMuted: "#948F87",
   black: F.ink.mark,
   yellowCard: F.event.cardYellow,
   redCard: F.event.cardRed,

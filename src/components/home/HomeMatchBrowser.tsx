@@ -1,0 +1,116 @@
+"use client";
+
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { VISUALIZER_CONFIG } from "@/config";
+import HomeStickyHeader from "@/components/home/HomeStickyHeader";
+import { HEADER_TRANSITION } from "@/lib/homeHeaderLayout";
+import { homeTitleMetrics } from "@/lib/stretchedInterText";
+
+const SCROLL_DIRECTION_THRESHOLD = 2;
+const DEFAULT_VIEWPORT_WIDTH = 1920;
+
+interface HomeMatchBrowserProps {
+  children: ReactNode;
+  scrollTargetDateSort?: string;
+}
+
+export default function HomeMatchBrowser({
+  children,
+  scrollTargetDateSort,
+}: HomeMatchBrowserProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const hasScrolledToToday = useRef(false);
+  const lastScrollTopRef = useRef(0);
+
+  const [viewportWidth, setViewportWidth] = useState(DEFAULT_VIEWPORT_WIDTH);
+  const [compactHeader, setCompactHeader] = useState(false);
+
+  const { titleWidth, fullHeaderHeight, compactHeaderHeight } = useMemo(
+    () => homeTitleMetrics(viewportWidth),
+    [viewportWidth]
+  );
+  const headerHeight = compactHeader ? compactHeaderHeight : fullHeaderHeight;
+
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(window.innerWidth);
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || !scrollTargetDateSort || hasScrolledToToday.current) return;
+
+    const target = document.getElementById(`date-${scrollTargetDateSort}`);
+    if (!target) return;
+
+    scroller.scrollTop = Math.max(0, target.offsetTop - fullHeaderHeight);
+    lastScrollTopRef.current = scroller.scrollTop;
+    hasScrolledToToday.current = true;
+    setCompactHeader(false);
+  }, [fullHeaderHeight, scrollTargetDateSort]);
+
+  useEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const onScroll = () => {
+      const current = scroller.scrollTop;
+      const previous = lastScrollTopRef.current;
+      const delta = current - previous;
+
+      if (current <= 0) {
+        setCompactHeader(false);
+      } else if (delta > SCROLL_DIRECTION_THRESHOLD) {
+        setCompactHeader(true);
+      } else if (delta < -SCROLL_DIRECTION_THRESHOLD) {
+        setCompactHeader(false);
+      }
+
+      lastScrollTopRef.current = current;
+    };
+
+    lastScrollTopRef.current = scroller.scrollTop;
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => scroller.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <div
+      className="h-screen w-full overflow-hidden overscroll-none"
+      style={{
+        backgroundColor: VISUALIZER_CONFIG.colors.background,
+        color: VISUALIZER_CONFIG.colors.text,
+      }}
+    >
+      <HomeStickyHeader
+        titleWidth={titleWidth}
+        headerHeight={headerHeight}
+        compact={compactHeader}
+      />
+
+      <div
+        ref={scrollRef}
+        className="h-full overflow-y-auto overscroll-none"
+        style={{
+          paddingTop: headerHeight,
+          transition: `padding-top ${HEADER_TRANSITION}`,
+          overscrollBehavior: "none",
+          WebkitOverflowScrolling: "auto",
+          ["--home-header-height" as string]: `${headerHeight}px`,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}

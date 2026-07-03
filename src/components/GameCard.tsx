@@ -2,15 +2,21 @@ import Link from "next/link";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import { VISUALIZER_CONFIG } from "@/config";
 import LiveBadge from "@/components/LiveBadge";
-import MatchCoverPreview from "@/components/MatchCoverPreview";
-import TbdCoverPreview from "@/components/TbdCoverPreview";
+import MatchCardCover from "@/components/MatchCardCover";
 
 interface GameCardProps {
   entry: MatchCatalogEntry;
+  hideDateMeta?: boolean;
 }
 
-function CardBody({ entry }: GameCardProps) {
-  const meta = [entry.date, entry.venue].filter(Boolean).join(" · ");
+function CardBody({ entry, hideDateMeta }: GameCardProps) {
+  const meta = [
+    entry.kickoffTime,
+    hideDateMeta ? null : entry.date,
+    entry.venue,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const isTbd = entry.isTbd === true;
   const isLive = entry.status === "live";
   const isScheduled = entry.status === "scheduled" || isTbd;
@@ -27,7 +33,7 @@ function CardBody({ entry }: GameCardProps) {
           </div>
         )}
         <div className={isScheduled ? "opacity-50" : undefined}>
-          {isTbd ? <TbdCoverPreview /> : <MatchCoverPreview entry={entry} />}
+          <MatchCardCover entry={entry} />
         </div>
       </div>
 
@@ -55,7 +61,7 @@ function CardBody({ entry }: GameCardProps) {
   );
 }
 
-export default function GameCard({ entry }: GameCardProps) {
+export default function GameCard({ entry, hideDateMeta }: GameCardProps) {
   const isTbd = entry.isTbd === true;
   const isLive = entry.status === "live";
 
@@ -66,7 +72,7 @@ export default function GameCard({ entry }: GameCardProps) {
         style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
         aria-disabled
       >
-        <CardBody entry={entry} />
+        <CardBody entry={entry} hideDateMeta={hideDateMeta} />
       </div>
     );
   }
@@ -79,7 +85,7 @@ export default function GameCard({ entry }: GameCardProps) {
       }`}
       style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
     >
-      <CardBody entry={entry} />
+      <CardBody entry={entry} hideDateMeta={hideDateMeta} />
     </Link>
   );
 }

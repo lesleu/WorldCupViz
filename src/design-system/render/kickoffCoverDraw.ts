@@ -1,4 +1,5 @@
 import { cfg } from "@/config";
+import { resolveKickoffCanvasFontFamily } from "@/lib/canvasFontReady";
 import type { TeamPalette } from "@/data/teamPalettes.generated";
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -85,7 +86,7 @@ export function drawKickoffCover(
     const targetHeight = artHeight * type.kickoffCodeFillHeightRatio;
     const baseSize = targetWidth / Math.max(count * 0.55, 1);
     const gap = baseSize * type.kickoffCodeLetterGapRatio;
-    const font = `${type.kickoffCodeFontWeight} ${baseSize}px ${type.kickoffCodeFontFamily}`;
+    const font = `${type.kickoffCodeFontWeight} ${baseSize}px ${resolveKickoffCanvasFontFamily()}`;
 
     ctx.font = font;
     ctx.textBaseline = "middle";
@@ -115,7 +116,7 @@ export function drawKickoffCover(
     ctx.clip();
     ctx.translate(zoneCx, zoneCy);
     ctx.scale(scaleX, scaleY);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = cfg.colors.text;
     ctx.textAlign = "center";
 
     let x = -naturalW * 0.5;

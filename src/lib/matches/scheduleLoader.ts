@@ -9,6 +9,10 @@ import {
   SCHEDULE_MATCHES,
   SCHEDULE_SYNCED_AT,
 } from "@/data/schedule.generated";
+import {
+  enrichCatalogEntryKickoff,
+  enrichCatalogKickoff,
+} from "@/lib/matches/enrichKickoff";
 
 function filterByStage(
   entries: MatchCatalogEntry[],
@@ -27,17 +31,17 @@ export function getStaticScheduleSyncedAt(): string | null {
 
 export function getStaticSchedule(stage?: TournamentStage): MatchCatalogEntry[] {
   if (SCHEDULE_MATCHES.length === 0) return [];
-  return filterByStage(SCHEDULE_MATCHES, stage);
+  return enrichCatalogKickoff(filterByStage(SCHEDULE_MATCHES, stage));
 }
 
 export function getStaticMatchById(id: string): MatchCatalogEntry | undefined {
   const fromSchedule = SCHEDULE_MATCHES.find((entry) => entry.id === id);
-  if (fromSchedule) return fromSchedule;
+  if (fromSchedule) return enrichCatalogEntryKickoff(fromSchedule);
 
-  return (
-    getDemoMatchById(id) ??
-    TBD_PLACEHOLDER_CATALOG.find((entry) => entry.id === id)
-  );
+  const demo = getDemoMatchById(id);
+  if (demo) return enrichCatalogEntryKickoff(demo);
+
+  return TBD_PLACEHOLDER_CATALOG.find((entry) => entry.id === id);
 }
 
 export function getDemoCatalog(stage?: TournamentStage): MatchCatalogEntry[] {
