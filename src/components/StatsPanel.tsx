@@ -5,13 +5,23 @@ import type { MatchData, TeamStats } from "@/data/mockMatch";
 import type { MatchStatus } from "@/data/matchCatalog";
 import type { AppMode } from "@/components/MatchVisualizer";
 import type { ReplayActions, ReplayUiState } from "@/engine/replayControls";
+import { VISUALIZER_CONFIG } from "@/config";
 import { cfg } from "@/config";
-import { foundationsGenerated } from "@/config/foundations.generated";
+import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import { getTeamPalette } from "@/data/mockMatch";
 import LiveBadge from "@/components/LiveBadge";
+import StatRowIcon from "@/components/StatRowIcon";
 
-const panelInk = foundationsGenerated.ink;
-const panelPaper = foundationsGenerated.paper;
+const panelBg = VISUALIZER_CONFIG.colors.background;
+const panelText = VISUALIZER_CONFIG.colors.text;
+const panelMuted = VISUALIZER_CONFIG.colors.textMuted;
+const panelBorder = "rgba(234, 234, 234, 0.15)";
+
+interface StatRow {
+  label: string;
+  value: string | number;
+  icon: VisualComponent | null;
+}
 
 interface StatsPanelProps {
   match: MatchData | null;
@@ -21,6 +31,37 @@ interface StatsPanelProps {
   replayUi: ReplayUiState;
   replayActions: RefObject<ReplayActions>;
   onModeChange: (mode: AppMode) => void;
+}
+
+function buildStatRows(
+  stats: TeamStats,
+  showPenaltyShootout: boolean
+): StatRow[] {
+  const rows: StatRow[] = [
+    { label: "Possession", value: `${stats.possession}%`, icon: VISUAL_COMPONENT.PossessionGrid },
+    { label: "Pass Accuracy", value: `${stats.passAccuracy}%`, icon: VISUAL_COMPONENT.PassAccuracy },
+    { label: "Shots", value: stats.shots, icon: VISUAL_COMPONENT.Shot },
+    { label: "Shots on Target", value: stats.shotsOnTarget, icon: VISUAL_COMPONENT.ShotOnTarget },
+    { label: "Goals", value: stats.goals, icon: VISUAL_COMPONENT.Goal },
+    { label: "Corners", value: stats.corners ?? 0, icon: VISUAL_COMPONENT.Corner },
+    { label: "Offsides", value: stats.offsides ?? 0, icon: VISUAL_COMPONENT.Offside },
+    { label: "Fouls", value: stats.fouls, icon: VISUAL_COMPONENT.Foul },
+    { label: "Yellow Cards", value: stats.yellowCards, icon: VISUAL_COMPONENT.YellowCard },
+    { label: "Red Cards", value: stats.redCards, icon: VISUAL_COMPONENT.RedCard },
+  ];
+
+  if (
+    showPenaltyShootout ||
+    stats.penaltyShootoutScored > 0 ||
+    stats.penaltyShootoutMissed > 0
+  ) {
+    rows.push(
+      { label: "PK Scored", value: stats.penaltyShootoutScored, icon: VISUAL_COMPONENT.Goal },
+      { label: "PK Missed", value: stats.penaltyShootoutMissed, icon: VISUAL_COMPONENT.Shot }
+    );
+  }
+
+  return rows;
 }
 
 function TeamBlock({
@@ -34,51 +75,33 @@ function TeamBlock({
   accent: string;
   showPenaltyShootout?: boolean;
 }) {
-  const rows: { label: string; value: string | number }[] = [
-    { label: "Possession", value: `${stats.possession}%` },
-    { label: "Shots", value: stats.shots },
-    { label: "Shots on Target", value: stats.shotsOnTarget },
-    { label: "Pass Accuracy", value: `${stats.passAccuracy}%` },
-    { label: "Fouls", value: stats.fouls },
-    { label: "Yellow Cards", value: stats.yellowCards },
-    { label: "Red Cards", value: stats.redCards },
-    { label: "Goals", value: stats.goals },
-  ];
-
-  if (
-    showPenaltyShootout ||
-    stats.penaltyShootoutScored > 0 ||
-    stats.penaltyShootoutMissed > 0
-  ) {
-    rows.push(
-      { label: "PK Scored", value: stats.penaltyShootoutScored },
-      { label: "PK Missed", value: stats.penaltyShootoutMissed }
-    );
-  }
+  const rows = buildStatRows(stats, showPenaltyShootout);
 
   return (
     <section className="space-y-3">
       <h2
-        className="font-mono text-xs uppercase tracking-[0.25em]"
+        className="text-center font-mono text-xs uppercase tracking-[0.25em]"
         style={{ color: accent }}
       >
         {teamName}
       </h2>
       <dl className="space-y-2">
-        {rows.map(({ label, value }) => (
+        {rows.map(({ label, value, icon }) => (
           <div
             key={label}
-            className="flex items-baseline justify-between border-b border-black/10 pb-2"
+            className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2 border-b pb-2"
+            style={{ borderColor: panelBorder }}
           >
+            <StatRowIcon component={icon} />
             <dt
-              className="text-[11px] uppercase tracking-wider"
-              style={{ color: panelInk.textMuted }}
+              className="text-center text-[11px] uppercase tracking-wider"
+              style={{ color: panelMuted }}
             >
               {label}
             </dt>
             <dd
-              className="font-mono text-sm"
-              style={{ color: panelInk.text }}
+              className="font-mono text-sm tabular-nums"
+              style={{ color: panelText }}
             >
               {value}
             </dd>
@@ -126,11 +149,9 @@ function ModeButton({
       onClick={onClick}
       className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition"
       style={{
-        backgroundColor: active
-          ? panelInk.text
-          : panelPaper.cream,
-        color: active ? panelPaper.cream : panelInk.text,
-        borderColor: active ? panelInk.text : "rgba(0,0,0,0.2)",
+        backgroundColor: active ? panelText : "transparent",
+        color: active ? panelBg : panelText,
+        borderColor: active ? panelText : panelBorder,
       }}
     >
       {label}
@@ -150,13 +171,13 @@ function LiveModePanel({
       <div>
         <p
           className="font-mono text-xs uppercase tracking-[0.25em]"
-          style={{ color: panelInk.text }}
+          style={{ color: panelText }}
         >
           Live Match Mode
         </p>
         <p
           className="mt-2 font-mono text-xs leading-relaxed"
-          style={{ color: panelInk.textMuted }}
+          style={{ color: panelMuted }}
         >
           {matchStatus === "live"
             ? "Polling API-Football every 20s for events and statistics."
@@ -169,7 +190,7 @@ function LiveModePanel({
       {match && (
         <p
           className="font-mono text-[10px] uppercase tracking-wider"
-          style={{ color: panelInk.textMuted }}
+          style={{ color: panelMuted }}
         >
           {match.homeTeam} vs {match.awayTeam}
         </p>
@@ -195,21 +216,26 @@ export default function StatsPanel({
       match!.away.penaltyShootoutScored > 0 ||
       match!.away.penaltyShootoutMissed > 0);
 
+  const homePalette = match ? getTeamPalette(match.homeTeamCode) : getTeamPalette("MEX");
+  const awayPalette = match ? getTeamPalette(match.awayTeamCode) : getTeamPalette("KOR");
+  const homeAccent = homePalette.c1;
+  const awayAccent = awayPalette.c1;
+
   return (
     <aside
-      className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l border-black/10"
-      style={{ backgroundColor: panelPaper.cream }}
+      className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l"
+      style={{ backgroundColor: panelBg, borderColor: panelBorder }}
     >
-      <div className="border-b border-black/10 p-5">
+      <div className="border-b p-5" style={{ borderColor: panelBorder }}>
         <p
           className="font-mono text-[10px] uppercase tracking-[0.35em]"
-          style={{ color: panelInk.textMuted }}
+          style={{ color: panelMuted }}
         >
           Match Data
         </p>
         <h1
           className="mt-2 text-lg font-semibold"
-          style={{ color: panelInk.text }}
+          style={{ color: panelText }}
         >
           World Cup Vizi
         </h1>
@@ -239,7 +265,7 @@ export default function StatsPanel({
               <div className="mt-4 space-y-3">
                 <p
                   className="font-mono text-[10px] uppercase tracking-wider"
-                  style={{ color: panelInk.textMuted }}
+                  style={{ color: panelMuted }}
                 >
                   {match.homeTeam} vs {match.awayTeam}
                 </p>
@@ -247,7 +273,7 @@ export default function StatsPanel({
                 {!hasReplayFeed && (
                   <p
                     className="font-mono text-[10px] uppercase tracking-wider"
-                    style={{ color: panelInk.textMuted }}
+                    style={{ color: panelMuted }}
                   >
                     Replay coming soon
                   </p>
@@ -256,7 +282,7 @@ export default function StatsPanel({
                 {!replayUi.ready && (
                   <p
                     className="font-mono text-[10px] uppercase tracking-wider"
-                    style={{ color: panelInk.textMuted }}
+                    style={{ color: panelMuted }}
                   >
                     Starting visualizer…
                   </p>
@@ -272,10 +298,11 @@ export default function StatsPanel({
                           if (replayUi.isPlaying) actions().pause();
                           else actions().play();
                         }}
-                        className="flex-1 border border-black/20 px-2 py-2 font-mono text-[10px] uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
                         style={{
-                          backgroundColor: panelPaper.cream,
-                          color: panelInk.text,
+                          backgroundColor: "transparent",
+                          color: panelText,
+                          borderColor: panelBorder,
                         }}
                       >
                         {replayUi.isPlaying ? "Pause" : "Play"}
@@ -284,10 +311,11 @@ export default function StatsPanel({
                         type="button"
                         disabled={!replayUi.ready}
                         onClick={() => actions().reset()}
-                        className="flex-1 border border-black/20 px-2 py-2 font-mono text-[10px] uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex-1 border px-2 py-2 font-mono text-[10px] uppercase tracking-widest transition disabled:cursor-not-allowed disabled:opacity-40"
                         style={{
-                          backgroundColor: panelPaper.cream,
-                          color: panelInk.text,
+                          backgroundColor: "transparent",
+                          color: panelText,
+                          borderColor: panelBorder,
                         }}
                       >
                         Reset
@@ -297,7 +325,7 @@ export default function StatsPanel({
                     <div>
                       <p
                         className="mb-2 font-mono text-[10px] uppercase tracking-wider"
-                        style={{ color: panelInk.textMuted }}
+                        style={{ color: panelMuted }}
                       >
                         Speed
                       </p>
@@ -308,20 +336,14 @@ export default function StatsPanel({
                             type="button"
                             disabled={!replayUi.ready}
                             onClick={() => actions().setSpeed(speed)}
-                            className="flex-1 border px-1 py-1.5 font-mono text-[10px] uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex-1 border px-1 py-1.5 font-mono text-[10px] uppercase transition disabled:cursor-not-allowed disabled:opacity-40"
                             style={{
                               backgroundColor:
-                                replayUi.speed === speed
-                                  ? panelInk.text
-                                  : panelPaper.cream,
+                                replayUi.speed === speed ? panelText : "transparent",
                               color:
-                                replayUi.speed === speed
-                                  ? panelPaper.cream
-                                  : panelInk.text,
+                                replayUi.speed === speed ? panelBg : panelText,
                               borderColor:
-                                replayUi.speed === speed
-                                  ? panelInk.text
-                                  : "rgba(0,0,0,0.2)",
+                                replayUi.speed === speed ? panelText : panelBorder,
                             }}
                           >
                             {speed}x
@@ -332,7 +354,7 @@ export default function StatsPanel({
 
                     <p
                       className="font-mono text-[10px] uppercase tracking-wider"
-                      style={{ color: panelInk.textMuted }}
+                      style={{ color: panelMuted }}
                     >
                       Minute: {formatReplayMinute(replayUi.minute, replayUi.isPlaying)}
                     </p>
@@ -353,13 +375,13 @@ export default function StatsPanel({
                 <TeamBlock
                   teamName={match.homeTeam}
                   stats={match.home}
-                  accent={getTeamPalette(match.homeTeamCode).c1}
+                  accent={homeAccent}
                   showPenaltyShootout={showPenaltyShootout}
                 />
                 <TeamBlock
                   teamName={match.awayTeam}
                   stats={match.away}
-                  accent={getTeamPalette(match.awayTeamCode).c1}
+                  accent={awayAccent}
                   showPenaltyShootout={showPenaltyShootout}
                 />
               </div>
@@ -368,7 +390,7 @@ export default function StatsPanel({
         ) : !match ? (
           <p
             className="font-mono text-xs leading-relaxed"
-            style={{ color: panelInk.textMuted }}
+            style={{ color: panelMuted }}
           >
             Demo match: Mexico vs South Korea.
           </p>
@@ -377,13 +399,13 @@ export default function StatsPanel({
             <TeamBlock
               teamName={match.homeTeam}
               stats={match.home}
-              accent={getTeamPalette(match.homeTeamCode).c1}
+              accent={homeAccent}
               showPenaltyShootout={showPenaltyShootout}
             />
             <TeamBlock
               teamName={match.awayTeam}
               stats={match.away}
-              accent={getTeamPalette(match.awayTeamCode).c1}
+              accent={awayAccent}
               showPenaltyShootout={showPenaltyShootout}
             />
           </div>

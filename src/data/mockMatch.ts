@@ -15,6 +15,8 @@ export interface TeamStats {
   yellowCards: number;
   redCards: number;
   goals: number;
+  corners?: number;
+  offsides?: number;
   /** Penalty shootout kicks scored (after extra time). */
   penaltyShootoutScored: number;
   /** Penalty shootout kicks missed (after extra time). */
@@ -58,6 +60,8 @@ export const mockMatch: MatchData = {
     yellowCards: 0,
     redCards: 0,
     goals: 1,
+    corners: 4,
+    offsides: 2,
     penaltyShootoutScored: 0,
     penaltyShootoutMissed: 0,
   },
@@ -70,6 +74,8 @@ export const mockMatch: MatchData = {
     yellowCards: 0,
     redCards: 0,
     goals: 0,
+    corners: 3,
+    offsides: 1,
     penaltyShootoutScored: 0,
     penaltyShootoutMissed: 0,
   },

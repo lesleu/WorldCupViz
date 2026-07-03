@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { VISUALIZER_CONFIG } from "@/config";
+import HomeHeaderIntro from "@/components/home/HomeHeaderIntro";
 import HomeHeaderTitle from "@/components/home/HomeHeaderTitle";
 import {
   HEADER_TOP_PADDING,
@@ -10,17 +11,28 @@ import {
 
 interface HomeStickyHeaderProps {
   titleWidth: number;
-  headerHeight: number;
+  canvasHeight: number;
+  introWidth: number;
+  compactHeaderHeight: number;
+  expandedHeaderHeight: number;
   compact: boolean;
+  onExpandedHeightChange: (height: number) => void;
 }
 
 export default function HomeStickyHeader({
   titleWidth,
-  headerHeight,
+  canvasHeight,
+  introWidth,
+  compactHeaderHeight,
+  expandedHeaderHeight,
   compact,
+  onExpandedHeightChange,
 }: HomeStickyHeaderProps) {
+  const headerRef = useRef<HTMLElement>(null);
   const titleBoxRef = useRef<HTMLDivElement>(null);
-  const artHeight = Math.max(headerHeight - HEADER_TOP_PADDING, 1);
+  const artHeight = compact
+    ? Math.max(compactHeaderHeight - HEADER_TOP_PADDING, 1)
+    : canvasHeight;
   const [titleSize, setTitleSize] = useState({
     width: titleWidth,
     height: artHeight,
@@ -45,24 +57,44 @@ export default function HomeStickyHeader({
     return () => observer.disconnect();
   }, [titleWidth, artHeight]);
 
+  useEffect(() => {
+    if (compact) return;
+
+    const header = headerRef.current;
+    if (!header) return;
+
+    const reportHeight = () => {
+      onExpandedHeightChange(Math.ceil(header.scrollHeight));
+    };
+
+    reportHeight();
+    const observer = new ResizeObserver(reportHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [compact, canvasHeight, introWidth, artHeight, onExpandedHeightChange]);
+
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50 flex w-full flex-col items-center border-b px-3"
+      ref={headerRef}
+      className="fixed inset-x-0 top-0 z-50 flex w-full flex-col items-center border-b-2 px-3"
       style={{
-        height: headerHeight,
+        height: compact ? compactHeaderHeight : "auto",
+        minHeight: compact ? undefined : expandedHeaderHeight,
         paddingTop: HEADER_TOP_PADDING,
         boxSizing: "border-box",
         backgroundColor: VISUALIZER_CONFIG.colors.background,
         borderColor: "rgba(234, 234, 234, 0.2)",
-        transition: `height ${HEADER_TRANSITION}`,
+        transition: compact ? `height ${HEADER_TRANSITION}` : undefined,
+        overflow: compact ? "hidden" : "visible",
       }}
     >
       <h1 className="sr-only">World Cup 2026</h1>
       <div
         ref={titleBoxRef}
-        className="w-full overflow-hidden"
+        className="w-full shrink-0 overflow-hidden"
         style={{
           height: artHeight,
+          width: "100%",
           maxWidth: titleWidth,
           transition: `height ${HEADER_TRANSITION}`,
         }}
@@ -75,6 +107,7 @@ export default function HomeStickyHeader({
           className="pointer-events-none block h-full w-full"
         />
       </div>
+      <HomeHeaderIntro compact={compact} width={introWidth} />
     </header>
   );
 }

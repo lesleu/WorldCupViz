@@ -71,6 +71,8 @@ export function adaptStatisticsToTeamStats(
     yellowCards: Number(statValue(stats, "Yellow Cards") ?? 0),
     redCards: Number(statValue(stats, "Red Cards") ?? 0),
     goals,
+    corners: Number(statValue(stats, "Corner Kicks") ?? 0),
+    offsides: Number(statValue(stats, "Offsides") ?? 0),
     penaltyShootoutScored: 0,
     penaltyShootoutMissed: 0,
   };
@@ -181,6 +183,8 @@ function teamStatsFromFeedSide(
     yellowCards: events.yellow_card,
     redCards: events.red_card,
     goals,
+    corners: events.corner,
+    offsides: events.offside,
     penaltyShootoutScored: events.penalty_scored,
     penaltyShootoutMissed: events.penalty_missed,
   };

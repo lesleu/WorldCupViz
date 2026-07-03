@@ -18,6 +18,12 @@ const interExtraBold = Inter({
   variable: "--font-inter-extrabold",
 });
 
+const interSemiBold = Inter({
+  subsets: ["latin"],
+  weight: "600",
+  variable: "--font-inter-semibold",
+});
+
 export const metadata: Metadata = {
   title: "World Cup Vizi",
   description: "Generative art visualization from football match data",
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${interExtraBold.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${interExtraBold.variable} ${interSemiBold.variable} antialiased`}
       >
         {children}
       </body>

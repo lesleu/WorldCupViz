@@ -1,6 +1,12 @@
 import { cfg } from "@/config";
 import { resolveKickoffCanvasFontFamily } from "@/lib/canvasFontReady";
-import { REF_HEADER_COMPACT_HEIGHT } from "@/lib/homeHeaderLayout";
+import {
+  HEADER_HORIZONTAL_PADDING,
+  HEADER_INTRO_MAX_WIDTH,
+  REF_HEADER_CANVAS_HEIGHT,
+  REF_HEADER_COMPACT_HEIGHT,
+  headerLayoutScale,
+} from "@/lib/homeHeaderLayout";
 
 export interface StretchedTextBox {
   left: number;
@@ -86,16 +92,21 @@ export function drawStretchedInterText(
   ctx.restore();
 }
 
-/** Title box at 1920 reference: 1848×280 full / 180 compact. Scales with viewport width. */
+/** Responsive header metrics — scales below 1920px for mobile. */
 export function homeTitleMetrics(viewportWidth: number): {
   titleWidth: number;
-  fullHeaderHeight: number;
+  canvasHeight: number;
+  introWidth: number;
   compactHeaderHeight: number;
 } {
-  const scale = Math.min(1, viewportWidth / 1920);
+  const scale = headerLayoutScale(viewportWidth);
+  const contentWidth = Math.max(1, viewportWidth - HEADER_HORIZONTAL_PADDING);
+  const canvasHeight = Math.max(72, Math.round(REF_HEADER_CANVAS_HEIGHT * scale));
+
   return {
-    titleWidth: Math.min(viewportWidth - 24, Math.round(1848 * scale)),
-    fullHeaderHeight: Math.round(280 * scale),
-    compactHeaderHeight: Math.max(56, Math.round(REF_HEADER_COMPACT_HEIGHT * scale)),
+    titleWidth: contentWidth,
+    canvasHeight,
+    introWidth: Math.min(HEADER_INTRO_MAX_WIDTH, contentWidth),
+    compactHeaderHeight: Math.max(64, Math.round(REF_HEADER_COMPACT_HEIGHT * scale)),
   };
 }

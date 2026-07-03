@@ -15,6 +15,8 @@ const kickoffStats: TeamStats = {
   yellowCards: 0,
   redCards: 0,
   goals: 0,
+  corners: 0,
+  offsides: 0,
   penaltyShootoutScored: 0,
   penaltyShootoutMissed: 0,
 };
