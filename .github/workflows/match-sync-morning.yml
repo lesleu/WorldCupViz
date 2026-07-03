@@ -35,10 +35,5 @@ jobs:
             echo "No match data changes to commit."
             exit 0
           fi
-          git commit -m "$(cat <<'EOF'
-chore: morning sync of World Cup match schedule and feeds
-
-Automated daily pull from API-Football for committed static replay data.
-EOF
-)"
+          git commit -m "chore: morning sync of World Cup match schedule and feeds" -m "Automated daily pull from API-Football for committed static replay data."
           git push
