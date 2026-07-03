@@ -65,7 +65,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 100
+      "$value": 84
     }
   },
   "shotsontarget": {
@@ -173,7 +173,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 140
+      "$value": 88
     },
     "size-max": {
       "$extensions": {
@@ -183,7 +183,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 156
+      "$value": 128
     }
   },
   "offsize": {
@@ -195,7 +195,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 152
+      "$value": 140
     },
     "size-x-min": {
       "$extensions": {
@@ -205,7 +205,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 72
+      "$value": 60
     },
     "size-x-max": {
       "$extensions": {
@@ -215,7 +215,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 104
+      "$value": 92
     },
     "size-y-min": {
       "$extensions": {
@@ -225,7 +225,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 92
+      "$value": 80
     }
   },
   "yellowcard": {

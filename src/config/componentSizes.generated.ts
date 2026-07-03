@@ -29,7 +29,7 @@ export const COMPONENT_SIZES: Partial<
   },
   "Shot": {
     "sizeMin": 72,
-    "sizeMax": 100
+    "sizeMax": 84
   },
   "ShotOnTarget": {
     "sizeMin": 116,
@@ -47,14 +47,14 @@ export const COMPONENT_SIZES: Partial<
     "sizeMax": 100
   },
   "Corner": {
-    "sizeMin": 140,
-    "sizeMax": 156
+    "sizeMin": 88,
+    "sizeMax": 128
   },
   "Offside": {
-    "sizeMax": 152,
-    "sizeXMin": 72,
-    "sizeXMax": 104,
-    "sizeYMin": 92
+    "sizeMax": 140,
+    "sizeXMin": 60,
+    "sizeXMax": 92,
+    "sizeYMin": 80
   },
   "YellowCard": {
     "sizeMin": 74,
