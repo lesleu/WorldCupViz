@@ -38,9 +38,9 @@ export const COMPONENT_SIZES: Partial<
   },
   "Goal": {
     "sizeXMin": 80,
-    "sizeXMax": 316,
+    "sizeXMax": 306,
     "sizeYMin": 120,
-    "sizeYMax": 468
+    "sizeYMax": 458
   },
   "Foul": {
     "sizeMin": 68,

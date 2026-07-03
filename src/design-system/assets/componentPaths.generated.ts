@@ -1050,7 +1050,7 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
       "h": 117
     },
     "layers": {
-      "c4": {
+      "c5": {
         "paths": [
           [
             {

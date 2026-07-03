@@ -28,10 +28,11 @@ interface TeamRegistry {
 }
 
 interface SeedPalette {
-  c1: string;
-  c2: string;
-  c3: string;
-  c4: string;
+  c1?: string;
+  c2?: string;
+  c3?: string;
+  c4?: string;
+  c5?: string;
   source?: string;
 }
 
@@ -45,6 +46,7 @@ interface TeamPalette {
   c2: string;
   c3: string;
   c4: string;
+  c5: string;
 }
 
 function readJson<T>(relativePath: string): T {
@@ -67,8 +69,8 @@ function tokenValue(node: unknown): string | null {
   return null;
 }
 
-function extractPalettes(teamJson: Json): Record<string, TeamPalette> {
-  const palettes: Record<string, TeamPalette> = {};
+function extractPalettes(teamJson: Json): Record<string, Partial<TeamPalette>> {
+  const palettes: Record<string, Partial<TeamPalette>> = {};
   for (const [code, slots] of Object.entries(teamJson)) {
     if (!slots || typeof slots !== "object") continue;
     const s = slots as Json;
@@ -76,9 +78,27 @@ function extractPalettes(teamJson: Json): Record<string, TeamPalette> {
     const c2 = tokenValue(s.c2);
     const c3 = tokenValue(s.c3);
     const c4 = tokenValue(s.c4);
-    if (c1 && c2 && c3 && c4) palettes[code] = { c1, c2, c3, c4 };
+    const c5 = tokenValue(s.c5);
+    if (c1 && c2 && c3 && c4) {
+      palettes[code] = { c1, c2, c3, c4, ...(c5 ? { c5 } : {}) };
+    }
   }
   return palettes;
+}
+
+/** Fifth accent — seed override, Figma c5, or c3 (never duplicate c4). */
+function resolveTeamC5(
+  code: string,
+  palette: { c3: string; c4: string; c5?: string },
+  seed: TeamsSeed
+): string {
+  const seeded = seed.palettes[code];
+  return (
+    palette.c5 ??
+    seeded?.c5 ??
+    seeded?.c3 ??
+    palette.c3
+  );
 }
 
 function colorToken(hex: string): Json {
@@ -98,6 +118,7 @@ function paletteToTokenEntry(palette: TeamPalette): Json {
     c2: colorToken(palette.c2),
     c3: colorToken(palette.c3),
     c4: colorToken(palette.c4),
+    c5: colorToken(palette.c5),
   };
 }
 
@@ -129,14 +150,24 @@ function main() {
   for (const team of teams) {
     const code = team.code;
     const figma = figmaPalettes[code];
+    const seeded = seed.palettes[code];
 
-    if (figma) {
-      merged[code] = figma;
+    if (figma?.c1 && figma.c2 && figma.c3 && figma.c4) {
+      merged[code] = {
+        c1: figma.c1,
+        c2: figma.c2,
+        c3: figma.c3,
+        c4: figma.c4,
+        c5: resolveTeamC5(
+          code,
+          { c3: figma.c3, c4: figma.c4, c5: figma.c5 },
+          seed
+        ),
+      };
       continue;
     }
 
-    const seeded = seed.palettes[code];
-    if (!seeded) {
+    if (!seeded?.c1 || !seeded.c2 || !seeded.c3 || !seeded.c4) {
       throw new Error(
         `Missing palette for ${code}. Add it in ${TEAM_TOKENS_PATH} or teams.seed.json.`
       );
@@ -146,6 +177,11 @@ function main() {
       c2: seeded.c2,
       c3: seeded.c3,
       c4: seeded.c4,
+      c5: resolveTeamC5(
+        code,
+        { c3: seeded.c3, c4: seeded.c4, c5: seeded.c5 },
+        seed
+      ),
     };
   }
 

@@ -19,7 +19,7 @@ export const WORLD1_ART_PALETTE: TeamPalette = {
 
 /**
  * World2 foundation colors as team slots for header art.
- * Used with standard color-rules (e.g. Goal c1→c1, c4→c3; Corner c4→c5).
+ * Used with standard color-rules (e.g. Goal c1→c1, c4→c3; Corner c5→c5).
  */
 export const WORLD2_ART_PALETTE: TeamPalette = {
   c1: W2.c1,

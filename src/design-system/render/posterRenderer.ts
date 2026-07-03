@@ -13,9 +13,6 @@ import { motionIntensity } from "@/design-system/motion/energyState";
 import { getComponentColor } from "@/design-system/color/resolveColor";
 import { VISUAL_COMPONENT } from "@/design-system/mapping/visualMappings";
 import {
-  resolveComponentSize,
-} from "@/design-system/layout/designScale";
-import {
   buildPossessionGridSlots,
   resolvePossessionCircleDiameter,
   type PossessionCircleSlot,
@@ -41,6 +38,7 @@ import {
   type PosterLayout,
 } from "@/design-system/layout/posterLayout";
 import { drawSvgComponent, warnIfSvgAssetsMissing } from "@/design-system/render/svgRenderer";
+import { drawPassAccuracyStripes } from "@/design-system/render/passAccuracyStripes";
 import type { ReplayEngine, ReplaySnapshot } from "@/engine/replayEngine";
 import { createRng, randBetween, seededNoise } from "@/utils/seededRandom";
 import { cfg } from "@/config";
@@ -370,64 +368,27 @@ export function createReplaySketch(
       }
     }
 
-    /** PassAccuracy — sparks stagger in one-by-one during the kickoff reveal window. */
+    /** PassAccuracy — alternating vertical stripes over the team gradient (multiply @ 40%). */
     function drawPassAccuracy(snapshot: ReplaySnapshot) {
       const { continuous, minute } = snapshot;
       if (minute <= 0) return;
-      const pa = cfg.passAccuracy;
+      const ctx = p.drawingContext as CanvasRenderingContext2D;
 
       for (const side of ["home", "away"] as const) {
         const accuracy = passAccuracy(continuous, side);
-        const isClean = accuracy >= pa.cleanThreshold;
-        const count = isClean ? pa.cleanSparkCount : pa.brokenSparkCount;
-        const region = markRegionForSide(layout, side);
-        const palette = paletteForSide(match, side);
-
-        for (let i = 0; i < count; i++) {
-          const itemPresence = staggeredItemPresence(minute, i, count);
-          if (itemPresence <= 0.01) continue;
-
-          const rng = createRng(
-            cfg.randomness.seed + (side === "home" ? 11 : 29) + i * 17
-          );
-          const nx = randBetween(rng, 0.08, 0.92);
-          const ny = randBetween(rng, 0.06, 0.94);
-          const x = region.left + region.width * nx;
-          const y = region.top + region.height * ny;
-          const v = vibrate(i * 1.1, motion(snapshot), 0.6);
-          const sparkSize = capMarkSize(
-            resolveComponentSize(
-              VISUAL_COMPONENT.PassAccuracy,
-              layout,
-              rng,
-              "uniform",
-              side
-            ),
-            nonGoalMarkCap(snapshot.art, side, layout)
-          );
-
-          p.push();
-          try {
-            (p.drawingContext as CanvasRenderingContext2D).globalAlpha = itemPresence;
-            drawSvgComponent(
-              p,
-              VISUAL_COMPONENT.PassAccuracy,
-              palette,
-              x + v.x,
-              y + v.y,
-              {
-                scalePx:
-                  sparkSize *
-                  itemPresence *
-                  liveAssetScale("passAccuracy", i * 0.18),
-                rotation: cfg.animation.staticRender ? 0 : randBetween(rng, 0, Math.PI * 2),
-              }
-            );
-          } finally {
-            (p.drawingContext as CanvasRenderingContext2D).globalAlpha = 1;
-          }
-        }
+        const zone = side === "home" ? layout.homeZone : layout.awayZone;
+        drawPassAccuracyStripes(
+          ctx,
+          zone.left,
+          zone.top,
+          zone.width,
+          zone.height,
+          accuracy,
+          { jaggedSeed: side === "home" ? 11 : 29 }
+        );
       }
+
+      p.blendMode(p.BLEND);
     }
 
     /** Shot — layered SVG stamps. */
@@ -492,6 +453,9 @@ export function createReplaySketch(
           drawSvgComponent(p, VISUAL_COMPONENT.ShotOnTarget, palette, x + v.x, y + v.y, {
             scalePx: sizePx,
             rotation: mark.phase * 0.1,
+            colorOverrides: {
+              c2: getComponentColor(VISUAL_COMPONENT.ShotOnTarget, palette, "c2", "c2"),
+            },
           });
         });
       }
@@ -528,7 +492,11 @@ export function createReplaySketch(
             Math.sin(time * cfg.animation.breathingSpeed * 2 + goal.phase) *
               0.08 *
               intensity;
-        const { widthPx, heightPx } = goalMarkSizePx(goal, layout);
+        const { widthPx, heightPx } = goalMarkSizePx(
+          goal,
+          layout,
+          rankInDataset(art, goal.side, "goal", goal.id)
+        );
         const w = widthPx * pulse;
         const h = heightPx * pulse;
         const colorOverrides =
@@ -538,12 +506,7 @@ export function createReplaySketch(
                 c4: cfg.goals.shootoutPattern,
               }
             : undefined;
-        withMarkAlpha(markAgeOpacity(
-          art.goals
-            .filter((g) => g.side === goal.side)
-            .sort((a, b) => a.minute - b.minute || a.id.localeCompare(b.id))
-            .findIndex((g) => g.id === goal.id)
-        ), () => {
+        withMarkAlpha(markAgeOpacity(rankInDataset(art, goal.side, "goal", goal.id)), () => {
           drawSvgComponent(p, VISUAL_COMPONENT.Goal, palette, x + v.x, y + v.y, {
             widthPx: w,
             heightPx: h,
@@ -591,6 +554,9 @@ export function createReplaySketch(
           drawSvgComponent(p, VISUAL_COMPONENT.Corner, palette, x + v.x, y + v.y, {
             scalePx: sizePx,
             rotation: corner.angle,
+            colorOverrides: {
+              c5: palette.c5,
+            },
           });
         });
       }
@@ -811,6 +777,10 @@ export function createReplaySketch(
         const artPresence = gameArtPresence(snapshot.minute);
 
         if (artPresence > 0.005 || snapshot.minute >= 0) {
+          drawPassAccuracy(snapshot);
+        }
+
+        if (artPresence > 0.005 || snapshot.minute >= 0) {
           drawPossessionGrid(snapshot);
         }
 
@@ -827,10 +797,6 @@ export function createReplaySketch(
             (seededNoise(cfg.randomness.seed, time) - 0.5) * shake * 2,
             (seededNoise(cfg.randomness.seed + 1, time * 1.7) - 0.5) * shake * 2
           );
-        }
-
-        if (artPresence > 0.005 || snapshot.minute >= 0) {
-          drawPassAccuracy(snapshot);
         }
 
         if (artPresence > 0.01) {

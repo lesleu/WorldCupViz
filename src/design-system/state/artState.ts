@@ -21,6 +21,8 @@ import {
   scaleDesignPx,
 } from "@/design-system/layout/designScale";
 import {
+  rankInDataset,
+  resolveGoalMarkDimensions,
   resolveSalienceMarkSizePx,
   shotMarkDesignSize,
 } from "@/design-system/layout/compositionDensity";
@@ -271,36 +273,17 @@ function goalUpdateIndex(markId: string): number {
   return match ? Number(match[1]) : 0;
 }
 
-/** Figma-token goal size — no zone-fill or mark-scale jitter. */
+/** Figma-token goal size — first per side at max, then salience decay. */
 export function goalMarkSizePx(
   goal: GoalMark,
-  layout: PosterLayout
+  layout: PosterLayout,
+  rank = 0
 ): { widthPx: number; heightPx: number } {
   const updateIndex = goalUpdateIndex(goal.id);
   const rng = createRng(updateIndex * 9973 + goal.minute * 131 + cfg.randomness.seed);
-  const heightJitter = rand(rng, cfg.goals.heightJitterMin, cfg.goals.heightJitterMax);
-  const widthPx = resolveComponentSize(
-    VISUAL_COMPONENT.Goal,
-    layout,
-    rng,
-    "x",
-    goal.side,
-    { zoneFill: false }
-  );
-  const heightPx =
-    resolveComponentSize(
-      VISUAL_COMPONENT.Goal,
-      layout,
-      rng,
-      "y",
-      goal.side,
-      { zoneFill: false }
-    ) * heightJitter;
-
-  return {
-    widthPx: widthPx * cfg.goals.displayScale,
-    heightPx: heightPx * cfg.goals.displayScale,
-  };
+  const baseScale = cfg.composition.markScale;
+  const { widthPx, heightPx } = resolveGoalMarkDimensions(rank, layout, rng, baseScale);
+  return { widthPx, heightPx };
 }
 
 /** Max width/height of the first goal on a side — ceiling for all other marks. */
@@ -448,24 +431,13 @@ export function addEventMark(
     }
     case VISUAL_COMPONENT.Goal: {
       slotCounter += 2;
-      const heightJitter = rand(rng, cfg.goals.heightJitterMin, cfg.goals.heightJitterMax);
-      const widthPx = resolveComponentSize(
-        VISUAL_COMPONENT.Goal,
+      const goalRank = art.goals.filter((mark) => mark.side === side).length;
+      const { widthPx, heightPx } = resolveGoalMarkDimensions(
+        goalRank,
         layout,
         rng,
-        "x",
-        side,
-        { zoneFill: false }
+        baseScale
       );
-      const heightPx =
-        resolveComponentSize(
-          VISUAL_COMPONENT.Goal,
-          layout,
-          rng,
-          "y",
-          side,
-          { zoneFill: false }
-        ) * heightJitter;
       const [x, y] = placeMark(
         layout,
         side,
@@ -560,7 +532,7 @@ export function addEventMark(
         ny: normY(y, layout),
         size: normSize(cornerPx, layout),
         angle: fragmentAngle(rng, rand(rng, 0, Math.PI * 0.5), accuracy),
-        color: getComponentColor(VISUAL_COMPONENT.Corner, palette, "c4", "c4"),
+        color: palette.c5,
         phase,
       });
       break;

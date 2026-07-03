@@ -119,7 +119,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 316
+      "$value": 306
     },
     "size-y-min": {
       "$extensions": {
@@ -139,7 +139,7 @@ export const componentSpecsGenerated = {
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "number",
-      "$value": 468
+      "$value": 458
     }
   },
   "foul": {

@@ -7,6 +7,7 @@ import type { AppMode } from "@/components/MatchVisualizer";
 import type { ReplayActions, ReplayUiState } from "@/engine/replayControls";
 import { VISUALIZER_CONFIG } from "@/config";
 import { cfg } from "@/config";
+import type { TeamPalette } from "@/data/teamPalettes.generated";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import { getTeamPalette } from "@/data/mockMatch";
 import LiveBadge from "@/components/LiveBadge";
@@ -72,11 +73,13 @@ function TeamBlock({
   teamName,
   stats,
   accent,
+  teamPalette,
   showPenaltyShootout = false,
 }: {
   teamName: string;
   stats: TeamStats;
   accent: string;
+  teamPalette: TeamPalette;
   showPenaltyShootout?: boolean;
 }) {
   const rows = buildStatRows(stats, showPenaltyShootout);
@@ -96,7 +99,14 @@ function TeamBlock({
             className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-x-2 border-b pb-2"
             style={{ borderColor: panelBorder }}
           >
-            <StatRowIcon component={icon} />
+            <StatRowIcon
+              component={icon}
+              colorOverrides={
+                icon === VISUAL_COMPONENT.Corner
+                  ? { c5: teamPalette.c5 }
+                  : undefined
+              }
+            />
             <dt
               className={`text-center text-[11px] uppercase tracking-wider ${interSemi}`}
               style={{ color: panelMuted }}
@@ -380,12 +390,14 @@ export default function StatsPanel({
                   teamName={match.homeTeam}
                   stats={match.home}
                   accent={homeAccent}
+                  teamPalette={homePalette}
                   showPenaltyShootout={showPenaltyShootout}
                 />
                 <TeamBlock
                   teamName={match.awayTeam}
                   stats={match.away}
                   accent={awayAccent}
+                  teamPalette={awayPalette}
                   showPenaltyShootout={showPenaltyShootout}
                 />
               </div>
@@ -404,12 +416,14 @@ export default function StatsPanel({
               teamName={match.homeTeam}
               stats={match.home}
               accent={homeAccent}
+              teamPalette={homePalette}
               showPenaltyShootout={showPenaltyShootout}
             />
             <TeamBlock
               teamName={match.awayTeam}
               stats={match.away}
               accent={awayAccent}
+              teamPalette={awayPalette}
               showPenaltyShootout={showPenaltyShootout}
             />
           </div>

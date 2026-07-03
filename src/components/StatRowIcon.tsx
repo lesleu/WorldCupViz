@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
+import { drawPassAccuracyStripes } from "@/design-system/render/passAccuracyStripes";
 import { drawSvgComponent2d } from "@/design-system/render/canvasSvgRenderer";
 import {
   LEGEND_NEUTRAL_PALETTE,
@@ -15,13 +16,20 @@ const ICON_PX_DEFAULT = 20;
 interface StatRowIconProps {
   component: VisualComponent | null;
   size?: number;
+  /** Optional layer overrides — e.g. Corner c5 from the team palette. */
+  colorOverrides?: Record<string, string>;
 }
 
-export default function StatRowIcon({ component, size = ICON_PX_DEFAULT }: StatRowIconProps) {
+export default function StatRowIcon({
+  component,
+  size = ICON_PX_DEFAULT,
+  colorOverrides,
+}: StatRowIconProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isPossession = component === VISUAL_COMPONENT.PossessionGrid;
+  const isPassAccuracy = component === VISUAL_COMPONENT.PassAccuracy;
   const hasSvg = Boolean(component && COMPONENT_PATHS[component]);
-  const shouldRender = isPossession || hasSvg;
+  const shouldRender = isPossession || isPassAccuracy || hasSvg;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,6 +56,14 @@ export default function StatRowIcon({ component, size = ICON_PX_DEFAULT }: StatR
       return;
     }
 
+    if (isPassAccuracy) {
+      drawPassAccuracyStripes(ctx, 0, 0, size, size, 85, {
+        stripeWidthPx: Math.max(2, Math.round(size / 5)),
+        jaggedSeed: 1,
+      });
+      return;
+    }
+
     if (!component || !hasSvg) return;
 
     drawSvgComponent2d(
@@ -59,10 +75,10 @@ export default function StatRowIcon({ component, size = ICON_PX_DEFAULT }: StatR
       {
         widthPx: size,
         heightPx: size,
-        colorOverrides: legendIconColorOverrides(component),
+        colorOverrides: colorOverrides ?? legendIconColorOverrides(component),
       }
     );
-  }, [component, hasSvg, isPossession, shouldRender, size]);
+  }, [colorOverrides, component, hasSvg, isPassAccuracy, isPossession, shouldRender, size]);
 
   if (!shouldRender) {
     return <span className="inline-block w-5 shrink-0" aria-hidden />;

@@ -47,7 +47,7 @@ export const COMPONENT_COLOR_RULES: ComponentColorRules = {
     "ink.mark": "ink.mark"
   },
   "Corner": {
-    "c4": "c5"
+    "c5": "c5"
   },
   "Offside": {
     "c1": "event.offside",

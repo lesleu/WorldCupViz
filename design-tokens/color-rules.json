@@ -5,7 +5,7 @@
   "ShotOnTarget": { "c2": "c4" },
   "Goal": { "c1": "c1", "c4": "c3" },
   "Foul": { "ink.mark": "ink.mark" },
-  "Corner": { "c4": "c5" },
+  "Corner": { "c5": "c5" },
   "Offside": { "c1": "event.offside", "c2": "event.offside", "c3": "event.offside" },
   "YellowCard": { "event.cardYellow": "event.cardYellow", "ink.mark": "ink.mark" },
   "RedCard": { "event.cardRed": "event.cardRed", "ink.mark": "ink.mark" },

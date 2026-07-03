@@ -91,6 +91,11 @@ export const compositionConfig: CompositionConfig = {
       firstFullSizeCount: 2,
       sizeDecayRatio: 0.92,
     },
+    [VISUAL_COMPONENT.Goal]: {
+      useComponentTokens: true,
+      firstFullSizeCount: 1,
+      sizeDecayRatio: 0.92,
+    },
     [VISUAL_COMPONENT.Corner]: {
       useComponentTokens: true,
       firstFullSizeCount: 3,

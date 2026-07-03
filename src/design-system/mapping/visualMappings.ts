@@ -78,7 +78,7 @@ export const DATA_VISUAL_MAPPINGS: readonly VisualMapping[] = [
     meaning: "Precision, technical quality",
     visualComponent: VISUAL_COMPONENT.PassAccuracy,
     visualBehavior:
-      "Above 60% → clean symmetrical 8-ray symbol. Below 60% → broken asymmetrical 5-ray symbol. Modifies fragmentation of event marks.",
+      "Alternating vertical stripe columns over each team gradient (multiply @ 40%). Above 80% pass accuracy → straight edges; 79% and below → jagged edges. Also modulates fragmentation of event marks.",
     affectedConfigSections: ["passAccuracy", "randomness"],
     notesForDesign:
       "Drawn beside each possession grid. High accuracy = structured, aligned. Low accuracy = fragmented, unstable geometry on marks.",

@@ -49,8 +49,9 @@ function extractTeamPalettes(
     const c2 = tokenColor(s.c2);
     const c3 = tokenColor(s.c3);
     const c4 = tokenColor(s.c4);
-    const c5 = tokenColor(s.c5) ?? tokenColor(s["c4 2"]) ?? c4;
+    const c5 = tokenColor(s.c5) ?? tokenColor(s["c4 2"]);
     if (c1 && c2 && c3 && c4 && c5) palettes[code] = { c1, c2, c3, c4, c5 };
+    else if (c1 && c2 && c3 && c4) palettes[code] = { c1, c2, c3, c4, c5: c3 };
   }
   return palettes;
 }

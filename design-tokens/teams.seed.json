@@ -28,6 +28,8 @@
     "ARG": { "c1": "#75AADB", "c2": "#FFFFFF", "c3": "#FFD700", "c4": "#4A7CA0", "source": "Argentina sky blue/white" },
     "BRA": { "c1": "#FFDF00", "c2": "#009739", "c3": "#002776", "c4": "#BFA700", "source": "Brazil yellow/green" },
     "COL": { "c1": "#459DC6", "c2": "#0E1C42", "c3": "#F6FF4B", "c4": "#E079C8", "c5": "#DFC670", "source": "Colombia Figma palette" },
+    "MEX": { "c5": "#d09364", "source": "Mexico c5 accent (corner)" },
+    "KOR": { "c5": "#ba8456", "source": "Korea c5 accent (corner)" },
     "ECU": { "c1": "#FFD100", "c2": "#003087", "c3": "#EF3340", "c4": "#B89A00", "source": "Ecuador yellow/blue" },
     "PAR": { "c1": "#D52B1E", "c2": "#FFFFFF", "c3": "#0038A8", "c4": "#961F15", "source": "Paraguay red/white/blue" },
     "URU": { "c1": "#55B5E5", "c2": "#FFFFFF", "c3": "#FFD700", "c4": "#3689A8", "source": "Uruguay sky blue" },
