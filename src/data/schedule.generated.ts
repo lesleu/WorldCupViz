@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-02T03:10:13.458Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-03T02:22:48.135Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -3911,7 +3911,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_32",
     "stageLabel": "Round of 32",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1567311,
     "date": "July 2, 2026",
@@ -3921,7 +3921,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Austria",
     "homeTeamCode": "ESP",
     "awayTeamCode": "AUT",
-    "hasReplayFeed": false,
+    "finalMinute": 90,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Spain",
       "awayTeam": "Austria",
@@ -3938,7 +3939,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 3,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -3962,7 +3963,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_32",
     "stageLabel": "Round of 32",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1567309,
     "date": "July 2, 2026",
@@ -3972,7 +3973,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Croatia",
     "homeTeamCode": "POR",
     "awayTeamCode": "CRO",
-    "hasReplayFeed": false,
+    "finalMinute": 98,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Portugal",
       "awayTeam": "Croatia",
@@ -3989,7 +3991,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 2,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
@@ -4001,7 +4003,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -4273,6 +4275,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "matchNumber": 1568100,
     "date": "July 5, 2026",
     "dateSort": "2026-07-05",
+    "venue": "MetLife Stadium",
     "homeTeam": "Brazil",
     "awayTeam": "Norway",
     "homeTeamCode": "BRA",
@@ -4285,6 +4288,109 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "NOR",
       "stage": "ROUND OF 16",
       "date": "July 5, 2026",
+      "venue": "MetLife Stadium",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1570714",
+    "providerFixtureId": 1570714,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "round_of_16",
+    "stageLabel": "Round of 16",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1570714,
+    "date": "July 6, 2026",
+    "dateSort": "2026-07-06",
+    "venue": "Estadio Banorte",
+    "homeTeam": "Mexico",
+    "awayTeam": "England",
+    "homeTeamCode": "MEX",
+    "awayTeamCode": "ENG",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Mexico",
+      "awayTeam": "England",
+      "homeTeamCode": "MEX",
+      "awayTeamCode": "ENG",
+      "stage": "ROUND OF 16",
+      "date": "July 6, 2026",
+      "venue": "Estadio Banorte",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1570715",
+    "providerFixtureId": 1570715,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "round_of_16",
+    "stageLabel": "Round of 16",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1570715,
+    "date": "July 7, 2026",
+    "dateSort": "2026-07-07",
+    "venue": "Lumen Field",
+    "homeTeam": "United States",
+    "awayTeam": "Belgium",
+    "homeTeamCode": "USA",
+    "awayTeamCode": "BEL",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "United States",
+      "awayTeam": "Belgium",
+      "homeTeamCode": "USA",
+      "awayTeamCode": "BEL",
+      "stage": "ROUND OF 16",
+      "date": "July 7, 2026",
+      "venue": "Lumen Field",
       "home": {
         "possession": 50,
         "shots": 0,
