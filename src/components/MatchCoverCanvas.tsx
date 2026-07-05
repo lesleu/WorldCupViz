@@ -132,7 +132,7 @@ export default function MatchCoverCanvas({
         engine.seekToMinute(frozenMinute, layout, match);
 
         p5Instance = new P5(
-          createReplaySketch(match, getSize, () => engine, { artworkOnly: true }),
+          createReplaySketch(() => match, getSize, () => engine, { artworkOnly: true }),
           hostRef.current
         );
 

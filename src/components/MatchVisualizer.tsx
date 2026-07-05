@@ -198,11 +198,13 @@ export default function MatchVisualizer({
 }: MatchVisualizerProps) {
   const sketchHostRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ReplayEngine | null>(null);
+  const matchRef = useRef(match);
   const onControlsRef = useRef(onControls);
   const hasReplayFeedRef = useRef(hasReplayFeed);
   const [initError, setInitError] = useState<string | null>(null);
   const [sketchReady, setSketchReady] = useState(false);
 
+  matchRef.current = match;
   onControlsRef.current = onControls;
   hasReplayFeedRef.current = hasReplayFeed;
 
@@ -358,6 +360,7 @@ export default function MatchVisualizer({
         );
         const finalMinute = resolveFinalMinute(feedBundle, finalMinuteProp);
         const canReplay = hasReplayFeedRef.current || feedAvailable;
+        const activeMatch = matchRef.current!;
 
         if (isLiveMatch) {
           if (feedBundle.currentMinute != null) {
@@ -365,19 +368,13 @@ export default function MatchVisualizer({
           }
           engine.play();
         } else if (isCompletedMatch && mode === "live") {
-          engine.seekToMinute(finalMinute, layout, match);
+          engine.seekToMinute(finalMinute, layout, activeMatch);
           engine.pause();
         } else if (isCompletedMatch && mode === "replay" && canReplay) {
           engine.reset();
-          if (teamSide) {
-            engine.seekToMinute(0, layout, match);
-          }
           engine.play();
         } else if (canReplay) {
           engine.reset();
-          if (teamSide) {
-            engine.seekToMinute(0, layout, match);
-          }
           engine.play();
         } else {
           engine.reset();
@@ -390,11 +387,16 @@ export default function MatchVisualizer({
         );
 
         p5Instance = new P5(
-          createReplaySketch(match, getSize, () => engine, {
-            liveAssetMotion: isLiveMatch,
-            artworkOnly: Boolean(teamSide),
-            teamSide,
-          }),
+          createReplaySketch(
+            () => matchRef.current!,
+            getSize,
+            () => engine,
+            {
+              liveAssetMotion: isLiveMatch,
+              artworkOnly: Boolean(teamSide),
+              teamSide,
+            }
+          ),
           sketchHostRef.current
         );
 
@@ -440,23 +442,27 @@ export default function MatchVisualizer({
       engine = null;
       engineRef.current = null;
     };
-  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, match, teamSide]);
+    // match intentionally omitted — stats-only matchData updates must not reboot the sketch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stable boot on matchId/mode/status only
+  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, teamSide]);
 
   useEffect(() => {
     const engine = engineRef.current;
     const host = sketchHostRef.current;
-    if (!engine || !host || !match || !replayUi || teamSide !== "away") return;
+    if (!engine || !host || !matchRef.current || !replayUi || teamSide !== "away") return;
 
-    const width = Math.max(host.clientWidth, 1);
-    const height = Math.max(host.clientHeight, 1);
-    const layout = computeSingleTeamArtworkLayout(width, height, "away");
+    const activeMatch = matchRef.current;
 
     if (engine.speed !== replayUi.speed) {
       engine.setSpeed(replayUi.speed);
     }
 
-    if (Math.abs(engine.minute - replayUi.minute) > 0.12) {
-      engine.seekToMinute(replayUi.minute, layout, match);
+    // Hard-sync only on explicit reset (minute jumped backward).
+    if (replayUi.minute < engine.minute - 0.5) {
+      const width = Math.max(host.clientWidth, 1);
+      const height = Math.max(host.clientHeight, 1);
+      const layout = computeSingleTeamArtworkLayout(width, height, "away");
+      engine.seekToMinute(replayUi.minute, layout, activeMatch);
     }
 
     if (replayUi.isPlaying && !engine.isPlaying) {
@@ -464,7 +470,7 @@ export default function MatchVisualizer({
     } else if (!replayUi.isPlaying && engine.isPlaying) {
       engine.pause();
     }
-  }, [match, replayUi, teamSide]);
+  }, [replayUi, teamSide]);
 
   const showIdle = !match;
 

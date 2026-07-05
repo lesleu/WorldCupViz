@@ -107,7 +107,7 @@ function passAccuracy(state: ContinuousMatchState, side: TeamSide) {
 }
 
 export function createReplaySketch(
-  match: MatchData,
+  getMatch: () => MatchData,
   getSize: () => { width: number; height: number },
   getEngine: () => ReplayEngine | null,
   options: { artworkOnly?: boolean; liveAssetMotion?: boolean; teamSide?: TeamSide } = {}
@@ -261,7 +261,7 @@ export function createReplaySketch(
       for (const side of drawSides()) {
         const zone = side === "home" ? layout.homeZone : layout.awayZone;
         if (zone.width <= 0 || zone.height <= 0) continue;
-        const code = side === "home" ? match.homeTeamCode : match.awayTeamCode;
+        const code = side === "home" ? getMatch().homeTeamCode : getMatch().awayTeamCode;
         if (code.length === 0) continue;
 
         drawTeamCodeStretchedText(
@@ -301,7 +301,7 @@ export function createReplaySketch(
       for (const side of drawSides()) {
         const possession =
           side === "home" ? continuous.home.possession : continuous.away.possession;
-        const palette = paletteForSide(match, side);
+        const palette = paletteForSide(getMatch(), side);
         const color = getComponentColor(
           VISUAL_COMPONENT.PossessionGrid,
           palette,
@@ -410,7 +410,7 @@ export function createReplaySketch(
     ) {
       for (const mark of art.shots) {
         if (!markSideVisible(mark.side)) continue;
-        const palette = paletteForSide(match, mark.side);
+        const palette = paletteForSide(getMatch(), mark.side);
         const poss =
           mark.side === "home" ? continuous.home.possession : continuous.away.possession;
         const pulse = breathe(poss, mark.side, intensity) * burstScale;
@@ -443,7 +443,7 @@ export function createReplaySketch(
     ) {
       for (const mark of art.shotsOnTarget) {
         if (!markSideVisible(mark.side)) continue;
-        const palette = paletteForSide(match, mark.side);
+        const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 1.4);
         const expand = cfg.animation.staticRender
@@ -477,7 +477,7 @@ export function createReplaySketch(
     function drawFoul(art: AccumulatedArtState, intensity: number) {
       for (const mark of art.fouls) {
         if (!markSideVisible(mark.side)) continue;
-        const palette = paletteForSide(match, mark.side);
+        const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 1);
         const sizePx = capMarkSize(
@@ -497,7 +497,7 @@ export function createReplaySketch(
     function drawGoal(art: AccumulatedArtState, intensity: number) {
       for (const goal of art.goals) {
         if (!markSideVisible(goal.side)) continue;
-        const palette = paletteForSide(match, goal.side);
+        const palette = paletteForSide(getMatch(), goal.side);
         const [x, y] = denormPoint(goal.nx, goal.ny, layout);
         const v = vibrate(goal.phase, intensity, 1.2);
         const pulse = cfg.animation.staticRender
@@ -538,7 +538,7 @@ export function createReplaySketch(
     ) {
       for (const scar of art.cards) {
         if (!markSideVisible(scar.side)) continue;
-        const palette = paletteForSide(match, scar.side);
+        const palette = paletteForSide(getMatch(), scar.side);
         const component =
           scar.kind === "yellow" ? VISUAL_COMPONENT.YellowCard : VISUAL_COMPONENT.RedCard;
         const [x, y] = denormPoint(scar.nx, scar.ny, layout);
@@ -559,7 +559,7 @@ export function createReplaySketch(
     function drawCorner(art: AccumulatedArtState, intensity: number) {
       for (const corner of art.corners) {
         if (!markSideVisible(corner.side)) continue;
-        const palette = paletteForSide(match, corner.side);
+        const palette = paletteForSide(getMatch(), corner.side);
         const [x, y] = denormPoint(corner.nx, corner.ny, layout);
         const v = vibrate(corner.phase, intensity);
         const sizePx = capMarkSize(
@@ -582,7 +582,7 @@ export function createReplaySketch(
     function drawOffside(art: AccumulatedArtState, intensity: number) {
       for (const mark of art.offsides) {
         if (!markSideVisible(mark.side)) continue;
-        const palette = paletteForSide(match, mark.side);
+        const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         const v = vibrate(mark.phase, intensity, 0.8);
         const live = liveAssetScale("offside", mark.phase);
@@ -622,8 +622,8 @@ export function createReplaySketch(
     function drawPosterBackground() {
       backgroundRgb(p, chrome);
 
-      const homePalette = paletteForSide(match, "home");
-      const awayPalette = paletteForSide(match, "away");
+      const homePalette = paletteForSide(getMatch(), "home");
+      const awayPalette = paletteForSide(getMatch(), "away");
       const { homeZone, awayZone } = layout;
 
       if (homeZone.width > 0 && homeZone.height > 0) {
@@ -690,8 +690,8 @@ export function createReplaySketch(
       const venueY = titleBottom + metaGap;
       const dateY = venueY + metaSize + 2;
 
-      const homeLabel = match.homeTeam.toUpperCase();
-      const awayLabel = match.awayTeam.toUpperCase();
+      const homeLabel = getMatch().homeTeam.toUpperCase();
+      const awayLabel = getMatch().awayTeam.toUpperCase();
       const vsLabel = "vs";
       const boldFamily = chromeBoldFamily();
       const metaFamily = chromeMetaFamily();
@@ -724,7 +724,7 @@ export function createReplaySketch(
       fillChromeRgb(ctx, ink);
       ctx.fillText(awayLabel, x, titleY);
 
-      const venue = match.venue ?? match.stage;
+      const venue = getMatch().venue ?? getMatch().stage;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       applyCanvasFont(ctx, 600, metaSize, metaFamily);
@@ -732,7 +732,7 @@ export function createReplaySketch(
       ctx.fillText(venue, p.width / 2, venueY);
       applyCanvasFont(ctx, 600, dateSize, metaFamily);
       fillChromeRgb(ctx, inkMuted);
-      ctx.fillText(match.date, p.width / 2, dateY);
+      ctx.fillText(getMatch().date, p.width / 2, dateY);
     }
 
     function drawMatchProgress(snapshot: ReplaySnapshot) {
@@ -789,6 +789,7 @@ export function createReplaySketch(
       const deltaSeconds = Math.min((now - lastFrameMs) / 1000, 0.05);
       lastFrameMs = now;
 
+      const match = getMatch();
       engine.tick(deltaSeconds, layout, match);
       const snapshot = engine.getSnapshot();
 
