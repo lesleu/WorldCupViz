@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-04T12:01:47.002Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-05T12:09:48.290Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5115,7 +5115,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1567824,
     "date": "July 4, 2026",
@@ -5127,7 +5127,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Morocco",
     "homeTeamCode": "CAN",
     "awayTeamCode": "MAR",
-    "hasReplayFeed": false,
+    "finalMinute": 98,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Canada",
       "awayTeam": "Morocco",
@@ -5158,7 +5159,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 3,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5172,7 +5173,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1569870,
     "date": "July 4, 2026",
@@ -5184,7 +5185,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "France",
     "homeTeamCode": "PAR",
     "awayTeamCode": "FRA",
-    "hasReplayFeed": false,
+    "finalMinute": 97,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Paraguay",
       "awayTeam": "France",
@@ -5215,7 +5217,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5529,6 +5531,61 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "COL",
       "stage": "ROUND OF 16",
       "date": "July 7, 2026",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1578539",
+    "providerFixtureId": 1578539,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "quarterfinals",
+    "stageLabel": "Quarterfinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1578539,
+    "date": "July 9, 2026",
+    "dateSort": "2026-07-09",
+    "kickoffAt": "2026-07-09T20:00:00+00:00",
+    "kickoffTime": "4:00 PM ET",
+    "homeTeam": "France",
+    "awayTeam": "Morocco",
+    "homeTeamCode": "FRA",
+    "awayTeamCode": "MAR",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "France",
+      "awayTeam": "Morocco",
+      "homeTeamCode": "FRA",
+      "awayTeamCode": "MAR",
+      "stage": "QUARTERFINALS",
+      "date": "July 9, 2026",
       "home": {
         "possession": 50,
         "shots": 0,
