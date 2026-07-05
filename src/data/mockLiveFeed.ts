@@ -25,7 +25,11 @@ export type MatchEventType =
   | "yellow_card"
   | "red_card"
   | "penalty_scored"
-  | "penalty_missed";
+  | "penalty_missed"
+  /** VAR / review — removes the most recent goal mark for that team. */
+  | "goal_cancelled"
+  /** VAR — removes the most recent penalty-shootout goal mark. */
+  | "penalty_cancelled";
 
 export interface MatchEvent {
   minute: number;

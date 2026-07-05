@@ -629,6 +629,23 @@ export function addEventMark(
   }
 }
 
+/** Remove the latest goal mark for a team (VAR / offside reversal). */
+export function removeCancelledGoalMark(
+  art: AccumulatedArtState,
+  side: TeamSide,
+  options?: { variant?: "regulation" | "shootout" }
+): boolean {
+  for (let i = art.goals.length - 1; i >= 0; i--) {
+    const mark = art.goals[i];
+    if (mark.side !== side) continue;
+    if (options?.variant === "shootout" && mark.variant !== "shootout") continue;
+    if (options?.variant === "regulation" && mark.variant === "shootout") continue;
+    art.goals.splice(i, 1);
+    return true;
+  }
+  return false;
+}
+
 export function denormPoint(nx: number, ny: number, layout: PosterLayout): [number, number] {
   return [
     layout.margin + nx * layout.artworkWidth,

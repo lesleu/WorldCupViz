@@ -2,6 +2,7 @@ import {
   addEventMark,
   cloneContinuous,
   createKickoffArtState,
+  removeCancelledGoalMark,
   type AccumulatedArtState,
   type ContinuousMatchState,
 } from "@/design-system/state/artState";
@@ -250,6 +251,24 @@ export class ReplayEngine {
         home: { ...update.home },
         away: { ...update.away },
       };
+      return;
+    }
+
+    if (update.eventType === "goal_cancelled") {
+      if (
+        removeCancelledGoalMark(this.art, update.team, { variant: "regulation" })
+      ) {
+        if (update.team === "home") {
+          this.homeGoals = Math.max(0, this.homeGoals - 1);
+        } else {
+          this.awayGoals = Math.max(0, this.awayGoals - 1);
+        }
+      }
+      return;
+    }
+
+    if (update.eventType === "penalty_cancelled") {
+      removeCancelledGoalMark(this.art, update.team, { variant: "shootout" });
       return;
     }
 

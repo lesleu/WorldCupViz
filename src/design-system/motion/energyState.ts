@@ -49,7 +49,12 @@ export function tickEnergy(
 
 /** Spike energy when a discrete match event is applied. */
 export function triggerEventEnergy(state: EnergyState, eventType: MatchEventType): void {
-  const strength = cfg.energy.eventBurstStrength[eventType] ?? 0.12;
+  const strength =
+    eventType in cfg.energy.eventBurstStrength
+      ? cfg.energy.eventBurstStrength[
+          eventType as keyof typeof cfg.energy.eventBurstStrength
+        ]
+      : 0.12;
   state.burst = Math.min(1, state.burst + strength);
   state.level = Math.min(1, state.level + strength * 0.35);
   if (eventType === "goal") {

@@ -41,6 +41,20 @@ export function mapPenaltyAwareEventType(
   const detail = event.detail.toLowerCase();
   const shootout = isShootoutPenaltyEvent(event, fixture);
 
+  if (type === "var") {
+    if (detail.includes("goal cancelled") || detail.includes("goal disallowed")) {
+      return "goal_cancelled";
+    }
+    if (detail.includes("penalty cancelled")) {
+      return "penalty_cancelled";
+    }
+    return null;
+  }
+
+  if (type === "goal" && (detail.includes("cancelled") || detail.includes("disallowed"))) {
+    return "goal_cancelled";
+  }
+
   if (detail.includes("missed penalty")) {
     return shootout ? "penalty_missed" : null;
   }

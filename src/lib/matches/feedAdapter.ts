@@ -136,6 +136,8 @@ function emptyEventCounts(): EventCounts {
     red_card: 0,
     penalty_scored: 0,
     penalty_missed: 0,
+    goal_cancelled: 0,
+    penalty_cancelled: 0,
   };
 }
 
@@ -147,7 +149,14 @@ function countFeedEvents(feed: LiveFeedUpdate[]): Record<TeamSide, EventCounts> 
 
   for (const update of feed) {
     if (update.type !== "event") continue;
-    counts[update.team][update.eventType] += 1;
+    const side = update.team;
+    if (update.eventType === "goal_cancelled") {
+      counts[side].goal = Math.max(0, counts[side].goal - 1);
+    } else if (update.eventType === "penalty_cancelled") {
+      counts[side].penalty_scored = Math.max(0, counts[side].penalty_scored - 1);
+    } else {
+      counts[side][update.eventType] += 1;
+    }
   }
 
   return counts;
