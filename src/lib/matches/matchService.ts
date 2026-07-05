@@ -97,7 +97,9 @@ async function supplementCatalogFromApi(
 async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null> {
   const base = getStaticMatchById(id);
   if (base) {
-    return getMergedMatchById(base);
+    const merged = await getMergedMatchById(base);
+    if (!merged) return null;
+    return refreshEntryFromApi(merged);
   }
 
   const fromOverlay = await getOverlayDiscoveredMatchById(id);
@@ -193,17 +195,34 @@ async function enrichMatchEntryWithFeedStats(
   entry: MatchCatalogEntry
 ): Promise<MatchCatalogEntry> {
   const runtimeFeed = await getRuntimeFeed(entry.id);
-  const feed = runtimeFeedHasContent(runtimeFeed)
-    ? runtimeFeed!
-    : await getStaticFeed(entry.id);
+  if (runtimeFeedHasContent(runtimeFeed)) {
+    return {
+      ...entry,
+      matchData: mergeMatchDataWithFeedStats(entry.matchData, runtimeFeed!.feed),
+    };
+  }
 
-  if (!feed || !feedHasReplayContent(feed.feed)) {
+  if (entry.status === "live") {
+    const fixtureId = parseFixtureId(entry.id);
+    if (fixtureId && getMatchApiConfig().enabled) {
+      const liveFeed = await loadLiveFeedFromApi(fixtureId);
+      if (liveFeed?.feed.length) {
+        return {
+          ...entry,
+          matchData: mergeMatchDataWithFeedStats(entry.matchData, liveFeed.feed),
+        };
+      }
+    }
+  }
+
+  const staticFeed = await getStaticFeed(entry.id);
+  if (!staticFeed || !feedHasReplayContent(staticFeed.feed)) {
     return entry;
   }
 
   return {
     ...entry,
-    matchData: mergeMatchDataWithFeedStats(entry.matchData, feed.feed),
+    matchData: mergeMatchDataWithFeedStats(entry.matchData, staticFeed.feed),
   };
 }
 
@@ -240,15 +259,36 @@ async function loadLiveFeedFromApi(
   return {
     ...built,
     feed,
-    hasReplayFeed: feedHasReplayContent(feed),
+    hasReplayFeed: feedHasReplayContent(built.feed),
     status: "live",
-    currentMinute: maxFeedMinute(built.feed) || undefined,
+    currentMinute: built.currentMinute ?? (maxFeedMinute(built.feed) || undefined),
   };
 }
 
 function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
   if (!feed) return false;
+  if (feed.status === "live") return feed.feed.length > 0;
   return feed.hasReplayFeed || feed.feed.length > 1;
+}
+
+async function refreshEntryFromApi(
+  entry: MatchCatalogEntry
+): Promise<MatchCatalogEntry> {
+  if (!getMatchApiConfig().enabled) return entry;
+
+  const fixtureId = parseFixtureId(entry.id);
+  if (!fixtureId) return entry;
+
+  try {
+    const fixture = await fetchFixtureById(fixtureId, 0);
+    if (!fixture) return entry;
+    const patch = overlayEntryFromFixture(fixture);
+    if (!patch) return entry;
+    return mergeEntryWithOverlay(entry, patch);
+  } catch (error) {
+    console.warn(`Failed to refresh match ${entry.id} from API:`, error);
+    return entry;
+  }
 }
 
 export async function getMatchFeed(
@@ -274,13 +314,10 @@ export async function getMatchFeed(
   const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
   if (runtimeFeedHasContent(runtimeFeed)) return runtimeFeed!;
 
-  const entry = await getMatch(id);
-  if (entry?.status === "live") {
-    const fixtureId = parseFixtureId(id);
-    if (fixtureId) {
-      const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
-      if (runtimeFeedHasContent(liveFeed)) return liveFeed!;
-    }
+  const fixtureId = parseFixtureId(id);
+  if (fixtureId && getMatchApiConfig().enabled) {
+    const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
+    if (liveFeed) return liveFeed;
   }
 
   const staticFeed = await getStaticFeed(id, sinceMinute);

@@ -286,14 +286,22 @@ export default function MatchVisualizer({
     };
 
     const applyFeedBundle = (bundle: MatchFeedResponse) => {
-      if (!engine || bundle.feed.length === 0) return;
+      if (!engine) return;
 
       if (isLiveMatch) {
-        engine.extendFeed(bundle.feed);
+        if (bundle.feed.length > 0) {
+          engine.extendFeed(bundle.feed);
+          lastFeedMinute = Math.max(
+            lastFeedMinute,
+            ...bundle.feed.map((update) => update.minute)
+          );
+        }
         if (bundle.currentMinute != null) {
           engine.syncLiveMinute(bundle.currentMinute);
         }
         engine.play();
+      } else if (bundle.feed.length === 0) {
+        return;
       }
 
       feedAvailable =
@@ -301,10 +309,12 @@ export default function MatchVisualizer({
         bundle.feed.length > 1 ||
         hasReplayFeedRef.current;
 
-      lastFeedMinute = Math.max(
-        lastFeedMinute,
-        ...bundle.feed.map((update) => update.minute)
-      );
+      if (!isLiveMatch) {
+        lastFeedMinute = Math.max(
+          lastFeedMinute,
+          ...bundle.feed.map((update) => update.minute)
+        );
+      }
     };
 
     const pollLiveFeed = async () => {

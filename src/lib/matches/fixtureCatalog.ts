@@ -41,7 +41,40 @@ export function mergeCatalogEntries(
   const byId = new Map<string, MatchCatalogEntry>();
   for (const entry of base) byId.set(entry.id, entry);
   for (const entry of incoming) {
-    if (!byId.has(entry.id)) byId.set(entry.id, entry);
+    const existing = byId.get(entry.id);
+    if (existing) {
+      byId.set(entry.id, mergeCatalogEntryWithApi(existing, entry));
+    } else {
+      byId.set(entry.id, entry);
+    }
   }
   return [...byId.values()];
+}
+
+/** Prefer API status/scores for fixtures already in the static schedule. */
+export function mergeCatalogEntryWithApi(
+  base: MatchCatalogEntry,
+  api: MatchCatalogEntry
+): MatchCatalogEntry {
+  const status =
+    api.status === "live" || api.status === "completed"
+      ? api.status
+      : base.status;
+
+  return {
+    ...base,
+    status,
+    finalMinute: api.finalMinute ?? base.finalMinute,
+    hasReplayFeed: api.hasReplayFeed || base.hasReplayFeed,
+    matchData: api.matchData,
+    homeTeam: api.homeTeam || base.homeTeam,
+    awayTeam: api.awayTeam || base.awayTeam,
+    homeTeamCode: api.homeTeamCode || base.homeTeamCode,
+    awayTeamCode: api.awayTeamCode || base.awayTeamCode,
+    venue: api.venue ?? base.venue,
+    date: api.date || base.date,
+    dateSort: api.dateSort || base.dateSort,
+    kickoffAt: api.kickoffAt || base.kickoffAt,
+    kickoffTime: api.kickoffTime || base.kickoffTime,
+  };
 }

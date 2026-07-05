@@ -11,7 +11,6 @@ import {
 import {
   adaptFixtureFeed,
   feedHasReplayContent,
-  maxFeedMinute,
 } from "@/lib/matches/feedAdapter";
 import { mapFixtureStatus } from "@/lib/matches/matchAdapter";
 import type { MatchFeedResponse, MatchStatus } from "@/lib/matches/types";
@@ -23,13 +22,12 @@ export function buildFeedResponse(
 ): MatchFeedResponse {
   const status = mapFixtureStatus(fixture.fixture.status.short);
   const bundle = adaptFixtureFeed(fixture, events, statistics);
-  const finalMinute = maxFeedMinute(bundle.feed);
 
   return {
     ...bundle,
     hasReplayFeed: feedHasReplayContent(bundle.feed),
     status,
-    currentMinute: finalMinute > 0 ? finalMinute : undefined,
+    currentMinute: bundle.currentMinute,
   };
 }
 
