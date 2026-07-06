@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-05T12:09:48.290Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-06T14:22:03.798Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5243,6 +5243,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Norway",
     "homeTeamCode": "BRA",
     "awayTeamCode": "NOR",
+    "finalMinute": 121,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Brazil",
@@ -5280,8 +5281,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
-    },
-    "finalMinute": 90
+    }
   },
   {
     "id": "1570714",
@@ -5296,11 +5296,12 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-05",
     "kickoffAt": "2026-07-06T01:00:00+00:00",
     "kickoffTime": "9:00 PM ET",
-    "venue": "Estadio Azteca",
+    "venue": "Estadio Banorte",
     "homeTeam": "Mexico",
     "awayTeam": "England",
     "homeTeamCode": "MEX",
     "awayTeamCode": "ENG",
+    "finalMinute": 98,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Mexico",
@@ -5309,37 +5310,36 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ENG",
       "stage": "ROUND OF 16",
       "date": "July 5, 2026",
-      "venue": "Estadio Azteca",
+      "venue": "Estadio Banorte",
       "home": {
-        "possession": 67,
-        "shots": 20,
-        "shotsOnTarget": 5,
-        "passAccuracy": 92,
-        "fouls": 14,
-        "yellowCards": 2,
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
         "redCards": 0,
         "goals": 2,
-        "corners": 12,
-        "offsides": 1,
+        "corners": 0,
+        "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 33,
-        "shots": 6,
-        "shotsOnTarget": 5,
-        "passAccuracy": 80,
-        "fouls": 7,
-        "yellowCards": 4,
-        "redCards": 1,
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
         "goals": 3,
-        "corners": 2,
+        "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
-    },
-    "finalMinute": 98
+    }
   },
   {
     "id": "1576756",
@@ -5466,6 +5466,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-07",
     "kickoffAt": "2026-07-07T16:00:00+00:00",
     "kickoffTime": "12:00 PM ET",
+    "venue": "Mercedes-Benz Stadium",
     "homeTeam": "Argentina",
     "awayTeam": "Egypt",
     "homeTeamCode": "ARG",
@@ -5478,6 +5479,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "EGY",
       "stage": "ROUND OF 16",
       "date": "July 7, 2026",
+      "venue": "Mercedes-Benz Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
@@ -5521,6 +5523,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-07",
     "kickoffAt": "2026-07-07T20:00:00+00:00",
     "kickoffTime": "4:00 PM ET",
+    "venue": "BC Place",
     "homeTeam": "Switzerland",
     "awayTeam": "Colombia",
     "homeTeamCode": "SUI",
@@ -5533,6 +5536,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "COL",
       "stage": "ROUND OF 16",
       "date": "July 7, 2026",
+      "venue": "BC Place",
       "home": {
         "possession": 50,
         "shots": 0,
@@ -5576,6 +5580,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-09",
     "kickoffAt": "2026-07-09T20:00:00+00:00",
     "kickoffTime": "4:00 PM ET",
+    "venue": "Gillette Stadium",
     "homeTeam": "France",
     "awayTeam": "Morocco",
     "homeTeamCode": "FRA",
@@ -5588,6 +5593,62 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "MAR",
       "stage": "QUARTERFINALS",
       "date": "July 9, 2026",
+      "venue": "Gillette Stadium",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1581037",
+    "providerFixtureId": 1581037,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "quarterfinals",
+    "stageLabel": "Quarterfinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1581037,
+    "date": "July 11, 2026",
+    "dateSort": "2026-07-11",
+    "kickoffAt": "2026-07-11T21:00:00+00:00",
+    "kickoffTime": "5:00 PM ET",
+    "homeTeam": "Norway",
+    "awayTeam": "England",
+    "homeTeamCode": "NOR",
+    "awayTeamCode": "ENG",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Norway",
+      "awayTeam": "England",
+      "homeTeamCode": "NOR",
+      "awayTeamCode": "ENG",
+      "stage": "QUARTERFINALS",
+      "date": "July 11, 2026",
       "home": {
         "possession": 50,
         "shots": 0,
