@@ -20,6 +20,7 @@
     "check:teams": "tsx scripts/check-teams.ts",
     "check:match-api": "tsx scripts/check-match-api.ts",
     "check:goal-cancellation": "tsx scripts/check-goal-cancellation.ts",
+    "check:completed-feed-canvas": "tsx scripts/check-completed-feed-canvas.ts",
     "sync:matches": "tsx scripts/sync-matches.ts",
     "sync:matches:demo": "tsx scripts/sync-matches.ts -- --demo",
     "sync:matches:refresh-flags": "tsx scripts/sync-matches.ts -- --refresh-flags",

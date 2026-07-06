@@ -445,7 +445,7 @@ function isPlayedFixture(fixture: ApiFootballFixture): boolean {
   return PLAYED_FIXTURE_STATUSES.has(fixture.fixture.status.short);
 }
 
-function feedHasDiscreteEvents(feed: LiveFeedUpdate[]): boolean {
+export function feedHasDiscreteEvents(feed: LiveFeedUpdate[]): boolean {
   return feed.some((update) => update.type === "event");
 }
 
@@ -485,8 +485,10 @@ export function estimateTeamStatsFromFixture(fixture: ApiFootballFixture): {
 }
 
 export function feedHasReplayContent(feed: LiveFeedUpdate[]): boolean {
-  return feed.length > 1;
+  return feed.length > 1 && feedHasDiscreteEvents(feed);
 }
+
+export { feedHasDiscreteEvents as feedHasCanvasEvents };
 
 export { adaptPenaltyShootoutStats } from "@/lib/matches/penaltyShootout";
 

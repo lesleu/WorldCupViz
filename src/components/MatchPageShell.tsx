@@ -90,6 +90,9 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
 
         if (feed?.feed?.length) {
           setFeedBundle(feed);
+          if (feed.hasReplayFeed) {
+            setHasReplayFeed(true);
+          }
         }
 
         if (updated) {

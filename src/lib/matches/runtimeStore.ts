@@ -208,11 +208,11 @@ export async function getRuntimeFeed(
   matchId: string,
   sinceMinute?: number
 ): Promise<MatchFeedResponse | null> {
-  const live = await getLiveFeed(matchId);
-  if (live) return filterFeedSince(live, sinceMinute);
-
   const completed = await getCompletedFeed(matchId);
   if (completed) return filterFeedSince(completed, sinceMinute);
+
+  const live = await getLiveFeed(matchId);
+  if (live) return filterFeedSince(live, sinceMinute);
 
   return null;
 }
