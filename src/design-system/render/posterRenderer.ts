@@ -31,11 +31,9 @@ import {
   waitForMatchChromeFonts,
 } from "@/lib/canvasFontReady";
 import {
-  computeLayout,
-  computeArtworkLayout,
-  computeSingleTeamArtworkLayout,
   gridRegionForSide,
   markRegionForSide,
+  resolveRendererLayout,
   type PosterLayout,
 } from "@/design-system/layout/posterLayout";
 import { drawSvgComponent, warnIfSvgAssetsMissing } from "@/design-system/render/svgRenderer";
@@ -156,13 +154,10 @@ export function createReplaySketch(
 
     function rebuildLayout() {
       const { width, height } = getSize();
-      if (teamSide) {
-        layout = computeSingleTeamArtworkLayout(width, height, teamSide);
-      } else {
-        layout = artworkOnly
-          ? computeArtworkLayout(width, height)
-          : computeLayout(width, height);
-      }
+      layout = resolveRendererLayout(width, height, {
+        artworkOnly,
+        teamSide,
+      });
       const seed = cfg.randomness.seed;
       possessionSlots.home = buildPossessionGridSlots(layout, "home", seed);
       possessionSlots.away = buildPossessionGridSlots(layout, "away", seed);

@@ -6,7 +6,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { initialMatchState } from "../src/data/mockLiveFeed";
 import type { LiveFeedUpdate } from "../src/data/mockLiveFeed";
-import { computeLayout } from "../src/design-system/layout/posterLayout";
+import { computeLayout, resolveRendererLayout } from "../src/design-system/layout/posterLayout";
 import { createReplayEngine } from "../src/engine/replayEngine";
 import {
   feedHasDiscreteEvents,
@@ -121,6 +121,14 @@ async function main() {
   const eventArt = renderArtMarks(eventFeed, matchWithApiScores);
   assert(eventArt.goals === 3, "event feed renders goal tokens on canvas");
   assert(eventArt.homeGoals === 2, "engine tracks home goals from feed events");
+
+  const desktopLayout = resolveRendererLayout(1400, 900, { artworkOnly: false });
+  const desktopEngine = createReplayEngine(eventFeed, initialMatchState);
+  desktopEngine.seekToMinute(90, desktopLayout, matchWithApiScores);
+  assert(
+    desktopEngine.getSnapshot().art.goals.length === 3,
+    "desktop poster layout renders goal tokens"
+  );
 
   const fixtureId = Number(process.argv[2] ?? "1568100");
   if (process.env.MATCH_API_KEY) {

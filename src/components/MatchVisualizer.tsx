@@ -7,7 +7,7 @@ import type { MatchStatus } from "@/data/matchCatalog";
 import { initialMatchState } from "@/data/mockLiveFeed";
 import {
   computeSingleTeamArtworkLayout,
-  resolveArtworkLayout,
+  resolveRendererLayout,
 } from "@/design-system/layout/posterLayout";
 import { createReplayEngine, type ReplayEngine } from "@/engine/replayEngine";
 import type { ReplayControlBundle, ReplayUiState } from "@/engine/replayControls";
@@ -15,6 +15,7 @@ import { EMPTY_REPLAY_UI, NOOP_REPLAY_ACTIONS } from "@/engine/replayControls";
 import { fetchMatchFeedFromApi } from "@/lib/matches/clientApi";
 import { getFeedForMatch } from "@/data/matchFeeds";
 import type { MatchFeedResponse } from "@/lib/matches/types";
+import { feedHasReplayContent } from "@/lib/matches/feedAdapter";
 import { VISUALIZER_CONFIG, cfg } from "@/config";
 
 export type AppMode = "replay" | "live";
@@ -32,6 +33,10 @@ interface MatchVisualizerProps {
   teamSide?: TeamSide;
   /** Sync play state from the primary canvas (mobile away panel). */
   replayUi?: ReplayUiState;
+  /** Polled feed from the page shell — refreshes canvas when replay content arrives. */
+  feedHint?: MatchFeedResponse | null;
+  /** Revision token from feedBundleSignature — avoids rebooting on identical polls. */
+  feedRevision?: string;
   className?: string;
 }
 
@@ -134,8 +139,25 @@ function errorMessage(error: unknown): string {
 async function loadMatchFeed(
   matchId: string,
   matchStatus: MatchStatus,
-  sinceMinute?: number
+  sinceMinute?: number,
+  feedHint?: MatchFeedResponse | null
 ): Promise<MatchFeedResponse> {
+  if (
+    feedHint &&
+    feedHint.feed.length > 0 &&
+    (feedHint.hasReplayFeed || feedHasReplayContent(feedHint.feed))
+  ) {
+    const feed =
+      sinceMinute != null
+        ? feedHint.feed.filter((update) => update.minute > sinceMinute)
+        : feedHint.feed;
+    return {
+      ...feedHint,
+      feed,
+      hasReplayFeed: feedHint.hasReplayFeed || feedHasReplayContent(feedHint.feed),
+    };
+  }
+
   if (matchStatus === "live") {
     return fetchMatchFeedFromApi(matchId, sinceMinute);
   }
@@ -153,16 +175,7 @@ async function loadMatchFeed(
     };
   }
 
-  const response = await fetch(
-    `/api/matches/${encodeURIComponent(matchId)}/feed${
-      sinceMinute != null ? `?sinceMinute=${sinceMinute}` : ""
-    }`,
-    { cache: "force-cache" }
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to load match feed (${response.status})`);
-  }
-  return response.json() as Promise<MatchFeedResponse>;
+  return fetchMatchFeedFromApi(matchId, sinceMinute, { cache: "no-store" });
 }
 
 function resolveFinalMinute(
@@ -194,6 +207,8 @@ export default function MatchVisualizer({
   onControls,
   teamSide,
   replayUi,
+  feedHint,
+  feedRevision,
   className = "",
 }: MatchVisualizerProps) {
   const sketchHostRef = useRef<HTMLDivElement>(null);
@@ -201,12 +216,14 @@ export default function MatchVisualizer({
   const matchRef = useRef(match);
   const onControlsRef = useRef(onControls);
   const hasReplayFeedRef = useRef(hasReplayFeed);
+  const feedHintRef = useRef(feedHint);
   const [initError, setInitError] = useState<string | null>(null);
   const [sketchReady, setSketchReady] = useState(false);
 
   matchRef.current = match;
   onControlsRef.current = onControls;
   hasReplayFeedRef.current = hasReplayFeed;
+  feedHintRef.current = feedHint;
 
   useEffect(() => {
     const host = sketchHostRef.current;
@@ -230,11 +247,23 @@ export default function MatchVisualizer({
     let engine: ReplayEngine | null = null;
     let feedAvailable = false;
     let lastFeedMinute = 0;
+    let frozenMinute = cfg.replay.regulationMinutes;
 
     /** In-progress fixture from refreshed API status. */
     const isLiveMatch = matchStatus === "live";
     const isCompletedMatch = matchStatus === "completed";
     const useLiveClock = isLiveMatch;
+    const rendererLayoutOptions = {
+      artworkOnly: Boolean(teamSide),
+      teamSide,
+    } as const;
+
+    const resolveLayout = () =>
+      resolveRendererLayout(
+        getSize().width,
+        getSize().height,
+        rendererLayoutOptions
+      );
 
     const getSize = () => ({
       width: Math.max(sketchHostRef.current?.clientWidth ?? 1, 1),
@@ -320,7 +349,12 @@ export default function MatchVisualizer({
     const pollLiveFeed = async () => {
       if (!mounted || !engine || !isLiveMatch) return;
       try {
-        const bundle = await loadMatchFeed(matchId, matchStatus, lastFeedMinute);
+        const bundle = await loadMatchFeed(
+          matchId,
+          matchStatus,
+          lastFeedMinute,
+          feedHintRef.current
+        );
         applyFeedBundle(bundle);
         publish();
       } catch (error) {
@@ -345,7 +379,7 @@ export default function MatchVisualizer({
         const [P5, { createReplaySketch }, feedBundle] = await Promise.all([
           loadP5Constructor(),
           import("@/design-system/render/posterRenderer"),
-          loadMatchFeed(matchId, matchStatus),
+          loadMatchFeed(matchId, matchStatus, undefined, feedHintRef.current),
         ]);
         if (!mounted || !sketchHostRef.current) return;
 
@@ -363,12 +397,9 @@ export default function MatchVisualizer({
           feedBundle.feed.length > 1 ||
           hasReplayFeedRef.current;
 
-        const layout = resolveArtworkLayout(
-          getSize().width,
-          getSize().height,
-          teamSide
-        );
+        const layout = resolveLayout();
         const finalMinute = resolveFinalMinute(feedBundle, finalMinuteProp);
+        frozenMinute = finalMinute;
         const canReplay = hasReplayFeedRef.current || feedAvailable;
         const activeMatch = matchRef.current!;
 
@@ -438,6 +469,15 @@ export default function MatchVisualizer({
 
     resizeObserver = new ResizeObserver(() => {
       p5Instance?.windowResized();
+      if (!engine || !matchRef.current || isLiveMatch) return;
+      if (mode === "replay" && engine.isPlaying) return;
+      const layout = resolveLayout();
+      const minute =
+        isCompletedMatch && mode === "live"
+          ? frozenMinute
+          : engine.minute;
+      engine.seekToMinute(minute, layout, matchRef.current);
+      p5Instance?.redraw();
     });
     resizeObserver.observe(host);
 
@@ -454,7 +494,7 @@ export default function MatchVisualizer({
     };
     // match intentionally omitted — stats-only matchData updates must not reboot the sketch.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stable boot on matchId/mode/status only
-  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, teamSide]);
+  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, teamSide, feedRevision]);
 
   useEffect(() => {
     const engine = engineRef.current;

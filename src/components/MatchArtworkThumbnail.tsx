@@ -50,7 +50,7 @@ export default function MatchArtworkThumbnail({ entry }: MatchArtworkThumbnailPr
     if (!visible || feed) return;
 
     let cancelled = false;
-    void fetchMatchFeedFromApi(entry.id, undefined, { cache: "force-cache" })
+    void fetchMatchFeedFromApi(entry.id, undefined, { cache: "no-store" })
       .then((bundle) => {
         if (!cancelled) setFeed(bundle);
       })

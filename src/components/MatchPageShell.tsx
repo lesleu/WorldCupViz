@@ -22,6 +22,7 @@ import {
 } from "@/engine/replayControls";
 import { fetchMatchFeedFromApi, fetchMatchFromApi } from "@/lib/matches/clientApi";
 import { mergeMatchDataWithFeedStats } from "@/lib/matches/feedAdapter";
+import { feedBundleSignature } from "@/lib/matches/feedSignature";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
@@ -43,7 +44,22 @@ const MatchVisualizer = dynamic(() => import("@/components/MatchVisualizer"), {
 });
 
 const MATCH_POLL_MS = 20_000;
+const MOBILE_MAX_WIDTH_PX = 614;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
+
+function useMobileLayout(): boolean {
+  const [mobile, setMobile] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`);
+    const update = () => setMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return mobile;
+}
 
 interface MatchPageShellProps {
   entry: MatchCatalogEntry;
@@ -61,6 +77,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
   const [replayUi, setReplayUi] = useState<ReplayUiState>(EMPTY_REPLAY_UI);
   const replayActionsRef = useRef<ReplayActions>(NOOP_REPLAY_ACTIONS);
   const prevStatusRef = useRef<MatchStatus>(entry.status);
+  const isMobileLayout = useMobileLayout();
 
   const handleControls = useCallback((bundle: ReplayControlBundle) => {
     replayActionsRef.current = {
@@ -155,6 +172,8 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
     matchStatus,
     hasReplayFeed,
     finalMinute,
+    feedHint: feedBundle,
+    feedRevision: feedBundleSignature(feedBundle),
   };
 
   return (
@@ -193,6 +212,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
       </header>
 
       {/* Mobile: mode controls + interleaved team art + stats */}
+      {isMobileLayout ? (
       <div className="flex shrink-0 flex-col min-[615px]:hidden">
         <MatchModeControls
           match={matchData}
@@ -248,8 +268,10 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
           />
         </div>
       </div>
+      ) : null}
 
       {/* Desktop: full poster + sidebar stats */}
+      {!isMobileLayout ? (
       <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
         <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
           <Link
@@ -270,6 +292,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
           onControls={handleControls}
         />
       </div>
+      ) : null}
 
       <StatsPanel
         match={matchData}
@@ -279,7 +302,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
         replayUi={replayUi}
         replayActions={replayActionsRef}
         onModeChange={setMode}
-        className="hidden min-[615px]:flex"
+        className={isMobileLayout ? "hidden" : "hidden min-[615px]:flex"}
       />
     </main>
   );

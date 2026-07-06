@@ -223,10 +223,26 @@ export function resolveArtworkLayout(
   height: number,
   teamSide?: "home" | "away"
 ): PosterLayout {
+  return resolveRendererLayout(width, height, {
+    artworkOnly: Boolean(teamSide),
+    teamSide,
+  });
+}
+
+/** Same layout logic as posterRenderer rebuildLayout (seek + draw must match). */
+export function resolveRendererLayout(
+  width: number,
+  height: number,
+  options: { artworkOnly?: boolean; teamSide?: "home" | "away" } = {}
+): PosterLayout {
+  const { artworkOnly = false, teamSide } = options;
   if (teamSide) {
     return computeSingleTeamArtworkLayout(width, height, teamSide);
   }
-  return computeArtworkLayout(width, height);
+  if (artworkOnly) {
+    return computeArtworkLayout(width, height);
+  }
+  return computeLayout(width, height);
 }
 
 /** One team's artwork fills the canvas — for mobile stacked team panels. */
