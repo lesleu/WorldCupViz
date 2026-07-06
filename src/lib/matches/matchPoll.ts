@@ -23,6 +23,7 @@ import {
   type ScheduleOverlay,
 } from "@/lib/matches/runtimeStore";
 import type { MatchFeedResponse } from "@/lib/matches/types";
+import { persistStaticMatchFeed } from "@/lib/matches/staticFeedPersistence";
 
 export interface PollTickResult {
   at: string;
@@ -56,6 +57,13 @@ async function persistCompletedFeed(
     finalMinute: feed.currentMinute ?? patch.finalMinute,
     matchData: patch.matchData,
   };
+
+  await persistStaticMatchFeed(matchId, feed, {
+    status: "completed",
+    hasReplayFeed: feed.hasReplayFeed,
+    finalMinute: feed.currentMinute ?? patch.finalMinute,
+    matchData: patch.matchData,
+  });
 }
 
 export async function runPollTick(): Promise<PollTickResult> {

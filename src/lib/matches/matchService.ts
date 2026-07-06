@@ -59,6 +59,7 @@ import {
   getStaticFeed,
 } from "@/lib/matches/feedLoader";
 import { enrichCatalogKickoff } from "@/lib/matches/enrichKickoff";
+import { persistStaticMatchFeed } from "@/lib/matches/staticFeedPersistence";
 import type { MatchFeedResponse, MatchListResponse } from "@/lib/matches/types";
 
 function isDemoMatchId(id: string): boolean {
@@ -277,10 +278,49 @@ function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
   return feedHasReplayContent(feed.feed);
 }
 
-async function cacheCompletedFeed(matchId: string, feed: MatchFeedResponse): Promise<void> {
+async function cacheCompletedFeed(
+  matchId: string,
+  feed: MatchFeedResponse,
+  schedulePatch?: Parameters<typeof persistStaticMatchFeed>[2]
+): Promise<void> {
   if (!feedHasReplayContent(feed.feed)) return;
   await setCompletedFeed(matchId, feed);
   await deleteLiveFeed(matchId);
+
+  let patch = schedulePatch;
+  if (!patch?.matchData) {
+    const fixtureId = parseFixtureId(matchId);
+    if (fixtureId && getMatchApiConfig().enabled) {
+      try {
+        const fixture = await fetchFixtureById(fixtureId, 0);
+        const overlay = fixture ? overlayEntryFromFixture(fixture) : null;
+        if (overlay?.matchData) {
+          patch = {
+            ...patch,
+            status: "completed",
+            hasReplayFeed: feed.hasReplayFeed,
+            finalMinute: feed.currentMinute ?? overlay.finalMinute,
+            matchData: overlay.matchData,
+            homeTeam: overlay.homeTeam,
+            awayTeam: overlay.awayTeam,
+            homeTeamCode: overlay.homeTeamCode,
+            awayTeamCode: overlay.awayTeamCode,
+            venue: overlay.venue,
+            date: overlay.date,
+            dateSort: overlay.dateSort,
+            kickoffAt: overlay.kickoffAt,
+            kickoffTime: overlay.kickoffTime,
+            stage: overlay.stage,
+            stageLabel: overlay.stageLabel,
+          };
+        }
+      } catch (error) {
+        console.warn(`Failed to build schedule patch for ${matchId}:`, error);
+      }
+    }
+  }
+
+  await persistStaticMatchFeed(matchId, feed, patch);
 }
 
 /** Resolve the best feed for canvas replay (runtime → API → static). */

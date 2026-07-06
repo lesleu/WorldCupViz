@@ -4,7 +4,6 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getFeedForMatch as getDemoFeedForMatch } from "@/data/matchFeeds";
-import { STATIC_FEED_IDS } from "@/data/feeds.index.generated";
 import { initialMatchState } from "@/data/mockLiveFeed";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 
@@ -16,7 +15,7 @@ function feedFilePath(matchId: string): string {
 
 export function hasStaticFeed(matchId: string): boolean {
   if (getDemoFeedForMatch(matchId)) return true;
-  return STATIC_FEED_IDS.includes(matchId) && existsSync(feedFilePath(matchId));
+  return existsSync(feedFilePath(matchId));
 }
 
 export async function getStaticFeed(
@@ -35,8 +34,6 @@ export async function getStaticFeed(
       hasReplayFeed: true,
     };
   }
-
-  if (!STATIC_FEED_IDS.includes(matchId)) return null;
 
   const filePath = feedFilePath(matchId);
   if (!existsSync(filePath)) return null;

@@ -274,7 +274,13 @@ async function syncFeedForEntry(entry: MatchCatalogEntry): Promise<boolean> {
     return false;
   }
 
-  writeFeedFile(entry.id, built.result);
+  const { persistStaticMatchFeed } = await import("../src/lib/matches/staticFeedWriter");
+  await persistStaticMatchFeed(entry.id, built.result, {
+    status: entry.status,
+    hasReplayFeed: true,
+    finalMinute: entry.finalMinute,
+    matchData: entry.matchData,
+  });
   console.log(`  wrote feed ${entry.id} (${built.result.feed.length} updates)`);
   return true;
 }
