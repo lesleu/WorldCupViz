@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-06T14:22:03.798Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-07T13:11:36.335Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5347,18 +5347,20 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1576756,
     "date": "July 6, 2026",
     "dateSort": "2026-07-06",
     "kickoffAt": "2026-07-06T19:00:00+00:00",
     "kickoffTime": "3:00 PM ET",
+    "venue": "AT&T Stadium",
     "homeTeam": "Portugal",
     "awayTeam": "Spain",
     "homeTeamCode": "POR",
     "awayTeamCode": "ESP",
-    "hasReplayFeed": false,
+    "finalMinute": 99,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Portugal",
       "awayTeam": "Spain",
@@ -5366,6 +5368,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ESP",
       "stage": "ROUND OF 16",
       "date": "July 6, 2026",
+      "venue": "AT&T Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
@@ -5388,7 +5391,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5402,7 +5405,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1570715,
     "date": "July 6, 2026",
@@ -5414,7 +5417,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Belgium",
     "homeTeamCode": "USA",
     "awayTeamCode": "BEL",
-    "hasReplayFeed": false,
+    "finalMinute": 93,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "United States",
       "awayTeam": "Belgium",
@@ -5431,7 +5435,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5445,7 +5449,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 4,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5625,6 +5629,63 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     }
   },
   {
+    "id": "1581821",
+    "providerFixtureId": 1581821,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "quarterfinals",
+    "stageLabel": "Quarterfinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1581821,
+    "date": "July 10, 2026",
+    "dateSort": "2026-07-10",
+    "kickoffAt": "2026-07-10T19:00:00+00:00",
+    "kickoffTime": "3:00 PM ET",
+    "venue": "SoFi Stadium",
+    "homeTeam": "Spain",
+    "awayTeam": "Belgium",
+    "homeTeamCode": "ESP",
+    "awayTeamCode": "BEL",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Spain",
+      "awayTeam": "Belgium",
+      "homeTeamCode": "ESP",
+      "awayTeamCode": "BEL",
+      "stage": "QUARTERFINALS",
+      "date": "July 10, 2026",
+      "venue": "SoFi Stadium",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
     "id": "1581037",
     "providerFixtureId": 1581037,
     "tournament": "FIFA World Cup 2026",
@@ -5637,6 +5698,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-11",
     "kickoffAt": "2026-07-11T21:00:00+00:00",
     "kickoffTime": "5:00 PM ET",
+    "venue": "Hard Rock Stadium",
     "homeTeam": "Norway",
     "awayTeam": "England",
     "homeTeamCode": "NOR",
@@ -5649,6 +5711,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ENG",
       "stage": "QUARTERFINALS",
       "date": "July 11, 2026",
+      "venue": "Hard Rock Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
