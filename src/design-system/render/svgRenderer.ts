@@ -1,5 +1,5 @@
 import type p5 from "p5";
-import { getComponentColor } from "@/design-system/color/resolveColor";
+import { resolveSvgPathFill } from "@/design-system/color/resolveColor";
 import { COMPONENT_COLOR_RULES } from "@/design-system/color/colorRules.generated";
 import {
   COMPONENT_PATHS,
@@ -63,7 +63,7 @@ export function warnIfSvgAssetsMissing(): void {
 export interface DrawSvgOptions {
   rotation?: number;
   scalePx?: number;
-  /** Scale uniformly to fit width and height (uses max dimension). */
+  /** Exact pixel box — uniform scale to fit width × height (preserves SVG aspect). */
   widthPx?: number;
   heightPx?: number;
   /** Override layer colors (layer name → hex). */
@@ -86,41 +86,56 @@ export function drawSvgComponent(
 
   const { viewBox, layers } = def;
   const rot = options.rotation ?? 0;
-  let scale: number;
-  if (options.scalePx !== undefined) {
-    scale = options.scalePx / Math.max(viewBox.w, viewBox.h);
-  } else if (options.widthPx !== undefined || options.heightPx !== undefined) {
-    const sw = (options.widthPx ?? viewBox.w) / viewBox.w;
-    const sh = (options.heightPx ?? viewBox.h) / viewBox.h;
-    scale = Math.min(sw, sh);
-  } else {
-    scale = 1;
-  }
+  const useBox =
+    options.widthPx !== undefined && options.heightPx !== undefined;
 
   p.push();
   p.translate(x, y);
-  p.rotate(rot);
-  p.scale(scale);
+  if (rot !== 0) p.rotate(rot);
+
+  if (useBox) {
+    const scale = Math.min(
+      options.widthPx! / viewBox.w,
+      options.heightPx! / viewBox.h
+    );
+    p.scale(scale, scale);
+  } else {
+    const scale =
+      options.scalePx !== undefined
+        ? options.scalePx / Math.max(viewBox.w, viewBox.h)
+        : 1;
+    p.scale(scale);
+  }
+
   p.translate(-viewBox.x - viewBox.w / 2, -viewBox.y - viewBox.h / 2);
 
   const ctx = p.drawingContext as CanvasRenderingContext2D;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(viewBox.x, viewBox.y, viewBox.w, viewBox.h);
+  ctx.clip();
 
   for (const layerName of layerDrawOrder(component, layers)) {
     const layerDef = layers[layerName];
     if (!layerDef) continue;
-    const color =
-      options.colorOverrides?.[layerName] ??
-      getComponentColor(component, palette, layerName, "c1");
-    ctx.fillStyle = color;
     for (let i = 0; i < layerDef.paths.length; i++) {
       const path = layerDef.paths[i];
       const fillRule = layerDef.fillRules?.[i] ?? "nonzero";
+      ctx.fillStyle = resolveSvgPathFill(
+        component,
+        palette,
+        layerName,
+        i,
+        layerDef,
+        options.colorOverrides
+      );
       ctx.beginPath();
       tracePathCommands(ctx, path);
       ctx.fill(fillRule);
     }
   }
 
+  ctx.restore();
   p.pop();
   return true;
 }

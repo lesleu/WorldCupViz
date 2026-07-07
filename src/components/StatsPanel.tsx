@@ -12,6 +12,7 @@ import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/
 import { getTeamPalette } from "@/data/mockMatch";
 import LiveBadge from "@/components/LiveBadge";
 import StatRowIcon from "@/components/StatRowIcon";
+import { teamStatIconColorOverrides, pkScoredLegendIconColorOverrides } from "@/lib/statLegendColors";
 
 const panelBg = VISUALIZER_CONFIG.colors.background;
 const panelText = VISUALIZER_CONFIG.colors.text;
@@ -56,15 +57,12 @@ function buildStatRows(
     { label: "Red Cards", value: stats.redCards, icon: VISUAL_COMPONENT.RedCard },
   ];
 
-  if (
-    showPenaltyShootout ||
-    stats.penaltyShootoutScored > 0 ||
-    stats.penaltyShootoutMissed > 0
-  ) {
-    rows.push(
-      { label: "PK Scored", value: stats.penaltyShootoutScored, icon: VISUAL_COMPONENT.Goal },
-      { label: "PK Missed", value: stats.penaltyShootoutMissed, icon: VISUAL_COMPONENT.Shot }
-    );
+  if (showPenaltyShootout || stats.penaltyShootoutScored > 0) {
+    rows.push({
+      label: "PK Scored",
+      value: stats.penaltyShootoutScored,
+      icon: VISUAL_COMPONENT.Goal,
+    });
   }
 
   return rows;
@@ -154,8 +152,11 @@ export function TeamStatsBlock({
     >
       <StatRowIcon
         component={icon}
+        teamPalette={label === "PK Scored" ? undefined : teamPalette}
         colorOverrides={
-          icon === VISUAL_COMPONENT.Corner ? { c5: teamPalette.c5 } : undefined
+          label === "PK Scored"
+            ? pkScoredLegendIconColorOverrides()
+            : teamStatIconColorOverrides(icon, teamPalette)
         }
       />
       <dt

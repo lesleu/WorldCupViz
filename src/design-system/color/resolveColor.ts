@@ -1,8 +1,10 @@
 import { foundationsGenerated } from "@/config/foundations.generated";
 import {
   COMPONENT_COLOR_RULES,
+  PALETTE_TINTED_COMPONENTS,
   type ColorSlot,
 } from "@/design-system/color/colorRules.generated";
+import type { SvgLayerDef } from "@/design-system/assets/componentPaths.generated";
 import type { TeamPalette } from "@/data/teamPalettes.generated";
 import type { VisualComponent } from "@/design-system/mapping/visualMappings";
 
@@ -75,4 +77,31 @@ export function getComponentColor(
   const rules = COMPONENT_COLOR_RULES[component];
   const slot = rules?.[role] ?? fallback;
   return resolveColorSlot(slot, palette);
+}
+
+/** Resolve fill for one SVG path — palette/color-rules for geometry; literal hex only as fallback. */
+export function resolveSvgPathFill(
+  component: VisualComponent,
+  palette: TeamPalette,
+  layerName: string,
+  pathIndex: number,
+  layerDef: SvgLayerDef,
+  colorOverrides?: Record<string, string>
+): string {
+  if (colorOverrides?.[layerName]) return colorOverrides[layerName];
+
+  const paletteTinted = (PALETTE_TINTED_COMPONENTS as readonly string[]).includes(component);
+  if (paletteTinted) {
+    return getComponentColor(component, palette, layerName, "c1");
+  }
+
+  const rules = COMPONENT_COLOR_RULES[component];
+  if (rules?.[layerName]) {
+    return getComponentColor(component, palette, layerName, "c1");
+  }
+
+  const literal = layerDef.fills?.[pathIndex];
+  if (literal) return literal;
+
+  return getComponentColor(component, palette, layerName, "c1");
 }

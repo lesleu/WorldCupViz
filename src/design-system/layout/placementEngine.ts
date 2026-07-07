@@ -21,10 +21,21 @@ export interface PlacedBBox {
 export interface PlacementState {
   home: PlacedBBox[];
   away: PlacedBBox[];
+  stackTails: {
+    home: Record<string, { nx: number; ny: number; nw: number; nh: number }>;
+    away: Record<string, { nx: number; ny: number; nw: number; nh: number }>;
+  };
+  /** Timed marks already placed — incremental relayout preserves these. */
+  settledMarkCount: { home: number; away: number };
 }
 
 export function createPlacementState(): PlacementState {
-  return { home: [], away: [] };
+  return {
+    home: [],
+    away: [],
+    stackTails: { home: {}, away: {} },
+    settledMarkCount: { home: 0, away: 0 },
+  };
 }
 
 function overlapRatio(a: PlacedBBox, b: PlacedBBox): number {
@@ -497,4 +508,8 @@ export function registerPlacement(
 export function resetPlacementState(placement: PlacementState): void {
   placement.home.length = 0;
   placement.away.length = 0;
+  placement.stackTails.home = {};
+  placement.stackTails.away = {};
+  placement.settledMarkCount.home = 0;
+  placement.settledMarkCount.away = 0;
 }

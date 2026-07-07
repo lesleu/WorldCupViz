@@ -37,6 +37,7 @@ export const COMPONENT_COLOR_RULES: ComponentColorRules = {
     "c2": "c1"
   },
   "ShotOnTarget": {
+    "c1": "c4",
     "c2": "c4"
   },
   "Goal": {
@@ -44,15 +45,16 @@ export const COMPONENT_COLOR_RULES: ComponentColorRules = {
     "c4": "c3"
   },
   "Foul": {
+    "c1": "paper.cream",
     "ink.mark": "ink.mark"
   },
   "Corner": {
+    "c1": "c5",
     "c5": "c5"
   },
   "Offside": {
     "c1": "event.offside",
-    "c2": "event.offside",
-    "c3": "event.offside"
+    "c2": "event.offside"
   },
   "YellowCard": {
     "event.cardYellow": "event.cardYellow",
@@ -71,3 +73,6 @@ export const COMPONENT_COLOR_RULES: ComponentColorRules = {
     "ink.textMuted": "ink.textMuted"
   }
 };
+
+/** Components whose SVG fills are swapped for team palette slots at render time. */
+export const PALETTE_TINTED_COMPONENTS = ["Shot","Goal"] as const;

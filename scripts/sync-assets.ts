@@ -29,9 +29,12 @@ type PathCommand =
   | { t: "Z" };
 
 function readJson(relativePath: string): Record<string, Record<string, string>> {
-  return JSON.parse(
+  const raw = JSON.parse(
     fs.readFileSync(path.join(ROOT, relativePath), "utf8")
   ) as Record<string, Record<string, string>>;
+  return Object.fromEntries(
+    Object.entries(raw).filter(([key]) => !key.startsWith("_"))
+  );
 }
 
 function parseViewBox(svg: string): { x: number; y: number; w: number; h: number } {
@@ -287,18 +290,23 @@ function extractFlatShapes(svg: string): FlatShape[] {
 interface LayerBuild {
   paths: PathCommand[][];
   fillRules: FillRule[];
+  fills: (string | undefined)[];
 }
 
 function pushToLayer(
   layers: Record<string, LayerBuild>,
   layerName: string,
   paths: PathCommand[][],
-  fillRule: FillRule = "nonzero"
+  fillRule: FillRule = "nonzero",
+  fill?: string
 ) {
-  if (!layers[layerName]) layers[layerName] = { paths: [], fillRules: [] };
+  if (!layers[layerName]) {
+    layers[layerName] = { paths: [], fillRules: [], fills: [] };
+  }
   for (const path of paths) {
     layers[layerName].paths.push(path);
     layers[layerName].fillRules.push(fillRule);
+    layers[layerName].fills.push(fill);
   }
 }
 
@@ -333,93 +341,127 @@ function assignFlatLayers(
     const fill = shape.fill;
 
     if (component === "PassAccuracy" && has("ink.mark")) {
-      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
       continue;
     }
 
     if (component === "YellowCard") {
       if (isInkFill(fill) && has("ink.mark")) {
-        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
       } else if (has("event.cardYellow")) {
-        pushToLayer(layers, "event.cardYellow", shape.paths, shape.fillRule);
+        pushToLayer(layers, "event.cardYellow", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (component === "RedCard") {
       if (isInkFill(fill) && has("ink.mark")) {
-        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
       } else if (has("event.cardRed")) {
-        pushToLayer(layers, "event.cardRed", shape.paths, shape.fillRule);
+        pushToLayer(layers, "event.cardRed", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (component === "Foul") {
       if (isInkFill(fill) && has("ink.mark")) {
-        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
       } else if (has("ink.mark")) {
-        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+        pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
       } else if (isFoulFill(fill) && has("event.foul")) {
-        pushToLayer(layers, "event.foul", shape.paths, shape.fillRule);
+        pushToLayer(layers, "event.foul", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (component === "Offside") {
-      const path = shape.paths[0];
-      if (path) {
-        const segments = splitPathSubpaths(path);
-        if (segments.length >= 3 && has("c1") && has("c2") && has("c3")) {
-          pushToLayer(layers, "c3", [segments[0]], shape.fillRule);
-          pushToLayer(layers, "c2", [segments[1]], shape.fillRule);
-          pushToLayer(layers, "c1", [segments[2]], shape.fillRule);
-        } else if (has("c3")) {
-          pushToLayer(layers, "c3", shape.paths, shape.fillRule);
-        }
+      if (has("c2")) {
+        pushToLayer(layers, "c2", shape.paths, shape.fillRule, shape.fill);
+      } else if (has("c1")) {
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule, shape.fill);
+      }
+      continue;
+    }
+
+    if (component === "Corner") {
+      if (has("c5")) {
+        pushToLayer(layers, "c5", shape.paths, shape.fillRule, shape.fill);
+      } else if (has("c1")) {
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule, shape.fill);
+      }
+      continue;
+    }
+
+    if (component === "ShotOnTarget") {
+      if (has("c2")) {
+        pushToLayer(layers, "c2", shape.paths, shape.fillRule, shape.fill);
+      } else if (has("c1")) {
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (component === "Goal") {
       if (shape.kind === "rect" && has("c1")) {
-        pushToLayer(layers, "c1", shape.paths, shape.fillRule);
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule, shape.fill);
       } else if (has("c4")) {
-        pushToLayer(layers, "c4", shape.paths, shape.fillRule);
+        pushToLayer(layers, "c4", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (component === "Shot") {
       if (shape.kind === "rect" && has("c1")) {
-        pushToLayer(layers, "c1", shape.paths, shape.fillRule);
+        pushToLayer(layers, "c1", shape.paths, shape.fillRule, shape.fill);
       } else if (has("c2")) {
-        pushToLayer(layers, "c2", shape.paths, shape.fillRule);
+        pushToLayer(layers, "c2", shape.paths, shape.fillRule, shape.fill);
       }
       continue;
     }
 
     if (singleLayer) {
-      pushToLayer(layers, singleLayer, shape.paths, shape.fillRule);
+      pushToLayer(layers, singleLayer, shape.paths, shape.fillRule, shape.fill);
       continue;
     }
 
     if (isInkFill(fill) && has("ink.mark")) {
-      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule);
+      pushToLayer(layers, "ink.mark", shape.paths, shape.fillRule, shape.fill);
     } else if (ruleKeys[0]) {
-      pushToLayer(layers, ruleKeys[0], shape.paths, shape.fillRule);
+      pushToLayer(layers, ruleKeys[0], shape.paths, shape.fillRule, shape.fill);
     }
   }
 
   return layers;
 }
 
+function serializeLayerBuild(built: LayerBuild): {
+  paths: PathCommand[][];
+  fillRules?: FillRule[];
+  fills?: string[];
+} {
+  const fills: string[] = [];
+  let hasLiteralFills = false;
+  for (const fill of built.fills) {
+    if (fill) {
+      fills.push(fill);
+      hasLiteralFills = true;
+    } else {
+      fills.push("");
+    }
+  }
+  return {
+    paths: built.paths,
+    fillRules: built.fillRules,
+    ...(hasLiteralFills ? { fills } : {}),
+  };
+}
+
 function layersFromSvg(
   svg: string,
   component: string,
   rules: Record<string, string>
-): { layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[] }>; mode: "groups" | "flat" } {
-  const layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[] }> = {};
+): { layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[]; fills?: string[] }>; mode: "groups" | "flat" } {
+  const layers: Record<string, { paths: PathCommand[][]; fillRules?: FillRule[]; fills?: string[] }> = {};
   const ruleKeys = Object.keys(rules);
 
   for (const layerName of ruleKeys) {
@@ -435,18 +477,12 @@ function layersFromSvg(
   for (const layerName of ruleKeys) {
     const built = flat[layerName];
     if (built?.paths.length) {
-      layers[layerName] = {
-        paths: built.paths,
-        fillRules: built.fillRules,
-      };
+      layers[layerName] = serializeLayerBuild(built);
     }
   }
   for (const [layerName, built] of Object.entries(flat)) {
     if (!layers[layerName] && built.paths.length > 0) {
-      layers[layerName] = {
-        paths: built.paths,
-        fillRules: built.fillRules,
-      };
+      layers[layerName] = serializeLayerBuild(built);
     }
   }
   return { layers, mode: "flat" };
@@ -455,24 +491,28 @@ function layersFromSvg(
 function extractLayerPaths(
   svg: string,
   layerId: string
-): { paths: PathCommand[][]; fillRules: FillRule[] } {
+): { paths: PathCommand[][]; fillRules: FillRule[]; fills?: string[] } {
   const paths: PathCommand[][] = [];
   const fillRules: FillRule[] = [];
+  const fills: string[] = [];
   const groupRe = new RegExp(
     `<g[^>]*\\bid=["']${layerId}["'][^>]*>([\\s\\S]*?)<\\/g>`,
     "i"
   );
   const groupMatch = svg.match(groupRe);
   if (!groupMatch) return { paths, fillRules };
+
   const inner = groupMatch[1];
 
   const pathRe = /<path\b([^>]*)\/?>/gi;
   let m: RegExpExecArray | null;
   while ((m = pathRe.exec(inner))) {
-    const d = m[1].match(/\bd=["']([^"']+)["']/i)?.[1];
+    const attrs = m[1];
+    const d = attrs.match(/\bd=["']([^"']+)["']/i)?.[1];
     if (!d) continue;
     paths.push(parsePathD(d));
-    fillRules.push(parseFillRule(m[1]));
+    fillRules.push(parseFillRule(attrs));
+    fills.push(parseFill(attrs) ?? "");
   }
 
   const rectRe = /<rect\b([^>]*)\/?>/gi;
@@ -485,6 +525,7 @@ function extractLayerPaths(
     if (w <= 0 || h <= 0) continue;
     paths.push(rectToPath(x, y, w, h));
     fillRules.push(parseFillRule(attrs));
+    fills.push(parseFill(attrs) ?? "");
   }
 
   const ellipseRe = /<ellipse\b([^>]*)\/?>/gi;
@@ -504,9 +545,15 @@ function extractLayerPaths(
       { t: "Z" },
     ]);
     fillRules.push(parseFillRule(attrs));
+    fills.push(parseFill(attrs) ?? "");
   }
 
-  return { paths, fillRules };
+  if (paths.length === 0) return { paths, fillRules };
+  return {
+    paths,
+    fillRules,
+    ...(fills.some((fill) => fill.length > 0) ? { fills } : {}),
+  };
 }
 
 function main() {
@@ -553,6 +600,8 @@ export type PathCommand =
 export interface SvgLayerDef {
   paths: PathCommand[][];
   fillRules?: ("evenodd" | "nonzero")[];
+  /** Literal hex fills from the SVG export — one per path, used 1:1 at render time. */
+  fills?: string[];
 }
 
 export interface SvgComponentDef {

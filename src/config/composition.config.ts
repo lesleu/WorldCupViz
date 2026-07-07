@@ -52,22 +52,22 @@ export const compositionConfig: CompositionConfig = {
     [VISUAL_COMPONENT.ShotOnTarget]: {
       innerBiasMultiplier: 1.25,
       rowBias: 0.35,
-      overlapBoost: 0.02,
+      overlapBoost: 0,
     },
     [VISUAL_COMPONENT.Foul]: {
       innerBiasMultiplier: 0.85,
       rowBias: 0.15,
-      overlapBoost: 0.1,
+      overlapBoost: 0,
     },
     [VISUAL_COMPONENT.Corner]: {
       innerBiasMultiplier: -0.55,
       rowBias: -0.25,
-      overlapBoost: 0.03,
+      overlapBoost: 0,
     },
     [VISUAL_COMPONENT.Offside]: {
       innerBiasMultiplier: -0.45,
       rowBias: 0.1,
-      overlapBoost: 0.03,
+      overlapBoost: 0,
     },
     [VISUAL_COMPONENT.YellowCard]: {
       innerBiasMultiplier: 0.6,
@@ -78,48 +78,6 @@ export const compositionConfig: CompositionConfig = {
       innerBiasMultiplier: 0.6,
       rowBias: -0.1,
       overlapBoost: -0.04,
-    },
-  },
-  salienceSizes: {
-    [VISUAL_COMPONENT.Shot]: {
-      baseSizePx: 170,
-      firstFullSizeCount: 2,
-      sizeDecayRatio: 0.92,
-    },
-    [VISUAL_COMPONENT.ShotOnTarget]: {
-      baseSizePx: 170,
-      firstFullSizeCount: 2,
-      sizeDecayRatio: 0.92,
-    },
-    [VISUAL_COMPONENT.Goal]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 1,
-      sizeDecayRatio: 0.92,
-    },
-    [VISUAL_COMPONENT.Corner]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 3,
-      sizeDecayRatio: 0.9,
-    },
-    [VISUAL_COMPONENT.Offside]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 3,
-      sizeDecayRatio: 0.9,
-    },
-    [VISUAL_COMPONENT.Foul]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 4,
-      sizeDecayRatio: 0.88,
-    },
-    [VISUAL_COMPONENT.YellowCard]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 5,
-      sizeDecayRatio: 0.95,
-    },
-    [VISUAL_COMPONENT.RedCard]: {
-      useComponentTokens: true,
-      firstFullSizeCount: 5,
-      sizeDecayRatio: 0.95,
     },
   },
 };

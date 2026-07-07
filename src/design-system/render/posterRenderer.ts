@@ -3,15 +3,14 @@ import {
   capMarkDimensions,
   capMarkSize,
   denormPoint,
-  denormSize,
-  goalMarkSizePx,
   nonGoalMarkCap,
+  timedMarkCountOnSide,
   type AccumulatedArtState,
   type ContinuousMatchState,
 } from "@/design-system/state/artState";
 import { motionIntensity } from "@/design-system/motion/energyState";
 import { getComponentColor } from "@/design-system/color/resolveColor";
-import { VISUAL_COMPONENT } from "@/design-system/mapping/visualMappings";
+import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import {
   buildPossessionGridSlots,
   resolvePossessionCircleDiameter,
@@ -36,11 +35,18 @@ import {
   resolveRendererLayout,
   type PosterLayout,
 } from "@/design-system/layout/posterLayout";
+import { stackedMarkColorOverrides } from "@/design-system/color/markColors";
 import { drawSvgComponent, warnIfSvgAssetsMissing } from "@/design-system/render/svgRenderer";
 import { drawPassAccuracyStripes } from "@/design-system/render/passAccuracyStripes";
 import type { ReplayEngine, ReplaySnapshot } from "@/engine/replayEngine";
 import { createRng, randBetween, seededNoise } from "@/utils/seededRandom";
+import {
+  markRng,
+  resolveQuadrantEntryDimensions,
+  type MarkPixelDims,
+} from "@/design-system/layout/markSizing";
 import { cfg } from "@/config";
+import { HOME_THUMBNAIL_FIT } from "@/config/home.config";
 
 /**
  * Poster renderer — two-sided generative system keyed to visualMappings.ts.
@@ -108,11 +114,25 @@ export function createReplaySketch(
   getMatch: () => MatchData,
   getSize: () => { width: number; height: number },
   getEngine: () => ReplayEngine | null,
-  options: { artworkOnly?: boolean; liveAssetMotion?: boolean; teamSide?: TeamSide } = {}
+  options: {
+    artworkOnly?: boolean;
+    liveAssetMotion?: boolean;
+    teamSide?: TeamSide;
+    frozenSnapshot?: boolean;
+    posterArtworkCrop?: boolean;
+    /** Slight zoom-out for card thumbnails — keeps both team halves visible. */
+    fitBothTeams?: boolean;
+    /** Override zoom for fitBothTeams (default from home.config). */
+    thumbnailFit?: number;
+  } = {}
 ) {
   const artworkOnly = options.artworkOnly ?? false;
   const liveAssetMotion = options.liveAssetMotion ?? false;
   const teamSide = options.teamSide;
+  const frozenSnapshot = options.frozenSnapshot ?? false;
+  const posterArtworkCrop = options.posterArtworkCrop ?? false;
+  const fitBothTeams = options.fitBothTeams ?? false;
+  const thumbnailFit = options.thumbnailFit ?? HOME_THUMBNAIL_FIT;
   const drawSides = (): TeamSide[] =>
     teamSide ? [teamSide] : ["home", "away"];
   const markSideVisible = (side: TeamSide) => !teamSide || teamSide === side;
@@ -157,6 +177,7 @@ export function createReplaySketch(
       layout = resolveRendererLayout(width, height, {
         artworkOnly,
         teamSide,
+        posterArtworkCrop,
       });
       const seed = cfg.randomness.seed;
       possessionSlots.home = buildPossessionGridSlots(layout, "home", seed);
@@ -350,6 +371,78 @@ export function createReplaySketch(
       }
     }
 
+    /** Quadrant marks — layout-sized SVG, no breathe/vibrate (prevents overlap). */
+    function drawQuadrantEntry(
+      component: VisualComponent,
+      palette: ReturnType<typeof paletteForSide>,
+      x: number,
+      y: number,
+      dims: MarkPixelDims,
+      colorOverrides?: Record<string, string>
+    ) {
+      drawSvgComponent(p, component, palette, x, y, {
+        widthPx: dims.widthPx,
+        heightPx: dims.heightPx,
+        colorOverrides,
+      });
+    }
+
+    function rankForDraw(
+      art: AccumulatedArtState,
+      side: TeamSide,
+      component: VisualComponent,
+      markId: string
+    ): number {
+      const parentId = markId.replace(/-sq\d+$/, "");
+      switch (component) {
+        case VISUAL_COMPONENT.Shot:
+          return rankInDataset(art, side, "shot", parentId);
+        case VISUAL_COMPONENT.ShotOnTarget:
+          return rankInDataset(art, side, "shot_on_target", parentId);
+        case VISUAL_COMPONENT.Goal:
+          return rankInDataset(art, side, "goal", parentId);
+        case VISUAL_COMPONENT.Foul:
+          return rankInDataset(art, side, "foul", parentId);
+        case VISUAL_COMPONENT.Corner:
+          return rankInDataset(art, side, "corner", parentId);
+        case VISUAL_COMPONENT.Offside:
+          return rankInDataset(art, side, "offside", parentId);
+        case VISUAL_COMPONENT.YellowCard:
+        case VISUAL_COMPONENT.RedCard:
+          return rankInDataset(art, side, "card", markId);
+        default:
+          return 0;
+      }
+    }
+
+    function quadrantEntryDims(
+      component: VisualComponent,
+      art: AccumulatedArtState,
+      mark: {
+        id: string;
+        minute: number;
+        side: TeamSide;
+        spawnScale: number;
+        layoutScale: number;
+      }
+    ): MarkPixelDims {
+      const parentId = mark.id.replace(/-sq\d+$/, "");
+      const rank = rankForDraw(art, mark.side, component, mark.id);
+      const base = resolveQuadrantEntryDimensions(
+        component,
+        layout,
+        rank,
+        mark.side,
+        { id: parentId, minute: mark.minute, spawnScale: mark.spawnScale },
+        markRng(parentId, mark.minute)
+      );
+      const ls = mark.layoutScale > 0 ? mark.layoutScale : 1;
+      return {
+        widthPx: base.widthPx * ls,
+        heightPx: base.heightPx * ls,
+      };
+    }
+
     function drawZoneDebug() {
       if (!cfg.composition.showZoneDebug) return;
       p.noFill();
@@ -396,33 +489,35 @@ export function createReplaySketch(
       p.blendMode(p.BLEND);
     }
 
-    /** Shot — layered SVG stamps. */
+    /** Shot — layered SVG stamps (time-quadrant layout). */
     function drawShot(
       art: AccumulatedArtState,
       continuous: ContinuousMatchState,
       intensity: number,
       burstScale: number
     ) {
+      void continuous;
+      void intensity;
+      void burstScale;
       for (const mark of art.shots) {
         if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(getMatch(), mark.side);
-        const poss =
-          mark.side === "home" ? continuous.home.possession : continuous.away.possession;
-        const pulse = breathe(poss, mark.side, intensity) * burstScale;
         const shotRank = rankInDataset(art, mark.side, "shot", mark.id);
         const ageAlpha = markAgeOpacity(shotRank);
-        for (const sq of mark.squares) {
+        for (const [sqIndex, sq] of mark.squares.entries()) {
           const [x, y] = denormPoint(sq.nx, sq.ny, layout);
-          const v = vibrate(sq.phase, intensity, 1.1);
-          const sizePx = capMarkSize(
-            denormSize(sq.size, layout) *
-              pulse *
-              liveAssetScale("shot", sq.phase),
-            nonGoalMarkCap(art, mark.side, layout)
-          );
+          const proxy = {
+            id: `${mark.id}-sq${sqIndex}`,
+            minute: mark.minute,
+            side: mark.side,
+            spawnScale: sq.scale,
+            layoutScale: sq.layoutScale,
+          };
+          const dims = quadrantEntryDims(VISUAL_COMPONENT.Shot, art, proxy);
           withMarkAlpha(ageAlpha, () => {
-            drawSvgComponent(p, VISUAL_COMPONENT.Shot, palette, x + v.x, y + v.y, {
-              scalePx: sizePx,
+            drawSvgComponent(p, VISUAL_COMPONENT.Shot, palette, x, y, {
+              widthPx: dims.widthPx,
+              heightPx: dims.heightPx,
               rotation: sq.angle,
             });
           });
@@ -436,78 +531,55 @@ export function createReplaySketch(
       intensity: number,
       burstScale: number
     ) {
+      void burstScale;
+      void intensity;
       for (const mark of art.shotsOnTarget) {
         if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
-        const v = vibrate(mark.phase, intensity, 1.4);
-        const expand = cfg.animation.staticRender
-          ? 1
-          : 1 +
-            Math.sin(time * cfg.animation.rayPulseSpeed * 2 + mark.phase) * 0.08 * intensity;
-        const sizePx = capMarkSize(
-          denormSize(mark.outerRadius, layout) *
-            2 *
-            expand *
-            burstScale *
-            liveAssetScale("shotOnTarget", mark.phase),
-          nonGoalMarkCap(art, mark.side, layout)
-        );
-        const ageAlpha = markAgeOpacity(
-          rankInDataset(art, mark.side, "shot_on_target", mark.id)
-        );
-        withMarkAlpha(ageAlpha, () => {
-          drawSvgComponent(p, VISUAL_COMPONENT.ShotOnTarget, palette, x + v.x, y + v.y, {
-            scalePx: sizePx,
-            rotation: mark.phase * 0.1,
-            colorOverrides: {
-              c2: getComponentColor(VISUAL_COMPONENT.ShotOnTarget, palette, "c2", "c2"),
-            },
-          });
+        const sotRank = rankInDataset(art, mark.side, "shot_on_target", mark.id);
+        withMarkAlpha(markAgeOpacity(sotRank), () => {
+          drawQuadrantEntry(
+            VISUAL_COMPONENT.ShotOnTarget,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(VISUAL_COMPONENT.ShotOnTarget, art, mark),
+            stackedMarkColorOverrides(VISUAL_COMPONENT.ShotOnTarget, palette)
+          );
         });
       }
     }
 
     /** Foul — layered SVG. */
     function drawFoul(art: AccumulatedArtState, intensity: number) {
+      void intensity;
       for (const mark of art.fouls) {
         if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
-        const v = vibrate(mark.phase, intensity, 1);
-        const sizePx = capMarkSize(
-          denormSize(mark.width, layout) * liveAssetScale("foul", mark.phase),
-          nonGoalMarkCap(art, mark.side, layout)
-        );
-        const ageAlpha = markAgeOpacity(rankInDataset(art, mark.side, "foul", mark.id));
-        withMarkAlpha(ageAlpha, () => {
-          drawSvgComponent(p, VISUAL_COMPONENT.Foul, palette, x + v.x, y + v.y, {
-            scalePx: sizePx,
-          });
+        const foulRank = rankInDataset(art, mark.side, "foul", mark.id);
+        withMarkAlpha(markAgeOpacity(foulRank), () => {
+          drawQuadrantEntry(
+            VISUAL_COMPONENT.Foul,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(VISUAL_COMPONENT.Foul, art, mark),
+            stackedMarkColorOverrides(VISUAL_COMPONENT.Foul, palette)
+          );
         });
       }
     }
 
-    /** Goal — layered SVG panel. */
+    /** Goal — layered SVG panel (time-quadrant layout). */
     function drawGoal(art: AccumulatedArtState, intensity: number) {
+      void intensity;
       for (const goal of art.goals) {
         if (!markSideVisible(goal.side)) continue;
         const palette = paletteForSide(getMatch(), goal.side);
         const [x, y] = denormPoint(goal.nx, goal.ny, layout);
-        const v = vibrate(goal.phase, intensity, 1.2);
-        const pulse = cfg.animation.staticRender
-          ? 1
-          : 1 +
-            Math.sin(time * cfg.animation.breathingSpeed * 2 + goal.phase) *
-              0.08 *
-              intensity;
-        const { widthPx, heightPx } = goalMarkSizePx(
-          goal,
-          layout,
-          rankInDataset(art, goal.side, "goal", goal.id)
-        );
-        const w = widthPx * pulse;
-        const h = heightPx * pulse;
+        const goalRank = rankInDataset(art, goal.side, "goal", goal.id);
         const colorOverrides =
           goal.variant === "shootout"
             ? {
@@ -515,82 +587,78 @@ export function createReplaySketch(
                 c4: cfg.goals.shootoutPattern,
               }
             : undefined;
-        withMarkAlpha(markAgeOpacity(rankInDataset(art, goal.side, "goal", goal.id)), () => {
-          drawSvgComponent(p, VISUAL_COMPONENT.Goal, palette, x + v.x, y + v.y, {
-            widthPx: w,
-            heightPx: h,
-            colorOverrides,
-          });
+        withMarkAlpha(markAgeOpacity(goalRank), () => {
+          drawQuadrantEntry(
+            VISUAL_COMPONENT.Goal,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(VISUAL_COMPONENT.Goal, art, goal),
+            colorOverrides
+          );
         });
       }
     }
 
-    /** YellowCard / RedCard — layered SVG. */
-    function drawCard(
-      art: AccumulatedArtState,
-      intensity: number,
-      burstScale: number
-    ) {
+    /** YellowCard / RedCard — pattern layout (same rhythm as other marks). */
+    function drawCard(art: AccumulatedArtState) {
       for (const scar of art.cards) {
         if (!markSideVisible(scar.side)) continue;
         const palette = paletteForSide(getMatch(), scar.side);
         const component =
           scar.kind === "yellow" ? VISUAL_COMPONENT.YellowCard : VISUAL_COMPONENT.RedCard;
         const [x, y] = denormPoint(scar.nx, scar.ny, layout);
-        const v = vibrate(scar.phase, intensity);
-        const sizePx = capMarkSize(
-          denormSize(scar.width, layout) *
-            burstScale *
-            liveAssetScale("card", scar.phase),
-          nonGoalMarkCap(art, scar.side, layout)
-        );
-        withMarkAlpha(markAgeOpacity(rankInDataset(art, scar.side, "card", scar.id)), () => {
-          drawSvgComponent(p, component, palette, x + v.x, y + v.y, { scalePx: sizePx });
+        const cardRank = rankInDataset(art, scar.side, "card", scar.id);
+        withMarkAlpha(markAgeOpacity(cardRank), () => {
+          drawQuadrantEntry(
+            component,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(component, art, scar)
+          );
         });
       }
     }
 
     /** Corner — SVG pinwheel. */
     function drawCorner(art: AccumulatedArtState, intensity: number) {
+      void intensity;
       for (const corner of art.corners) {
         if (!markSideVisible(corner.side)) continue;
         const palette = paletteForSide(getMatch(), corner.side);
         const [x, y] = denormPoint(corner.nx, corner.ny, layout);
-        const v = vibrate(corner.phase, intensity);
-        const sizePx = capMarkSize(
-          denormSize(corner.size, layout) * liveAssetScale("corner", corner.phase),
-          nonGoalMarkCap(art, corner.side, layout)
-        );
-        withMarkAlpha(markAgeOpacity(rankInDataset(art, corner.side, "corner", corner.id)), () => {
-          drawSvgComponent(p, VISUAL_COMPONENT.Corner, palette, x + v.x, y + v.y, {
-            scalePx: sizePx,
-            rotation: corner.angle,
-            colorOverrides: {
-              c5: palette.c5,
-            },
-          });
+        const cornerRank = rankInDataset(art, corner.side, "corner", corner.id);
+        withMarkAlpha(markAgeOpacity(cornerRank), () => {
+          drawQuadrantEntry(
+            VISUAL_COMPONENT.Corner,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(VISUAL_COMPONENT.Corner, art, corner),
+            stackedMarkColorOverrides(VISUAL_COMPONENT.Corner, palette)
+          );
         });
       }
     }
 
     /** Offside — SVG wave stack. */
     function drawOffside(art: AccumulatedArtState, intensity: number) {
+      void intensity;
       for (const mark of art.offsides) {
         if (!markSideVisible(mark.side)) continue;
         const palette = paletteForSide(getMatch(), mark.side);
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
-        const v = vibrate(mark.phase, intensity, 0.8);
-        const live = liveAssetScale("offside", mark.phase);
-        const capped = capMarkDimensions(
-          denormSize(mark.width, layout) * live,
-          denormSize(mark.height, layout) * live,
-          nonGoalMarkCap(art, mark.side, layout)
-        );
-        withMarkAlpha(markAgeOpacity(rankInDataset(art, mark.side, "offside", mark.id)), () => {
-          drawSvgComponent(p, VISUAL_COMPONENT.Offside, palette, x + v.x, y + v.y, {
-            widthPx: capped.widthPx,
-            heightPx: capped.heightPx,
-          });
+        const offRank = rankInDataset(art, mark.side, "offside", mark.id);
+        withMarkAlpha(markAgeOpacity(offRank), () => {
+          drawQuadrantEntry(
+            VISUAL_COMPONENT.Offside,
+            palette,
+            x,
+            y,
+            quadrantEntryDims(VISUAL_COMPONENT.Offside, art, mark),
+            stackedMarkColorOverrides(VISUAL_COMPONENT.Offside, palette)
+          );
         });
       }
     }
@@ -610,7 +678,7 @@ export function createReplaySketch(
       drawOffside(art, intensity);
       drawCorner(art, intensity);
       drawShotOnTarget(art, intensity, burstScale);
-      drawCard(art, intensity, burstScale);
+      drawCard(art);
     }
 
     /** Dark chrome bands + team halves with c1 (top) → c2 (bottom) gradients. */
@@ -748,10 +816,12 @@ export function createReplaySketch(
 
     function drawGrain() {
       const ctx = p.drawingContext as CanvasRenderingContext2D;
+      const clipTop = posterArtworkCrop ? 0 : layout.artworkTop;
+      const clipH = layout.artworkBottom - layout.artworkTop;
       p.push();
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, layout.artworkTop, layout.width, layout.artworkBottom - layout.artworkTop);
+      ctx.rect(0, clipTop, layout.width, clipH);
       ctx.clip();
       p.noStroke();
       fillRgb(p, ink, cfg.texture.paperNoiseOpacity);
@@ -762,9 +832,12 @@ export function createReplaySketch(
 
     p.setup = () => {
       const { width, height } = getSize();
-      p.createCanvas(Math.max(width, 1), Math.max(height, 1));
-      p.pixelDensity(1);
       rebuildLayout();
+      const canvasH = posterArtworkCrop
+        ? layout.artworkBottom - layout.artworkTop
+        : height;
+      p.createCanvas(Math.max(width, 1), Math.max(canvasH, 1));
+      p.pixelDensity(1);
       warnIfSvgAssetsMissing();
       const titleSize = cfg.typography.teamNameSize * 0.5;
       const metaSize = cfg.typography.metaSize + 1;
@@ -785,10 +858,21 @@ export function createReplaySketch(
       lastFrameMs = now;
 
       const match = getMatch();
-      engine.tick(deltaSeconds, layout, match);
+      if (!frozenSnapshot) {
+        engine.tick(deltaSeconds, layout, match);
+      }
       const snapshot = engine.getSnapshot();
 
       try {
+        if (fitBothTeams && artworkOnly) {
+          p.push();
+          p.translate(layout.width / 2, layout.height / 2);
+          p.scale(thumbnailFit);
+          p.translate(-layout.width / 2, -layout.height / 2);
+        }
+
+        if (posterArtworkCrop) p.translate(0, -layout.artworkTop);
+
         drawPosterBackground();
 
         const artPresence = gameArtPresence(snapshot.minute);
@@ -838,6 +922,12 @@ export function createReplaySketch(
           drawMatchChrome(snapshot);
           drawMatchProgress(snapshot);
         }
+        if (frozenSnapshot) {
+          p.noLoop();
+        }
+        if (fitBothTeams && artworkOnly) {
+          p.pop();
+        }
       } catch (error) {
         console.error("Poster draw error:", error);
       }
@@ -845,7 +935,11 @@ export function createReplaySketch(
 
     p.windowResized = () => {
       const { width, height } = getSize();
-      p.resizeCanvas(Math.max(width, 1), Math.max(height, 1));
+      rebuildLayout();
+      const canvasH = posterArtworkCrop
+        ? layout.artworkBottom - layout.artworkTop
+        : height;
+      p.resizeCanvas(Math.max(width, 1), Math.max(canvasH, 1));
       rebuildLayout();
     };
   };

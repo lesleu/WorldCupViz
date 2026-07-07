@@ -1,11 +1,5 @@
-import type { VisualComponent } from "@/design-system/mapping/visualMappings";
-import { VISUAL_COMPONENT } from "@/design-system/mapping/visualMappings";
 import type { AccumulatedArtState, TeamSide } from "@/design-system/state/artState";
-import type { PosterLayout } from "@/design-system/layout/posterLayout";
-import { resolveComponentSize, scaleDesignPx } from "@/design-system/layout/designScale";
-import { COMPONENT_SIZES } from "@/config/componentSizes.generated";
 import { cfg } from "@/config";
-import { randBetween } from "@/utils/seededRandom";
 
 /** Discrete mark families — each tracks its own count per team side. */
 export type MarkDataset =
@@ -94,7 +88,7 @@ function crowdingFromRank(markIndex: number): number {
   );
 }
 
-/** @deprecated Prefer salience size at mark creation. Kept for pass-accuracy sparks. */
+/** @deprecated Prefer mark sizing at draw time. Kept for pass-accuracy sparks. */
 export function crowdingForMark(
   art: AccumulatedArtState,
   side: TeamSide,
@@ -104,73 +98,4 @@ export function crowdingForMark(
   const rank = rankInDataset(art, side, dataset, markId);
   if (rank < 0) return 1;
   return crowdingFromRank(rank);
-}
-
-/** Rank-based design px side length from composition salience table. */
-export function salienceDesignSize(component: VisualComponent, rank: number): number {
-  const rule = cfg.composition.salienceSizes[component];
-  const shots = cfg.shots;
-  const base = rule?.baseSizePx ?? shots.baseSizePx;
-  const full = rule?.firstFullSizeCount ?? shots.firstFullSizeCount;
-  const decay = rule?.sizeDecayRatio ?? shots.sizeDecayRatio;
-  if (rank < full) return base;
-  const steps = rank - full + 1;
-  return base * Math.pow(decay, steps);
-}
-
-/** Shot mark side length in design px — first N full size, then exponential decay. */
-export function shotMarkDesignSize(rank: number): number {
-  return salienceDesignSize(VISUAL_COMPONENT.Shot, rank);
-}
-
-/** Resolve pixel size for a mark at creation time (salience table + optional Figma tokens). */
-export function resolveSalienceMarkSizePx(
-  component: VisualComponent,
-  rank: number,
-  layout: PosterLayout,
-  rng: () => number,
-  side: TeamSide,
-  baseScale: number
-): number {
-  const rule = cfg.composition.salienceSizes[component];
-  if (rule?.useComponentTokens) {
-    const tokenPx = resolveComponentSize(component, layout, rng, "uniform", side);
-    const full = rule.firstFullSizeCount ?? 3;
-    const decay = rule.sizeDecayRatio ?? 0.9;
-    let mult = 1;
-    if (rank >= full) {
-      mult = Math.pow(decay, rank - full + 1);
-    }
-    return tokenPx * baseScale * mult;
-  }
-  const designPx = salienceDesignSize(component, rank) * baseScale;
-  return scaleDesignPx(designPx, layout);
-}
-
-/** Salience multiplier — first goal at full token max, then exponential decay. */
-export function goalSalienceMultiplier(rank: number): number {
-  const rule = cfg.composition.salienceSizes[VISUAL_COMPONENT.Goal];
-  const full = rule?.firstFullSizeCount ?? 1;
-  const decay = rule?.sizeDecayRatio ?? 0.92;
-  if (rank < full) return 1;
-  return Math.pow(decay, (rank - full + 1) * 2);
-}
-
-/** Goal mark size from Figma max tokens × rank salience × display scale. */
-export function resolveGoalMarkDimensions(
-  rank: number,
-  layout: PosterLayout,
-  rng: () => number,
-  baseScale: number
-): { widthPx: number; heightPx: number } {
-  const spec = COMPONENT_SIZES.Goal;
-  const sizeXMax = spec?.sizeXMax ?? 316;
-  const sizeYMax = spec?.sizeYMax ?? 468;
-  const mult = goalSalienceMultiplier(rank) * baseScale;
-  const heightJitter = randBetween(rng, cfg.goals.heightJitterMin, cfg.goals.heightJitterMax);
-
-  return {
-    widthPx: scaleDesignPx(sizeXMax * mult, layout) * cfg.goals.displayScale,
-    heightPx: scaleDesignPx(sizeYMax * mult * heightJitter, layout) * cfg.goals.displayScale,
-  };
 }

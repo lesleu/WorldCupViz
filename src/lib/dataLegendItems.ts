@@ -3,6 +3,8 @@ import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/
 export interface DataLegendItem {
   label: string;
   component: VisualComponent;
+  /** Neutral grey goal styling for penalty shootout marks. */
+  legendStyle?: "pkScored";
 }
 
 export const DATA_LEGEND_ITEMS: readonly DataLegendItem[] = [
@@ -11,6 +13,7 @@ export const DATA_LEGEND_ITEMS: readonly DataLegendItem[] = [
   { label: "Shots", component: VISUAL_COMPONENT.Shot },
   { label: "Shots on Target", component: VISUAL_COMPONENT.ShotOnTarget },
   { label: "Goals", component: VISUAL_COMPONENT.Goal },
+  { label: "PK Scored", component: VISUAL_COMPONENT.Goal, legendStyle: "pkScored" },
   { label: "Corners", component: VISUAL_COMPONENT.Corner },
   { label: "Offsides", component: VISUAL_COMPONENT.Offside },
   { label: "Fouls", component: VISUAL_COMPONENT.Foul },

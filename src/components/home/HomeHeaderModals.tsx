@@ -6,6 +6,9 @@ import StatRowIcon from "@/components/StatRowIcon";
 import HomeHeaderModal from "@/components/home/HomeHeaderModal";
 import StretchedInterTitle from "@/components/home/StretchedInterTitle";
 import { DATA_LEGEND_ITEMS } from "@/lib/dataLegendItems";
+import {
+  pkScoredLegendIconColorOverrides,
+} from "@/lib/statLegendColors";
 
 export type HomeHeaderModalKind = "how-it-works" | "data-legend" | null;
 
@@ -84,9 +87,17 @@ export default function HomeHeaderModals({
       <HomeHeaderModal open={activeModal === "data-legend"} onClose={onClose}>
         <ModalHeading text="DATA LEGEND" />
         <div className="mt-6 grid w-full max-w-[560px] grid-cols-2 gap-x-6 gap-y-5">
-          {DATA_LEGEND_ITEMS.map(({ label, component }) => (
+          {DATA_LEGEND_ITEMS.map(({ label, component, legendStyle }) => (
             <div key={label} className="flex items-center gap-3">
-              <StatRowIcon component={component} size={32} />
+              <StatRowIcon
+                component={component}
+                size={32}
+                colorOverrides={
+                  legendStyle === "pkScored"
+                    ? pkScoredLegendIconColorOverrides()
+                    : undefined
+                }
+              />
               <span
                 className="font-[family-name:var(--font-inter-semibold)] text-[14px] font-semibold leading-[1.2] tracking-[-0.02em]"
                 style={{ color: VISUALIZER_CONFIG.colors.text }}
