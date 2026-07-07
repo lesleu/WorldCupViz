@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
+import type { TeamPalette } from "@/data/teamPalettes.generated";
 import { drawPassAccuracyStripes } from "@/design-system/render/passAccuracyStripes";
 import { drawSvgComponent2d } from "@/design-system/render/canvasSvgRenderer";
 import {
@@ -16,14 +17,17 @@ const ICON_PX_DEFAULT = 20;
 interface StatRowIconProps {
   component: VisualComponent | null;
   size?: number;
-  /** Optional layer overrides — e.g. Corner c5 from the team palette. */
+  /** Optional layer overrides — e.g. team palette tints on match stats. */
   colorOverrides?: Record<string, string>;
+  /** Team palette for possession dot and pass-accuracy stripes. */
+  teamPalette?: TeamPalette;
 }
 
 export default function StatRowIcon({
   component,
   size = ICON_PX_DEFAULT,
   colorOverrides,
+  teamPalette,
 }: StatRowIconProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isPossession = component === VISUAL_COMPONENT.PossessionGrid;
@@ -49,7 +53,7 @@ export default function StatRowIcon({
 
     if (isPossession) {
       const radius = size * 0.38;
-      ctx.fillStyle = possessionLegendColor();
+      ctx.fillStyle = possessionLegendColor(teamPalette);
       ctx.beginPath();
       ctx.arc(size / 2, size / 2, radius, 0, Math.PI * 2);
       ctx.fill();
@@ -69,7 +73,7 @@ export default function StatRowIcon({
     drawSvgComponent2d(
       ctx,
       component,
-      LEGEND_NEUTRAL_PALETTE,
+      teamPalette ?? LEGEND_NEUTRAL_PALETTE,
       size / 2,
       size / 2,
       {
@@ -78,7 +82,7 @@ export default function StatRowIcon({
         colorOverrides: colorOverrides ?? legendIconColorOverrides(component),
       }
     );
-  }, [colorOverrides, component, hasSvg, isPassAccuracy, isPossession, shouldRender, size]);
+  }, [colorOverrides, component, hasSvg, isPassAccuracy, isPossession, shouldRender, size, teamPalette]);
 
   if (!shouldRender) {
     return <span className="inline-block w-5 shrink-0" aria-hidden />;

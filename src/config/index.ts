@@ -3,6 +3,7 @@
  * Individual token files live alongside this module in `src/config/`.
  */
 
+import { markSizesConfig } from "./markSizes.config";
 import { animationConfig } from "./animation.config";
 import { cardsConfig } from "./cards.config";
 import { colorsConfig } from "./colors.config";
@@ -10,6 +11,7 @@ import { compositionConfig } from "./composition.config";
 import { cornersConfig } from "./corners.config";
 import { designConfig } from "./design.config";
 import { energyConfig } from "./energy.config";
+import { eventMarksConfig } from "./eventMarks.config";
 import { foulsConfig } from "./fouls.config";
 import { goalsConfig } from "./goals.config";
 import { layoutConfig } from "./layout.config";
@@ -32,7 +34,9 @@ export type {
   ColorsConfig,
   CompositionConfig,
   EventPlacementProfile,
-  SalienceSizeRule,
+  EventMarksConfig,
+  MarkRankDecayRule,
+  MarkSizesConfig,
   CornersConfig,
   DesignConfig,
   EnergyConfig,
@@ -71,10 +75,12 @@ export const VISUALIZER_CONFIG: VisualizerConfig = {
   texture: textureConfig,
   randomness: randomnessConfig,
   composition: compositionConfig,
+  markSizes: markSizesConfig,
   energy: energyConfig,
   replay: replayConfig,
   corners: cornersConfig,
   offsides: offsidesConfig,
+  eventMarks: eventMarksConfig,
 };
 
 /** Shorthand alias used inside sketch modules */

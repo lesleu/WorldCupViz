@@ -11,6 +11,8 @@ export type PathCommand =
 export interface SvgLayerDef {
   paths: PathCommand[][];
   fillRules?: ("evenodd" | "nonzero")[];
+  /** Literal hex fills from the SVG export — one per path, used 1:1 at render time. */
+  fills?: string[];
 }
 
 export interface SvgComponentDef {
@@ -132,6 +134,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "nonzero"
+        ],
+        "fills": [
+          "black"
         ]
       }
     }
@@ -200,6 +205,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         "fillRules": [
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#25805a",
+          "#25805a"
         ]
       },
       "c2": {
@@ -425,6 +434,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "evenodd"
+        ],
+        "fills": [
+          "#2ccf8b"
         ]
       }
     }
@@ -437,6 +449,41 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
       "h": 181
     },
     "layers": {
+      "c1": {
+        "paths": [
+          [
+            {
+              "t": "M",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 181,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 181,
+              "y": 181
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 181
+            },
+            {
+              "t": "Z"
+            }
+          ]
+        ],
+        "fillRules": [
+          "nonzero"
+        ],
+        "fills": [
+          "#f198c1"
+        ]
+      },
       "c2": {
         "paths": [
           [
@@ -676,6 +723,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "nonzero"
+        ],
+        "fills": [
+          "#d8428d"
         ]
       }
     }
@@ -744,6 +794,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         "fillRules": [
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#25805a",
+          "#25805a"
         ]
       },
       "c4": {
@@ -901,6 +955,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "nonzero"
+        ],
+        "fills": [
+          "#fe4802"
         ]
       }
     }
@@ -913,6 +970,41 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
       "h": 58
     },
     "layers": {
+      "c1": {
+        "paths": [
+          [
+            {
+              "t": "M",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 176,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 176,
+              "y": 58
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 58
+            },
+            {
+              "t": "Z"
+            }
+          ]
+        ],
+        "fillRules": [
+          "nonzero"
+        ],
+        "fills": [
+          "#e8e8e8"
+        ]
+      },
       "ink.mark": {
         "paths": [
           [
@@ -1064,6 +1156,11 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
           "nonzero",
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#171111",
+          "#171111",
+          "#171111"
         ]
       }
     }
@@ -1076,6 +1173,41 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
       "h": 117
     },
     "layers": {
+      "c1": {
+        "paths": [
+          [
+            {
+              "t": "M",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 117,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 117,
+              "y": 117
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 117
+            },
+            {
+              "t": "Z"
+            }
+          ]
+        ],
+        "fillRules": [
+          "nonzero"
+        ],
+        "fills": [
+          "#f2e6d8"
+        ]
+      },
       "c5": {
         "paths": [
           [
@@ -1184,6 +1316,12 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
           "nonzero",
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#b8892e",
+          "#b8892e",
+          "#b8892e",
+          "#b8892e"
         ]
       }
     }
@@ -1199,6 +1337,133 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
       "c1": {
         "paths": [
           [
+            {
+              "t": "M",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 105,
+              "y": 0
+            },
+            {
+              "t": "L",
+              "x": 105,
+              "y": 132
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 132
+            },
+            {
+              "t": "Z"
+            }
+          ]
+        ],
+        "fillRules": [
+          "nonzero"
+        ],
+        "fills": [
+          "#d0d4f7"
+        ]
+      },
+      "c2": {
+        "paths": [
+          [
+            {
+              "t": "M",
+              "x": 68.6221,
+              "y": 87.6406
+            },
+            {
+              "t": "C",
+              "x1": 88.713,
+              "y1": 87.6406,
+              "x2": 105,
+              "y2": 103.928,
+              "x": 105,
+              "y": 124.019
+            },
+            {
+              "t": "L",
+              "x": 105,
+              "y": 131.46
+            },
+            {
+              "t": "L",
+              "x": 36.3779,
+              "y": 131.46
+            },
+            {
+              "t": "C",
+              "x1": 16.2871,
+              "y1": 131.46,
+              "x2": 0.000249827,
+              "y2": 115.173,
+              "x": 0,
+              "y": 95.082
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 87.6406
+            },
+            {
+              "t": "L",
+              "x": 68.6221,
+              "y": 87.6406
+            },
+            {
+              "t": "Z"
+            },
+            {
+              "t": "M",
+              "x": 68.6221,
+              "y": 43.8203
+            },
+            {
+              "t": "C",
+              "x1": 88.713,
+              "y1": 43.8203,
+              "x2": 105,
+              "y2": 60.1073,
+              "x": 105,
+              "y": 80.1982
+            },
+            {
+              "t": "L",
+              "x": 105,
+              "y": 87.6396
+            },
+            {
+              "t": "L",
+              "x": 36.3779,
+              "y": 87.6396
+            },
+            {
+              "t": "C",
+              "x1": 16.2871,
+              "y1": 87.6396,
+              "x2": 0.000249827,
+              "y2": 71.3525,
+              "x": 0,
+              "y": 51.2617
+            },
+            {
+              "t": "L",
+              "x": 0,
+              "y": 43.8203
+            },
+            {
+              "t": "L",
+              "x": 68.6221,
+              "y": 43.8203
+            },
+            {
+              "t": "Z"
+            },
             {
               "t": "M",
               "x": 68.6221,
@@ -1249,116 +1514,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "nonzero"
-        ]
-      },
-      "c2": {
-        "paths": [
-          [
-            {
-              "t": "M",
-              "x": 68.6221,
-              "y": 43.8203
-            },
-            {
-              "t": "C",
-              "x1": 88.713,
-              "y1": 43.8203,
-              "x2": 105,
-              "y2": 60.1073,
-              "x": 105,
-              "y": 80.1982
-            },
-            {
-              "t": "L",
-              "x": 105,
-              "y": 87.6396
-            },
-            {
-              "t": "L",
-              "x": 36.3779,
-              "y": 87.6396
-            },
-            {
-              "t": "C",
-              "x1": 16.2871,
-              "y1": 87.6396,
-              "x2": 0.000249827,
-              "y2": 71.3525,
-              "x": 0,
-              "y": 51.2617
-            },
-            {
-              "t": "L",
-              "x": 0,
-              "y": 43.8203
-            },
-            {
-              "t": "L",
-              "x": 68.6221,
-              "y": 43.8203
-            },
-            {
-              "t": "Z"
-            }
-          ]
         ],
-        "fillRules": [
-          "nonzero"
-        ]
-      },
-      "c3": {
-        "paths": [
-          [
-            {
-              "t": "M",
-              "x": 68.6221,
-              "y": 87.6406
-            },
-            {
-              "t": "C",
-              "x1": 88.713,
-              "y1": 87.6406,
-              "x2": 105,
-              "y2": 103.928,
-              "x": 105,
-              "y": 124.019
-            },
-            {
-              "t": "L",
-              "x": 105,
-              "y": 131.46
-            },
-            {
-              "t": "L",
-              "x": 36.3779,
-              "y": 131.46
-            },
-            {
-              "t": "C",
-              "x1": 16.2871,
-              "y1": 131.46,
-              "x2": 0.000249827,
-              "y2": 115.173,
-              "x": 0,
-              "y": 95.082
-            },
-            {
-              "t": "L",
-              "x": 0,
-              "y": 87.6406
-            },
-            {
-              "t": "L",
-              "x": 68.6221,
-              "y": 87.6406
-            },
-            {
-              "t": "Z"
-            }
-          ]
-        ],
-        "fillRules": [
-          "nonzero"
+        "fills": [
+          "#384cf4"
         ]
       }
     }
@@ -1427,6 +1585,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         "fillRules": [
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#fec702",
+          "#fec702"
         ]
       },
       "ink.mark": {
@@ -1581,6 +1743,12 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
           "nonzero",
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#282828",
+          "#282828",
+          "#282828",
+          "#282828"
         ]
       }
     }
@@ -1649,6 +1817,10 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         "fillRules": [
           "nonzero",
           "nonzero"
+        ],
+        "fills": [
+          "#fe4802",
+          "#f52020"
         ]
       },
       "ink.mark": {
@@ -1810,6 +1982,9 @@ export const COMPONENT_PATHS: Partial<Record<VisualComponent, SvgComponentDef>> 
         ],
         "fillRules": [
           "nonzero"
+        ],
+        "fills": [
+          "#282828"
         ]
       }
     }

@@ -7,8 +7,11 @@ export const goalsConfig: GoalsConfig = {
   jaggedSegments: 7,
   accentWidthRatio: 0.56,
   accentHeightRatio: 0.75,
-  displayScale: 1.42,
-  markCapRatio: 0.9,
+  markCapRatio: 0.72,
+  /** Max goal height as fraction of team zone height. */
+  maxZoneHeightRatio: 0.3,
+  /** Max goal width as fraction of team zone width. */
+  maxZoneWidthRatio: 0.34,
   shootoutBg: "#00E050",
   shootoutPattern: "#C8F542",
 };

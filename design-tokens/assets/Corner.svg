@@ -1,6 +1,11 @@
 <svg width="117" height="117" viewBox="0 0 117 117" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M92.2754 117H24.7246L58.5 58.5L92.2754 117Z" fill="#2CCF8B"/>
-<path d="M58.5 58.5L0 92.2754V24.7246L58.5 58.5Z" fill="#2CCF8B"/>
-<path d="M117 92.2754L58.5 58.5L117 24.7246V92.2754Z" fill="#2CCF8B"/>
-<path d="M58.5 58.5L24.7246 0H92.2754L58.5 58.5Z" fill="#2CCF8B"/>
+<g id="c1">
+<rect width="117" height="117" fill="#F2E6D8"/>
+</g>
+<g id="c5">
+<path d="M92.2754 117H24.7246L58.5 58.5L92.2754 117Z" fill="#B8892E"/>
+<path d="M58.5 58.5L0 92.2754V24.7246L58.5 58.5Z" fill="#B8892E"/>
+<path d="M117 92.2754L58.5 58.5L117 24.7246V92.2754Z" fill="#B8892E"/>
+<path d="M58.5 58.5L24.7246 0H92.2754L58.5 58.5Z" fill="#B8892E"/>
+</g>
 </svg>

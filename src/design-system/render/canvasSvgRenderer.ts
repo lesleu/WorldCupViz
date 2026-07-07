@@ -1,4 +1,4 @@
-import { getComponentColor } from "@/design-system/color/resolveColor";
+import { resolveSvgPathFill } from "@/design-system/color/resolveColor";
 import { COMPONENT_COLOR_RULES } from "@/design-system/color/colorRules.generated";
 import {
   COMPONENT_PATHS,
@@ -78,13 +78,17 @@ export function drawSvgComponent2d(
   for (const layerName of layerDrawOrder(component, layers)) {
     const layerDef = layers[layerName];
     if (!layerDef) continue;
-    const color =
-      options.colorOverrides?.[layerName] ??
-      getComponentColor(component, palette, layerName, "c1");
-    ctx.fillStyle = color;
     for (let i = 0; i < layerDef.paths.length; i++) {
       const path = layerDef.paths[i];
       const fillRule = layerDef.fillRules?.[i] ?? "nonzero";
+      ctx.fillStyle = resolveSvgPathFill(
+        component,
+        palette,
+        layerName,
+        i,
+        layerDef,
+        options.colorOverrides
+      );
       ctx.beginPath();
       tracePathCommands(ctx, path);
       ctx.fill(fillRule);

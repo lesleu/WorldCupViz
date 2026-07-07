@@ -100,10 +100,12 @@ export class ReplayEngine {
   extendFeed(updates: LiveFeedUpdate[]): void {
     if (updates.length === 0) return;
 
-    const existing = new Set(this.feed.map((update) => feedUpdateSignature(update)));
+    const existing = new Set(
+      this.feed.map((update, index) => feedUpdateSignature(update, index))
+    );
 
     for (const update of updates) {
-      const key = feedUpdateSignature(update);
+      const key = feedUpdateSignature(update, this.feed.length);
       if (existing.has(key)) continue;
       existing.add(key);
       this.feed.push(update);
@@ -224,7 +226,7 @@ export class ReplayEngine {
       const update = this.feed[index];
       if (update.minute > this.minute) continue;
 
-      const key = feedUpdateSignature(update);
+      const key = feedUpdateSignature(update, index);
       if (this.appliedKeys.has(key)) continue;
 
       this.applyUpdate(update, index, layout, match);

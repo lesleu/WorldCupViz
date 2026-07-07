@@ -233,11 +233,19 @@ export function resolveArtworkLayout(
 export function resolveRendererLayout(
   width: number,
   height: number,
-  options: { artworkOnly?: boolean; teamSide?: "home" | "away" } = {}
+  options: {
+    artworkOnly?: boolean;
+    teamSide?: "home" | "away";
+    /** Full poster layout — artwork band cropped for card thumbnails. */
+    posterArtworkCrop?: boolean;
+  } = {}
 ): PosterLayout {
-  const { artworkOnly = false, teamSide } = options;
+  const { artworkOnly = false, teamSide, posterArtworkCrop = false } = options;
   if (teamSide) {
     return computeSingleTeamArtworkLayout(width, height, teamSide);
+  }
+  if (posterArtworkCrop) {
+    return computeLayout(width, height);
   }
   if (artworkOnly) {
     return computeArtworkLayout(width, height);

@@ -105,7 +105,13 @@ function main() {
   const foundation = readJson("design-tokens/tokens/Foundation/Mode 1.json");
   const team = readJson("design-tokens/tokens/Team/Mode 1.json");
   const component = readJson("design-tokens/tokens/Component/Mode 1.json");
-  const colorRules = readJson("design-tokens/color-rules.json");
+  const colorRulesRaw = readJson("design-tokens/color-rules.json");
+  const paletteTinted = Array.isArray(colorRulesRaw._paletteTinted)
+    ? (colorRulesRaw._paletteTinted as string[])
+    : ["Shot", "Goal"];
+  const colorRules = Object.fromEntries(
+    Object.entries(colorRulesRaw).filter(([key]) => !key.startsWith("_"))
+  );
 
   const paper = foundation.paper as Json;
   const ink = foundation.ink as Json;
@@ -230,6 +236,9 @@ export type ColorSlot =
 export type ComponentColorRules = Partial<Record<VisualComponent, Record<string, ColorSlot>>>;
 
 export const COMPONENT_COLOR_RULES: ComponentColorRules = ${JSON.stringify(colorRules, null, 2)};
+
+/** Components whose SVG fills are swapped for team palette slots at render time. */
+export const PALETTE_TINTED_COMPONENTS = ${JSON.stringify(paletteTinted)} as const;
 `
   );
 

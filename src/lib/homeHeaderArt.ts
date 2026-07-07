@@ -65,7 +65,8 @@ const HEADER_ART_PLACEMENTS: HeaderArtPlacementDef[] = [
     sizeScale: 0.55,
   },
   {
-    component: VISUAL_COMPONENT.Corner,
+    component: VISUAL_COMPONENT.Shot,
+    artPalette: "world2",
     xRatio: 0.218,
     yRatio: 0.13,
     sizeScale: 0.85,
@@ -141,8 +142,6 @@ const COMPACT_ASSET_MULTIPLIER = 3;
 function compactComponentSizeScale(component: VisualComponent): number {
   switch (component) {
     case VISUAL_COMPONENT.Shot:
-      return 1 / 4;
-    case VISUAL_COMPONENT.Corner:
       return 1 / 6;
     default:
       return 1;

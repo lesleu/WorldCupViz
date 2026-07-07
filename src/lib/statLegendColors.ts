@@ -1,8 +1,11 @@
 import type { ColorSlot } from "@/design-system/color/colorRules.generated";
 import { COMPONENT_COLOR_RULES } from "@/design-system/color/colorRules.generated";
+import { stackedMarkColorOverrides } from "@/design-system/color/markColors";
 import { getComponentColors } from "@/design-system/color/resolveColor";
 import {
   isWorldCupArtComponent,
+  WORLD1_ART_PALETTE,
+  WORLD2_ART_PALETTE,
   WORLD_CUP_ART_PALETTE,
 } from "@/design-system/color/worldCupArt";
 import {
@@ -50,13 +53,33 @@ function legendColorForSlot(slot: ColorSlot): string {
   }
 }
 
-/** Per-layer overrides for stat sidebar icons on dark chrome. */
+function dataLegendPaletteFor(component: VisualComponent): TeamPalette {
+  switch (component) {
+    case VISUAL_COMPONENT.Shot:
+      return WORLD1_ART_PALETTE;
+    case VISUAL_COMPONENT.Goal:
+    case VISUAL_COMPONENT.Corner:
+    case VISUAL_COMPONENT.ShotOnTarget:
+      return WORLD2_ART_PALETTE;
+    default:
+      return WORLD_CUP_ART_PALETTE;
+  }
+}
+
+/** Per-layer overrides for the homepage data-legend modal. */
 export function legendIconColorOverrides(
   component: VisualComponent
 ): Record<string, string> {
   if (isWorldCupArtComponent(component)) {
     return getComponentColors(component, WORLD_CUP_ART_PALETTE);
   }
+
+  const palette = dataLegendPaletteFor(component);
+  const stacked = stackedMarkColorOverrides(component, palette);
+  if (stacked) return stacked;
+
+  const colors = getComponentColors(component, palette);
+  if (Object.keys(colors).length > 0) return colors;
 
   const rules = COMPONENT_COLOR_RULES[component];
   if (!rules) return {};
@@ -65,18 +88,45 @@ export function legendIconColorOverrides(
   for (const [role, slot] of Object.entries(rules)) {
     overrides[role] = legendColorForSlot(slot);
   }
-
-  if (component === VISUAL_COMPONENT.Goal) {
-    overrides.c4 = "#4A4A4A";
-  }
-  if (component === VISUAL_COMPONENT.YellowCard) {
-    overrides["ink.mark"] = "#4A4A4A";
-  }
-
   return overrides;
 }
 
+/** Original neutral grey goal icon — used for PK Scored in legends. */
+export function pkScoredLegendIconColorOverrides(): Record<string, string> {
+  const rules = COMPONENT_COLOR_RULES[VISUAL_COMPONENT.Goal];
+  const overrides: Record<string, string> = {};
+  for (const [role, slot] of Object.entries(rules ?? {})) {
+    overrides[role] = legendColorForSlot(slot);
+  }
+  overrides.c4 = "#4A4A4A";
+  return overrides;
+}
+
+/** Per-team stat sidebar icons — mirrors canvas mark coloring. */
+export function teamStatIconColorOverrides(
+  component: VisualComponent | null,
+  palette: TeamPalette
+): Record<string, string> | undefined {
+  if (!component) return undefined;
+  if (
+    component === VISUAL_COMPONENT.PossessionGrid ||
+    component === VISUAL_COMPONENT.PassAccuracy
+  ) {
+    return undefined;
+  }
+
+  if (isWorldCupArtComponent(component)) {
+    return getComponentColors(component, WORLD_CUP_ART_PALETTE);
+  }
+
+  const stacked = stackedMarkColorOverrides(component, palette);
+  if (stacked) return stacked;
+
+  const colors = getComponentColors(component, palette);
+  return Object.keys(colors).length > 0 ? colors : undefined;
+}
+
 /** Possession grid cells use palette c1 in the art system. */
-export function possessionLegendColor(): string {
-  return legendColorForSlot("c1");
+export function possessionLegendColor(palette?: TeamPalette): string {
+  return palette?.c1 ?? WORLD1_ART_PALETTE.c1;
 }

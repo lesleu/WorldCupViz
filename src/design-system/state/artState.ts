@@ -1,31 +1,29 @@
 import type { MatchEvent, MatchEventType } from "@/data/mockLiveFeed";
 import { paletteForSide, type MatchData, type TeamSide } from "@/data/mockMatch";
 import {
-  computeCompositionAnchors,
-  type CompositionAnchors,
   type PosterLayout,
   teamZoneForSide,
 } from "@/design-system/layout/posterLayout";
 import {
   createPlacementState,
-  findPlacement,
   resetPlacementState,
   type PlacementState,
 } from "@/design-system/layout/placementEngine";
+import {
+  relayoutTimedMarkEntries,
+  type LayoutMark,
+  type TimedMarkEntry,
+} from "@/design-system/layout/quadrantMarkPlacement";
+import { usesQuadrantMarkLayout } from "@/design-system/color/markColors";
 import { createRng, randBetween } from "@/utils/seededRandom";
 import { getComponentColor } from "@/design-system/color/resolveColor";
 import { getEventVisualComponent, VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import {
-  normSize,
-  resolveComponentSize,
-  scaleDesignPx,
-} from "@/design-system/layout/designScale";
-import {
-  rankInDataset,
-  resolveGoalMarkDimensions,
-  resolveSalienceMarkSizePx,
-  shotMarkDesignSize,
-} from "@/design-system/layout/compositionDensity";
+  markRng,
+  resolveGoalMarkSizePx,
+  resolveQuadrantEntryDimensions,
+} from "@/design-system/layout/markSizing";
+import { rankInDataset } from "@/design-system/layout/compositionDensity";
 import { COMPONENT_SIZES } from "@/config/componentSizes.generated";
 import { cfg } from "@/config";
 
@@ -49,7 +47,10 @@ export interface ContinuousMatchState {
 export interface BlockSpec {
   nx: number;
   ny: number;
-  size: number;
+  /** Spawn-time scale multiplier (see markSizing.ts). */
+  scale: number;
+  /** Uniform shrink when the time cell is crowded. */
+  layoutScale: number;
   angle: number;
   bgColor: string;
   fgColor: string;
@@ -71,7 +72,8 @@ export interface ShotOnTargetMark {
   minute: number;
   nx: number;
   ny: number;
-  outerRadius: number;
+  spawnScale: number;
+  layoutScale: number;
   innerRatio: number;
   points: number;
   color: string;
@@ -85,8 +87,8 @@ export interface GoalMark {
   minute: number;
   nx: number;
   ny: number;
-  height: number;
-  width: number;
+  spawnScale: number;
+  layoutScale: number;
   color: string;
   phase: number;
   variant?: "regulation" | "shootout";
@@ -99,8 +101,8 @@ export interface FoulMark {
   minute: number;
   nx: number;
   ny: number;
-  width: number;
-  height: number;
+  spawnScale: number;
+  layoutScale: number;
   phase: number;
 }
 
@@ -111,8 +113,8 @@ export interface CardMark {
   minute: number;
   nx: number;
   ny: number;
-  width: number;
-  height: number;
+  spawnScale: number;
+  layoutScale: number;
   kind: "yellow" | "red";
   phase: number;
 }
@@ -124,8 +126,8 @@ export interface Corner {
   minute: number;
   nx: number;
   ny: number;
-  size: number;
-  angle: number;
+  spawnScale: number;
+  layoutScale: number;
   color: string;
   phase: number;
 }
@@ -137,8 +139,8 @@ export interface Offside {
   minute: number;
   nx: number;
   ny: number;
-  width: number;
-  height: number;
+  spawnScale: number;
+  layoutScale: number;
   color: string;
   phase: number;
 }
@@ -222,31 +224,143 @@ export function resetArtPlacement(art: AccumulatedArtState): void {
   resetPlacementState(art.placement);
 }
 
-function placeMark(
-  layout: PosterLayout,
+/** Total timed mosaic marks on one team side (for uniform sizing). */
+export function timedMarkCountOnSide(art: AccumulatedArtState, side: TeamSide): number {
+  let count = 0;
+  for (const shot of art.shots) {
+    if (shot.side === side) count += shot.squares.length;
+  }
+  count += art.fouls.filter((m) => m.side === side).length;
+  count += art.corners.filter((m) => m.side === side).length;
+  count += art.offsides.filter((m) => m.side === side).length;
+  count += art.shotsOnTarget.filter((m) => m.side === side).length;
+  count += art.goals.filter((m) => m.side === side).length;
+  count += art.cards.filter((m) => m.side === side).length;
+  return count;
+}
+
+function quadrantBaseScale(component: VisualComponent): number {
+  return usesQuadrantMarkLayout(component) ? cfg.composition.markScale : 0;
+}
+
+function collectTimedMarks(
+  art: AccumulatedArtState,
+  side: TeamSide
+): TimedMarkEntry[] {
+  const entries: TimedMarkEntry[] = [];
+
+  for (const shot of art.shots) {
+    if (shot.side !== side) continue;
+
+    shot.squares.forEach((sq, squareIndex) => {
+      const proxy: LayoutMark = {
+        id: `${shot.id}-sq${squareIndex}`,
+        side: shot.side,
+        minute: shot.minute,
+        nx: sq.nx,
+        ny: sq.ny,
+        spawnScale: sq.scale,
+        layoutScale: sq.layoutScale,
+      };
+      entries.push({
+        mark: proxy,
+        component: VISUAL_COMPONENT.Shot,
+        commit: (nx, ny, layoutScale) => {
+          sq.nx = nx;
+          sq.ny = ny;
+          sq.layoutScale = layoutScale;
+        },
+      });
+    });
+  }
+
+  for (const mark of art.fouls) {
+    if (mark.side === side) entries.push({ mark, component: VISUAL_COMPONENT.Foul });
+  }
+  for (const mark of art.corners) {
+    if (mark.side === side) entries.push({ mark, component: VISUAL_COMPONENT.Corner });
+  }
+  for (const mark of art.offsides) {
+    if (mark.side === side) entries.push({ mark, component: VISUAL_COMPONENT.Offside });
+  }
+  for (const mark of art.shotsOnTarget) {
+    if (mark.side === side) {
+      entries.push({ mark, component: VISUAL_COMPONENT.ShotOnTarget });
+    }
+  }
+  for (const goal of art.goals) {
+    if (goal.side === side) {
+      entries.push({ mark: goal as LayoutMark, component: VISUAL_COMPONENT.Goal });
+    }
+  }
+  for (const card of art.cards) {
+    if (card.side !== side) continue;
+    const component =
+      card.kind === "yellow" ? VISUAL_COMPONENT.YellowCard : VISUAL_COMPONENT.RedCard;
+    entries.push({ mark: card as LayoutMark, component });
+  }
+  return entries;
+}
+
+function rankForLayoutEntry(
+  art: AccumulatedArtState,
   side: TeamSide,
-  widthPx: number,
-  heightPx: number,
-  placement: PlacementState,
-  rng: () => number,
-  innerBias: number,
-  preferCell: number,
   component: VisualComponent,
-  minute: number
-): [number, number] {
-  const [nx, ny] = findPlacement(
+  mark: LayoutMark
+): number {
+  const shotParentId = mark.id.replace(/-sq\d+$/, "");
+  switch (component) {
+    case VISUAL_COMPONENT.Shot:
+      return rankInDataset(art, side, "shot", shotParentId);
+    case VISUAL_COMPONENT.ShotOnTarget:
+      return rankInDataset(art, side, "shot_on_target", mark.id);
+    case VISUAL_COMPONENT.Foul:
+      return rankInDataset(art, side, "foul", mark.id);
+    case VISUAL_COMPONENT.Corner:
+      return rankInDataset(art, side, "corner", mark.id);
+    case VISUAL_COMPONENT.Offside:
+      return rankInDataset(art, side, "offside", mark.id);
+    case VISUAL_COMPONENT.Goal:
+      return rankInDataset(art, side, "goal", mark.id);
+    case VISUAL_COMPONENT.YellowCard:
+    case VISUAL_COMPONENT.RedCard:
+      return rankInDataset(art, side, "card", mark.id);
+    default:
+      return 0;
+  }
+}
+
+function layoutSizeForEntry(
+  art: AccumulatedArtState,
+  side: TeamSide,
+  component: VisualComponent,
+  mark: LayoutMark,
+  layout: PosterLayout
+) {
+  const rank = rankForLayoutEntry(art, side, component, mark);
+  const parentId = mark.id.replace(/-sq\d+$/, "");
+  return resolveQuadrantEntryDimensions(
+    component,
     layout,
+    rank,
     side,
-    widthPx,
-    heightPx,
-    placement,
-    rng,
-    { innerBias, preferCell, component, minute }
+    { id: parentId, minute: mark.minute, spawnScale: mark.spawnScale },
+    markRng(parentId, mark.minute)
   );
-  return [
-    layout.margin + nx * layout.artworkWidth,
-    layout.artworkTop + ny * layout.artworkHeight,
-  ];
+}
+
+function relayoutTeamTimedMarks(
+  art: AccumulatedArtState,
+  side: TeamSide,
+  layout: PosterLayout
+): void {
+  relayoutTimedMarkEntries(
+    collectTimedMarks(art, side),
+    side,
+    layout,
+    art.placement,
+    (component, mark) => layoutSizeForEntry(art, side, component, mark, layout)
+  );
 }
 
 const markScale = () => cfg.composition.markScale;
@@ -268,22 +382,14 @@ function fragmentAngle(rng: () => number, base: number, accuracy: number) {
   return base + rand(rng, -spread, spread);
 }
 
-function goalUpdateIndex(markId: string): number {
-  const match = /^u(\d+)-/.exec(markId);
-  return match ? Number(match[1]) : 0;
-}
-
-/** Figma-token goal size — first per side at max, then salience decay. */
+/** Goal size from markSizes config — recomputed each draw frame. */
 export function goalMarkSizePx(
   goal: GoalMark,
   layout: PosterLayout,
   rank = 0
 ): { widthPx: number; heightPx: number } {
-  const updateIndex = goalUpdateIndex(goal.id);
-  const rng = createRng(updateIndex * 9973 + goal.minute * 131 + cfg.randomness.seed);
-  const baseScale = cfg.composition.markScale;
-  const { widthPx, heightPx } = resolveGoalMarkDimensions(rank, layout, rng, baseScale);
-  return { widthPx, heightPx };
+  const rng = markRng(goal.id, goal.minute);
+  return resolveGoalMarkSizePx(layout, rank, rng, goal.spawnScale);
 }
 
 /** Max width/height of the first goal on a side — ceiling for all other marks. */
@@ -341,46 +447,29 @@ export function addEventMark(
   const rng = createRng(updateIndex * 9973 + event.minute * 131 + cfg.randomness.seed);
   const side = event.team;
   const palette = paletteForSide(match, side);
-  const anchors = computeCompositionAnchors(layout);
   const accuracy = side === "home"
     ? art.possessionGrid.home.passAccuracy
     : art.possessionGrid.away.passAccuracy;
   const phase = rand(rng, 0, Math.PI * 2);
-  const baseScale = eventScale(rng);
   const component = getEventVisualComponent(event.eventType);
-  const placement = art.placement;
-  const innerBias =
-    side === "home" ? anchors.homeInnerBias : anchors.awayInnerBias;
-  let slotCounter = art.shots.length + art.goals.length + art.fouls.length;
+  const baseScale = usesQuadrantMarkLayout(component)
+    ? quadrantBaseScale(component)
+    : eventScale(rng);
 
   switch (component) {
     case VISUAL_COMPONENT.Shot: {
       const squares: BlockSpec[] = [];
-      const squareCount = Math.ceil(cfg.shots.squaresPerShot * density());
+      const squareCount = Math.max(1, Math.round(cfg.shots.squaresPerShot * density()));
       const bg = getComponentColor(VISUAL_COMPONENT.Shot, palette, "c1", "c1");
       const fg = getComponentColor(VISUAL_COMPONENT.Shot, palette, "c2", "c2");
-      const shotRank = art.shots.filter((mark) => mark.side === side).length;
 
       for (let i = 0; i < squareCount; i++) {
         const sqScale = baseScale * rand(rng, 0.85, 1.2);
-        const designPx = shotMarkDesignSize(shotRank) * sqScale;
-        const sizePx = scaleDesignPx(designPx, layout);
-        const [x, y] = placeMark(
-          layout,
-          side,
-          sizePx,
-          sizePx,
-          placement,
-          rng,
-          innerBias * 0.9,
-          slotCounter + i,
-          VISUAL_COMPONENT.Shot,
-          event.minute
-        );
         squares.push({
-          nx: normX(x, layout),
-          ny: normY(y, layout),
-          size: normSize(sizePx, layout),
+          nx: 0,
+          ny: 0,
+          scale: sqScale,
+          layoutScale: 1,
           angle: fragmentAngle(rng, rand(rng, -0.25, 0.25), accuracy),
           bgColor: bg,
           fgColor: fg,
@@ -388,27 +477,10 @@ export function addEventMark(
         });
       }
       art.shots.push({ id, side, minute: event.minute, squares });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.ShotOnTarget: {
-      slotCounter += 1;
-      const sotRank = art.shotsOnTarget.filter((mark) => mark.side === side).length;
-      const sqScale = baseScale * rand(rng, 0.85, 1.2);
-      const designPx = shotMarkDesignSize(sotRank) * sqScale;
-      const diameterPx = scaleDesignPx(designPx, layout);
-      const outerPx = diameterPx / 2;
-      const [x, y] = placeMark(
-        layout,
-        side,
-        diameterPx,
-        diameterPx,
-        placement,
-        rng,
-        innerBias * 0.45,
-        slotCounter,
-        VISUAL_COMPONENT.ShotOnTarget,
-        event.minute
-      );
       const impactColor = getComponentColor(
         VISUAL_COMPONENT.ShotOnTarget,
         palette,
@@ -419,211 +491,95 @@ export function addEventMark(
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        outerRadius: normSize(outerPx, layout),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
         innerRatio: cfg.shotsOnTarget.starInnerRatio,
         points: COMPONENT_SIZES.ShotOnTarget?.starpoint ?? 8,
         color: impactColor,
         phase,
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Goal: {
-      slotCounter += 2;
-      const goalRank = art.goals.filter((mark) => mark.side === side).length;
-      const { widthPx, heightPx } = resolveGoalMarkDimensions(
-        goalRank,
-        layout,
-        rng,
-        baseScale
-      );
-      const [x, y] = placeMark(
-        layout,
-        side,
-        widthPx,
-        heightPx,
-        placement,
-        rng,
-        innerBias * 0.35,
-        slotCounter,
-        VISUAL_COMPONENT.Goal,
-        event.minute
-      );
       const goalColor = getComponentColor(VISUAL_COMPONENT.Goal, palette, "c1", "c1");
       const isShootout = event.eventType === "penalty_scored";
       art.goals.push({
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        height: normSize(heightPx, layout),
-        width: normSize(widthPx, layout),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
         color: isShootout ? cfg.goals.shootoutBg : goalColor,
         phase,
         ...(isShootout ? { variant: "shootout" as const } : {}),
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Foul: {
-      slotCounter += 1;
-      const foulRank = art.fouls.filter((mark) => mark.side === side).length;
-      const sizePx = resolveSalienceMarkSizePx(
-        VISUAL_COMPONENT.Foul,
-        foulRank,
-        layout,
-        rng,
-        side,
-        baseScale
-      );
-      const [x, y] = placeMark(
-        layout,
-        side,
-        sizePx,
-        sizePx,
-        placement,
-        rng,
-        innerBias * 0.3,
-        slotCounter,
-        VISUAL_COMPONENT.Foul,
-        event.minute
-      );
       art.fouls.push({
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        width: normSize(sizePx, layout),
-        height: normSize(sizePx, layout),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
         phase,
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Corner: {
-      slotCounter += 1;
-      const cornerRank = art.corners.filter((mark) => mark.side === side).length;
-      const cornerPx = resolveSalienceMarkSizePx(
-        VISUAL_COMPONENT.Corner,
-        cornerRank,
-        layout,
-        rng,
-        side,
-        baseScale * rand(rng, 0.9, 1.1)
-      );
-      const [x, y] = placeMark(
-        layout,
-        side,
-        cornerPx,
-        cornerPx,
-        placement,
-        rng,
-        innerBias * 0.28,
-        slotCounter,
-        VISUAL_COMPONENT.Corner,
-        event.minute
-      );
       art.corners.push({
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        size: normSize(cornerPx, layout),
-        angle: fragmentAngle(rng, rand(rng, 0, Math.PI * 0.5), accuracy),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
         color: palette.c5,
         phase,
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Offside: {
-      slotCounter += 1;
-      const offRank = art.offsides.filter((mark) => mark.side === side).length;
-      const widthPx =
-        resolveSalienceMarkSizePx(
-          VISUAL_COMPONENT.Offside,
-          offRank,
-          layout,
-          rng,
-          side,
-          baseScale
-        ) * 1.05;
-      const heightPx =
-        resolveComponentSize(VISUAL_COMPONENT.Offside, layout, undefined, "y", side) *
-        baseScale *
-        (offRank >= (cfg.composition.salienceSizes[VISUAL_COMPONENT.Offside]?.firstFullSizeCount ?? 3)
-          ? Math.pow(
-              cfg.composition.salienceSizes[VISUAL_COMPONENT.Offside]?.sizeDecayRatio ?? 0.9,
-              offRank -
-                (cfg.composition.salienceSizes[VISUAL_COMPONENT.Offside]?.firstFullSizeCount ?? 3) +
-                1
-            )
-          : 1);
-      const [x, y] = placeMark(
-        layout,
-        side,
-        widthPx,
-        heightPx,
-        placement,
-        rng,
-        innerBias * 0.4,
-        slotCounter,
-        VISUAL_COMPONENT.Offside,
-        event.minute
-      );
       art.offsides.push({
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        width: normSize(widthPx, layout),
-        height: normSize(heightPx, layout),
-        color: getComponentColor(VISUAL_COMPONENT.Offside, palette, "c3", "event.offside"),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
+        color: getComponentColor(VISUAL_COMPONENT.Offside, palette, "c2", "event.offside"),
         phase,
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.YellowCard:
     case VISUAL_COMPONENT.RedCard: {
-      slotCounter += 1;
       const isYellow = event.eventType === "yellow_card";
-      const cardComponent = isYellow
-        ? VISUAL_COMPONENT.YellowCard
-        : VISUAL_COMPONENT.RedCard;
-      const cardRank = art.cards.filter((mark) => mark.side === side).length;
-      const cardPx = resolveSalienceMarkSizePx(
-        cardComponent,
-        cardRank,
-        layout,
-        rng,
-        side,
-        baseScale
-      );
-      const [x, y] = placeMark(
-        layout,
-        side,
-        cardPx,
-        cardPx,
-        placement,
-        rng,
-        innerBias * 0.32,
-        slotCounter,
-        cardComponent,
-        event.minute
-      );
       art.cards.push({
         id,
         side,
         minute: event.minute,
-        nx: normX(x, layout),
-        ny: normY(y, layout),
-        width: normSize(cardPx, layout),
-        height: normSize(cardPx, layout),
+        nx: 0,
+        ny: 0,
+        spawnScale: baseScale,
+        layoutScale: 1,
         kind: isYellow ? "yellow" : "red",
         phase,
       });
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
   }
@@ -641,6 +597,10 @@ export function removeCancelledGoalMark(
     if (options?.variant === "shootout" && mark.variant !== "shootout") continue;
     if (options?.variant === "regulation" && mark.variant === "shootout") continue;
     art.goals.splice(i, 1);
+    art.placement.settledMarkCount[side] = Math.max(
+      0,
+      art.placement.settledMarkCount[side] - 1
+    );
     return true;
   }
   return false;

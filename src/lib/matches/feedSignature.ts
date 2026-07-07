@@ -1,10 +1,14 @@
 import type { LiveFeedUpdate } from "@/data/mockLiveFeed";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 
-export function feedUpdateSignature(update: LiveFeedUpdate): string {
+export function feedUpdateSignature(
+  update: LiveFeedUpdate,
+  index?: number
+): string {
   if (update.type === "state_update") {
     return [
       "state",
+      index ?? -1,
       update.minute,
       update.home.possession,
       update.home.passAccuracy,
@@ -15,6 +19,7 @@ export function feedUpdateSignature(update: LiveFeedUpdate): string {
 
   return [
     "event",
+    index ?? -1,
     update.minute,
     update.team,
     update.eventType,

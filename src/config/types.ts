@@ -108,12 +108,6 @@ export interface ShotsConfig {
   squaresPerShot: number;
   /** Pattern tile size as fraction of shot square side (Figma ~4px on ~80px). */
   patternPixelRatio: number;
-  /** Design-px side length for the first N shots per team. */
-  baseSizePx: number;
-  /** Shots at full baseSizePx before exponential decay (per side, by minute order). */
-  firstFullSizeCount: number;
-  /** Multiply size by this for each shot after the first full-size batch. */
-  sizeDecayRatio: number;
 }
 
 export interface ShotsOnTargetConfig {
@@ -131,10 +125,12 @@ export interface GoalsConfig {
   accentWidthRatio: number;
   /** Jagged accent height as fraction of goal panel height. */
   accentHeightRatio: number;
-  /** Multiplier on Figma goal token size at draw time. */
-  displayScale: number;
   /** Non-goal marks cannot exceed first goal max dimension × this ratio. */
   markCapRatio: number;
+  /** Max goal height as fraction of team zone height. */
+  maxZoneHeightRatio: number;
+  /** Max goal width as fraction of team zone width. */
+  maxZoneWidthRatio: number;
   /** Penalty shootout goal panel background. */
   shootoutBg: string;
   /** Penalty shootout goal jagged pattern. */
@@ -241,13 +237,21 @@ export interface EventPlacementProfile {
   overlapBoost: number;
 }
 
-/** Salience sizing — rank-based decay or Figma token fallback. */
-export interface SalienceSizeRule {
-  baseSizePx?: number;
-  firstFullSizeCount?: number;
-  sizeDecayRatio?: number;
-  /** When true, use resolveComponentSize instead of baseSizePx. */
-  useComponentTokens?: boolean;
+/** Rank-based size decay — see markSizes.config.ts. */
+export interface MarkRankDecayRule {
+  firstFullSizeCount: number;
+  sizeDecayRatio: number;
+  /** Goals use steps × this exponent (default 2). */
+  goalDecayExponent?: number;
+  /** Never shrink below this fraction of full size (keeps late marks visible). */
+  minSizeMultiplier?: number;
+}
+
+/** Per-component mark size multipliers and rank decay — single tuning surface. */
+export interface MarkSizesConfig {
+  shotDesignBasePx: number;
+  markSizeScale: Partial<Record<string, number>>;
+  rankDecay: Partial<Record<string, MarkRankDecayRule>>;
 }
 
 export interface CompositionConfig {
@@ -288,8 +292,6 @@ export interface CompositionConfig {
   usePoissonCandidates: boolean;
   /** Visual-component keyed placement profiles. */
   eventPlacementProfiles: Record<string, EventPlacementProfile>;
-  /** Visual-component keyed salience sizing rules. */
-  salienceSizes: Record<string, SalienceSizeRule>;
 }
 
 export type MatchEventTypeKey =
@@ -352,6 +354,22 @@ export interface OffsidesConfig {
   segmentRotationStep: number;
 }
 
+/** Pattern layout for discrete event marks (chronological mosaic per team zone). */
+export interface EventMarksConfig {
+  foulBackground: string;
+  offsideBackground: string;
+  desaturateMix: number;
+  artworkEdgePaddingRatio: number;
+  centerEdgePaddingRatio: number;
+  spiralSpreadRatio: number;
+  zoneSpreadInset: number;
+  crowdedScaleMin: number;
+  crowdedScaleMax: number;
+  minMarkPx: number;
+  temporalFlowStrength: number;
+  patternComponents: readonly string[];
+}
+
 /** Root configuration object for the generative poster system. */
 export interface VisualizerConfig {
   design: DesignConfig;
@@ -371,8 +389,10 @@ export interface VisualizerConfig {
   texture: TextureConfig;
   randomness: RandomnessConfig;
   composition: CompositionConfig;
+  markSizes: MarkSizesConfig;
   energy: EnergyConfig;
   replay: ReplayConfig;
   corners: CornersConfig;
   offsides: OffsidesConfig;
+  eventMarks: EventMarksConfig;
 }

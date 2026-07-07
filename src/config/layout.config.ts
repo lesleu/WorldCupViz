@@ -1,7 +1,7 @@
 import type { LayoutConfig } from "./types";
 
 export const layoutConfig: LayoutConfig = {
-  posterPadding: 32,
+  posterPadding: 16,
   headerHeight: 52,
   artworkTopGap: 0,
   artworkBottomGap: 0,
