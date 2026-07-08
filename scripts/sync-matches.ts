@@ -274,12 +274,14 @@ async function syncFeedForEntry(entry: MatchCatalogEntry): Promise<boolean> {
     return false;
   }
 
+  const freshEntry = (await buildCatalogEntryFromFixture(fixtureId)) ?? entry;
+
   const { persistStaticMatchFeed } = await import("../src/lib/matches/staticFeedWriter");
   await persistStaticMatchFeed(entry.id, built.result, {
-    status: entry.status,
+    status: freshEntry.status,
     hasReplayFeed: true,
-    finalMinute: entry.finalMinute,
-    matchData: entry.matchData,
+    finalMinute: freshEntry.finalMinute ?? entry.finalMinute,
+    matchData: freshEntry.matchData,
   });
   console.log(`  wrote feed ${entry.id} (${built.result.feed.length} updates)`);
   return true;
