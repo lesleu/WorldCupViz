@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-07T13:11:36.335Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T02:48:57.800Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5463,7 +5463,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1576804,
     "date": "July 7, 2026",
@@ -5475,7 +5475,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Egypt",
     "homeTeamCode": "ARG",
     "awayTeamCode": "EGY",
-    "hasReplayFeed": false,
+    "finalMinute": 90,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Argentina",
       "awayTeam": "Egypt",
@@ -5492,7 +5493,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 3,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5506,7 +5507,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 2,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5520,7 +5521,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "round_of_16",
     "stageLabel": "Round of 16",
-    "status": "scheduled",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1576805,
     "date": "July 7, 2026",
@@ -5532,7 +5533,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Colombia",
     "homeTeamCode": "SUI",
     "awayTeamCode": "COL",
-    "hasReplayFeed": false,
+    "finalMinute": 130,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Switzerland",
       "awayTeam": "Colombia",
@@ -5712,6 +5714,61 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "stage": "QUARTERFINALS",
       "date": "July 11, 2026",
       "venue": "Hard Rock Stadium",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1582681",
+    "providerFixtureId": 1582681,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "quarterfinals",
+    "stageLabel": "Quarterfinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1582681,
+    "date": "July 11, 2026",
+    "dateSort": "2026-07-11",
+    "kickoffAt": "2026-07-12T01:00:00+00:00",
+    "kickoffTime": "9:00 PM ET",
+    "homeTeam": "Argentina",
+    "awayTeam": "Switzerland",
+    "homeTeamCode": "ARG",
+    "awayTeamCode": "SUI",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Argentina",
+      "awayTeam": "Switzerland",
+      "homeTeamCode": "ARG",
+      "awayTeamCode": "SUI",
+      "stage": "QUARTERFINALS",
+      "date": "July 11, 2026",
       "home": {
         "possession": 50,
         "shots": 0,

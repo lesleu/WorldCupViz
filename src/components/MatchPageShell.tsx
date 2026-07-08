@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AppMode } from "@/components/MatchVisualizer";
 import LiveBadge from "@/components/LiveBadge";
@@ -23,6 +24,7 @@ import {
 import { fetchMatchFeedFromApi, fetchMatchFromApi } from "@/lib/matches/clientApi";
 import { mergeMatchDataWithFeedStats } from "@/lib/matches/feedAdapter";
 import { feedBundleSignature } from "@/lib/matches/feedSignature";
+import { markHomeReturningFromMatch } from "@/lib/homeScrollState";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
@@ -67,6 +69,7 @@ interface MatchPageShellProps {
 }
 
 export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
@@ -83,6 +86,10 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
   const replayActionsRef = useRef<ReplayActions>(NOOP_REPLAY_ACTIONS);
   const prevStatusRef = useRef<MatchStatus>(entry.status);
   const isMobileLayout = useMobileLayout();
+
+  useEffect(() => {
+    router.prefetch("/");
+  }, [router]);
 
   const handleControls = useCallback((bundle: ReplayControlBundle) => {
     replayActionsRef.current = {
@@ -201,6 +208,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       >
         <Link
           href="/"
+          onClick={markHomeReturningFromMatch}
           className="inline-flex rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
           style={{
             backgroundColor: VISUALIZER_CONFIG.colors.background,
@@ -283,6 +291,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
           <Link
             href="/"
+            onClick={markHomeReturningFromMatch}
             className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
             style={{
               backgroundColor: VISUALIZER_CONFIG.colors.background,

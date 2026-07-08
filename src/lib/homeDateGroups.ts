@@ -65,7 +65,7 @@ export function groupMatchesByDate(
     else byDate.set(key, [entry]);
   }
 
-  return [...byDate.entries()]
+  const groups = [...byDate.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([dateSort, dayMatches]) => ({
       dateSort,
@@ -75,6 +75,23 @@ export function groupMatchesByDate(
       isFuture: dayDiff(todayKey, dateSort) > 0,
       matches: sortDayMatches(dayMatches),
     }));
+
+  if (!groups.some((group) => group.isToday)) {
+    const todayGroup: DateMatchGroup = {
+      dateSort: todayKey,
+      label: "Today",
+      stageLabel: "",
+      isToday: true,
+      isFuture: false,
+      matches: [],
+    };
+
+    const insertAt = groups.findIndex((group) => group.dateSort > todayKey);
+    if (insertAt === -1) groups.push(todayGroup);
+    else groups.splice(insertAt, 0, todayGroup);
+  }
+
+  return groups;
 }
 
 export function pickScrollTargetGroup(

@@ -46,9 +46,16 @@ export default function KickoffCoverCss({
     render();
     void waitForKickoffCanvasFont().then(render);
 
-    const observer = new ResizeObserver(() => render());
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(render);
+    });
     observer.observe(container);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, [homeTeamCode, awayTeamCode]);
 
   return (

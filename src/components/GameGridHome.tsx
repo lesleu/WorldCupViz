@@ -15,16 +15,23 @@ import {
   localDateKey,
   pickScrollTargetGroup,
 } from "@/lib/homeDateGroups";
+import { writeHomeMatchesCache } from "@/lib/homeMatchesCache";
+import type { HomeScrollInitMode } from "@/lib/homeScrollState";
 
 interface GameGridHomeProps {
   initialMatches: MatchCatalogEntry[];
+  scrollMode: HomeScrollInitMode;
 }
 
-export default function GameGridHome({ initialMatches }: GameGridHomeProps) {
+export default function GameGridHome({ initialMatches, scrollMode }: GameGridHomeProps) {
   const [matches, setMatches] = useState(initialMatches);
   const todayKey = localDateKey();
   const dateGroups = groupMatchesByDate(matches, todayKey);
   const scrollTarget = pickScrollTargetGroup(dateGroups, todayKey);
+
+  useEffect(() => {
+    writeHomeMatchesCache(matches);
+  }, [matches]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +66,10 @@ export default function GameGridHome({ initialMatches }: GameGridHomeProps) {
   }, []);
 
   return (
-    <HomeMatchBrowser scrollTargetDateSort={scrollTarget?.dateSort}>
+    <HomeMatchBrowser
+      scrollMode={scrollMode}
+      scrollTargetDateSort={scrollTarget?.dateSort}
+    >
       {dateGroups.length === 0 ? (
         <p className="px-6 py-16 font-mono text-xs uppercase tracking-widest text-[#A39E96]">
           No matches to display.

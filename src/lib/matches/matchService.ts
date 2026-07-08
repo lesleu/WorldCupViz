@@ -2,6 +2,7 @@ import {
   TBD_PLACEHOLDER_CATALOG,
   getMatchById as getDemoMatchById,
   type MatchCatalogEntry,
+  type MatchStatus,
   type TournamentStage,
 } from "@/data/matchCatalog";
 import {
@@ -76,6 +77,17 @@ async function supplementCatalogFromApi(
 ): Promise<MatchCatalogEntry[]> {
   // Schedule status is updated by cron into the Redis overlay — avoid API on every page load.
   return entries;
+}
+
+async function resolveCatalogStatus(id: string): Promise<MatchStatus | undefined> {
+  const base = getStaticMatchById(id);
+  if (base) {
+    const merged = await getMergedMatchById(base);
+    return merged?.status ?? base.status;
+  }
+
+  const fromOverlay = await getOverlayDiscoveredMatchById(id);
+  return fromOverlay?.status;
 }
 
 async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null> {
@@ -178,7 +190,7 @@ export async function getMatch(id: string): Promise<MatchCatalogEntry | null> {
 async function enrichMatchEntryWithFeedStats(
   entry: MatchCatalogEntry
 ): Promise<MatchCatalogEntry> {
-  const feed = await resolveMatchFeedBundle(entry.id);
+  const feed = await resolveMatchFeedBundle(entry.id, undefined, entry.status);
   if (!feed || !feedHasReplayContent(feed.feed)) {
     return entry;
   }
@@ -249,7 +261,8 @@ function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
 /** Resolve the best feed for canvas replay (static → runtime → live API). */
 async function resolveMatchFeedBundle(
   id: string,
-  sinceMinute?: number
+  sinceMinute?: number,
+  catalogStatus?: MatchStatus
 ): Promise<MatchFeedResponse | null> {
   if (isDemoMatchId(id)) {
     const bundle = getDemoFeedForMatch(id);
@@ -265,13 +278,21 @@ async function resolveMatchFeedBundle(
     return staticFeed;
   }
 
+  if (catalogStatus === "completed") {
+    return staticFeed;
+  }
+
+  if (catalogStatus !== "live") {
+    return staticFeed;
+  }
+
   const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
   if (runtimeFeed && runtimeFeedHasContent(runtimeFeed)) {
     return runtimeFeed;
   }
 
   const fixtureId = parseFixtureId(id);
-  if (fixtureId && getMatchApiConfig().enabled) {
+  if (fixtureId && getMatchApiConfig().enabled && catalogStatus === "live") {
     const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
     if (liveFeed) return liveFeed;
   }
@@ -319,7 +340,8 @@ export async function getMatchFeed(
     };
   }
 
-  const resolved = await resolveMatchFeedBundle(id, sinceMinute);
+  const catalogStatus = await resolveCatalogStatus(id);
+  const resolved = await resolveMatchFeedBundle(id, sinceMinute, catalogStatus);
   if (resolved) return resolved;
 
   return emptyFeedBundle();
