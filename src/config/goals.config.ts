@@ -12,6 +12,6 @@ export const goalsConfig: GoalsConfig = {
   maxZoneHeightRatio: 0.3,
   /** Max goal width as fraction of team zone width. */
   maxZoneWidthRatio: 0.34,
-  shootoutBg: "#00E050",
-  shootoutPattern: "#C8F542",
+  shootoutBg: "#66DD64",
+  shootoutPattern: "#D1F464",
 };

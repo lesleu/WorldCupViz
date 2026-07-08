@@ -1,10 +1,6 @@
-"use client";
-
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
-import KickoffCoverPreview from "@/components/KickoffCoverPreview";
-import MatchArtworkThumbnail, {
-  shouldShowArtworkThumbnail,
-} from "@/components/MatchArtworkThumbnail";
+import KickoffCoverCss from "@/components/KickoffCoverCss";
+import LazyInView from "@/components/LazyInView";
 import TbdCoverPreview from "@/components/TbdCoverPreview";
 
 interface MatchCardCoverProps {
@@ -16,14 +12,12 @@ export default function MatchCardCover({ entry }: MatchCardCoverProps) {
     return <TbdCoverPreview />;
   }
 
-  if (shouldShowArtworkThumbnail(entry)) {
-    return <MatchArtworkThumbnail entry={entry} />;
-  }
-
   return (
-    <KickoffCoverPreview
-      homeTeamCode={entry.homeTeamCode}
-      awayTeamCode={entry.awayTeamCode}
-    />
+    <LazyInView>
+      <KickoffCoverCss
+        homeTeamCode={entry.homeTeamCode}
+        awayTeamCode={entry.awayTeamCode}
+      />
+    </LazyInView>
   );
 }

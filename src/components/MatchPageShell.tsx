@@ -63,15 +63,20 @@ function useMobileLayout(): boolean {
 
 interface MatchPageShellProps {
   entry: MatchCatalogEntry;
+  initialFeed: MatchFeedResponse;
 }
 
-export default function MatchPageShell({ entry }: MatchPageShellProps) {
+export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
   const [matchStatus, setMatchStatus] = useState<MatchStatus>(entry.status);
-  const [matchData, setMatchData] = useState<MatchData>(entry.matchData);
-  const [feedBundle, setFeedBundle] = useState<MatchFeedResponse | null>(null);
+  const [matchData, setMatchData] = useState<MatchData>(() =>
+    initialFeed.hasReplayFeed || initialFeed.feed.length > 1
+      ? mergeMatchDataWithFeedStats(entry.matchData, initialFeed.feed)
+      : entry.matchData
+  );
+  const [feedBundle, setFeedBundle] = useState<MatchFeedResponse>(initialFeed);
   const [hasReplayFeed, setHasReplayFeed] = useState(entry.hasReplayFeed);
   const [finalMinute, setFinalMinute] = useState(entry.finalMinute);
   const [replayUi, setReplayUi] = useState<ReplayUiState>(EMPTY_REPLAY_UI);
@@ -95,6 +100,8 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
   }, []);
 
   useEffect(() => {
+    if (matchStatus !== "live") return;
+
     let cancelled = false;
 
     const refresh = async () => {
@@ -126,7 +133,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
           setMatchData((prev) => mergeMatchDataWithFeedStats(prev, feed.feed));
         }
       } catch (error) {
-        console.warn("Match refresh failed:", error);
+        console.warn("Live match refresh failed:", error);
       }
     };
 
@@ -137,7 +144,7 @@ export default function MatchPageShell({ entry }: MatchPageShellProps) {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [entry.id]);
+  }, [entry.id, matchStatus]);
 
   useEffect(() => {
     if (mode !== "replay" || !feedBundle || feedBundle.feed.length <= 1) return;

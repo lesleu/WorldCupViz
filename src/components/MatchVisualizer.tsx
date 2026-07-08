@@ -14,6 +14,10 @@ import type { ReplayControlBundle, ReplayUiState } from "@/engine/replayControls
 import { EMPTY_REPLAY_UI, NOOP_REPLAY_ACTIONS } from "@/engine/replayControls";
 import { fetchMatchFeedFromApi } from "@/lib/matches/clientApi";
 import { getFeedForMatch } from "@/data/matchFeeds";
+import {
+  emptyClientFeedBundle,
+  loadStaticMatchFeed,
+} from "@/lib/matches/staticFeedClient";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 import { feedHasReplayContent } from "@/lib/matches/feedAdapter";
 import { VISUALIZER_CONFIG, cfg } from "@/config";
@@ -162,6 +166,14 @@ async function loadMatchFeed(
     return fetchMatchFeedFromApi(matchId, sinceMinute);
   }
 
+  const staticFeed = await loadStaticMatchFeed(matchId, sinceMinute);
+  if (
+    staticFeed &&
+    (staticFeed.hasReplayFeed || feedHasReplayContent(staticFeed.feed))
+  ) {
+    return staticFeed;
+  }
+
   const local = getFeedForMatch(matchId);
   if (local) {
     const feed =
@@ -175,7 +187,7 @@ async function loadMatchFeed(
     };
   }
 
-  return fetchMatchFeedFromApi(matchId, sinceMinute, { cache: "no-store" });
+  return emptyClientFeedBundle();
 }
 
 function resolveFinalMinute(

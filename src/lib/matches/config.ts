@@ -6,10 +6,15 @@ export interface MatchApiConfig {
   season: number;
 }
 
+/** True when an API-Football key is configured (cron + live pulls). */
+export function isMatchApiEnabled(): boolean {
+  return Boolean(process.env.MATCH_API_KEY?.trim());
+}
+
 export function getMatchApiConfig(): MatchApiConfig {
   const apiKey = process.env.MATCH_API_KEY?.trim() ?? "";
   return {
-    enabled: apiKey.length > 0,
+    enabled: isMatchApiEnabled(),
     apiKey,
     baseUrl: (
       process.env.MATCH_API_BASE_URL ?? "https://v3.football.api-sports.io"

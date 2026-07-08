@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import MatchPageShell from "@/components/MatchPageShell";
-import { getMatch } from "@/lib/matches/matchService";
+import { getMatch, getMatchFeed } from "@/lib/matches/matchService";
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -8,11 +8,11 @@ interface MatchPageProps {
 
 export default async function MatchPage({ params }: MatchPageProps) {
   const { id } = await params;
-  const entry = await getMatch(id);
+  const [entry, initialFeed] = await Promise.all([getMatch(id), getMatchFeed(id)]);
 
   if (!entry) {
     notFound();
   }
 
-  return <MatchPageShell entry={entry} />;
+  return <MatchPageShell entry={entry} initialFeed={initialFeed} />;
 }

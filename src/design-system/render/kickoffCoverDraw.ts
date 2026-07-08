@@ -79,3 +79,21 @@ export function drawKickoffCover(
   drawTeamCodes(homeCode, { left: 0, top: 0, width: midX, height });
   drawTeamCodes(awayCode, { left: midX, top: 0, width: midX, height });
 }
+
+/** Team codes only — pair with CSS gradients for lighter homepage cards. */
+export function drawKickoffCoverText(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  homeCode: string,
+  awayCode: string
+) {
+  const midX = width * 0.5;
+
+  const drawTeamCodes = (code: string, zone: StretchedTextBox) => {
+    drawTeamCodeStretchedText(ctx, zone, code, cfg.colors.text);
+  };
+
+  drawTeamCodes(homeCode, { left: 0, top: 0, width: midX, height });
+  drawTeamCodes(awayCode, { left: midX, top: 0, width: midX, height });
+}

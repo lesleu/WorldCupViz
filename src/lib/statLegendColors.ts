@@ -91,15 +91,12 @@ export function legendIconColorOverrides(
   return overrides;
 }
 
-/** Original neutral grey goal icon — used for PK Scored in legends. */
+/** PK shootout goal icon — matches canvas shootout asset colors. */
 export function pkScoredLegendIconColorOverrides(): Record<string, string> {
-  const rules = COMPONENT_COLOR_RULES[VISUAL_COMPONENT.Goal];
-  const overrides: Record<string, string> = {};
-  for (const [role, slot] of Object.entries(rules ?? {})) {
-    overrides[role] = legendColorForSlot(slot);
-  }
-  overrides.c4 = "#4A4A4A";
-  return overrides;
+  return {
+    c1: "#66DD64",
+    c4: "#D1F464",
+  };
 }
 
 /** Per-team stat sidebar icons — mirrors canvas mark coloring. */

@@ -12,7 +12,6 @@ import {
   fetchFixtureById,
   fetchFixtureEvents,
   fetchFixtureStatistics,
-  fetchLeagueFixtures,
 } from "@/lib/matches/apiFootballClient";
 import { buildFeedResponse } from "@/lib/matches/buildFeed";
 import {
@@ -20,10 +19,6 @@ import {
   getMatchApiConfig,
   scheduleRevalidateSeconds,
 } from "@/lib/matches/config";
-import {
-  fixturesToCatalogEntries,
-  mergeCatalogEntries,
-} from "@/lib/matches/fixtureCatalog";
 import {
   mapFixtureStatus,
   parseFixtureId,
@@ -34,11 +29,8 @@ import {
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
 import {
-  deleteLiveFeed,
   getPollMeta,
   getRuntimeFeed,
-  getScheduleOverlay,
-  setCompletedFeed,
 } from "@/lib/matches/runtimeStore";
 import {
   getDemoCatalog,
@@ -59,7 +51,6 @@ import {
   getStaticFeed,
 } from "@/lib/matches/feedLoader";
 import { enrichCatalogKickoff } from "@/lib/matches/enrichKickoff";
-import { persistStaticMatchFeed } from "@/lib/matches/staticFeedPersistence";
 import type { MatchFeedResponse, MatchListResponse } from "@/lib/matches/types";
 
 function isDemoMatchId(id: string): boolean {
@@ -83,22 +74,8 @@ function filterByStage(
 async function supplementCatalogFromApi(
   entries: MatchCatalogEntry[]
 ): Promise<MatchCatalogEntry[]> {
-  if (!getMatchApiConfig().enabled) return entries;
-
-  try {
-    const fixtures = await fetchLeagueFixtures(scheduleRevalidateSeconds());
-    const apiEntries = fixturesToCatalogEntries(fixtures);
-    const overlay = await getScheduleOverlay();
-
-    const merged = mergeCatalogEntries(entries, apiEntries).map((entry) =>
-      mergeEntryWithOverlay(entry, overlay[entry.id])
-    );
-
-    return merged;
-  } catch (error) {
-    console.warn("Failed to supplement match catalog from API:", error);
-    return entries;
-  }
+  // Schedule status is updated by cron into the Redis overlay — avoid API on every page load.
+  return entries;
 }
 
 async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null> {
@@ -261,15 +238,6 @@ async function loadLiveFeedFromApi(
   return bundle;
 }
 
-async function loadCompletedFeedFromApi(
-  fixtureId: number,
-  sinceMinute?: number
-): Promise<MatchFeedResponse | null> {
-  const bundle = await loadFixtureFeedFromApi(fixtureId, sinceMinute);
-  if (!bundle || bundle.status !== "completed") return null;
-  return bundle;
-}
-
 function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
   if (!feed) return false;
   if (feed.status === "live") {
@@ -278,52 +246,7 @@ function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
   return feedHasReplayContent(feed.feed);
 }
 
-async function cacheCompletedFeed(
-  matchId: string,
-  feed: MatchFeedResponse,
-  schedulePatch?: Parameters<typeof persistStaticMatchFeed>[2]
-): Promise<void> {
-  if (!feedHasReplayContent(feed.feed)) return;
-  await setCompletedFeed(matchId, feed);
-  await deleteLiveFeed(matchId);
-
-  let patch = schedulePatch;
-  if (!patch?.matchData) {
-    const fixtureId = parseFixtureId(matchId);
-    if (fixtureId && getMatchApiConfig().enabled) {
-      try {
-        const fixture = await fetchFixtureById(fixtureId, 0);
-        const overlay = fixture ? overlayEntryFromFixture(fixture) : null;
-        if (overlay?.matchData) {
-          patch = {
-            ...patch,
-            status: "completed",
-            hasReplayFeed: feed.hasReplayFeed,
-            finalMinute: feed.currentMinute ?? overlay.finalMinute,
-            matchData: overlay.matchData,
-            homeTeam: overlay.homeTeam,
-            awayTeam: overlay.awayTeam,
-            homeTeamCode: overlay.homeTeamCode,
-            awayTeamCode: overlay.awayTeamCode,
-            venue: overlay.venue,
-            date: overlay.date,
-            dateSort: overlay.dateSort,
-            kickoffAt: overlay.kickoffAt,
-            kickoffTime: overlay.kickoffTime,
-            stage: overlay.stage,
-            stageLabel: overlay.stageLabel,
-          };
-        }
-      } catch (error) {
-        console.warn(`Failed to build schedule patch for ${matchId}:`, error);
-      }
-    }
-  }
-
-  await persistStaticMatchFeed(matchId, feed, patch);
-}
-
-/** Resolve the best feed for canvas replay (runtime → API → static). */
+/** Resolve the best feed for canvas replay (static → runtime → live API). */
 async function resolveMatchFeedBundle(
   id: string,
   sinceMinute?: number
@@ -337,6 +260,11 @@ async function resolveMatchFeedBundle(
     };
   }
 
+  const staticFeed = await getStaticFeed(id, sinceMinute);
+  if (staticFeed && feedHasReplayContent(staticFeed.feed)) {
+    return staticFeed;
+  }
+
   const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
   if (runtimeFeed && runtimeFeedHasContent(runtimeFeed)) {
     return runtimeFeed;
@@ -346,28 +274,15 @@ async function resolveMatchFeedBundle(
   if (fixtureId && getMatchApiConfig().enabled) {
     const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
     if (liveFeed) return liveFeed;
-
-    const completedFeed = await loadCompletedFeedFromApi(fixtureId, sinceMinute);
-    if (completedFeed) {
-      if (sinceMinute == null) {
-        await cacheCompletedFeed(id, completedFeed);
-      }
-      return completedFeed;
-    }
   }
 
-  const staticFeed = await getStaticFeed(id, sinceMinute);
-  if (staticFeed && feedHasReplayContent(staticFeed.feed)) {
-    return staticFeed;
-  }
-
-  return null;
+  return staticFeed;
 }
 
 async function refreshEntryFromApi(
   entry: MatchCatalogEntry
 ): Promise<MatchCatalogEntry> {
-  if (!getMatchApiConfig().enabled) return entry;
+  if (!getMatchApiConfig().enabled || entry.status !== "live") return entry;
 
   const fixtureId = parseFixtureId(entry.id);
   if (!fixtureId) return entry;

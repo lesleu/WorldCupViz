@@ -3,7 +3,7 @@ import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/
 export interface DataLegendItem {
   label: string;
   component: VisualComponent;
-  /** Neutral grey goal styling for penalty shootout marks. */
+  /** PK shootout goal styling — green bg + yellow pattern. */
   legendStyle?: "pkScored";
 }
 

@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
+import { HOME_LIVE_POLL_MS } from "@/config/home.config";
 import { VISUALIZER_CONFIG } from "@/config";
 import HomeMatchBrowser from "@/components/home/HomeMatchBrowser";
 import DateMatchSection from "@/components/home/DateMatchSection";
-import { fetchMatchesFromApi } from "@/lib/matches/clientApi";
+import {
+  applyLiveStatusPatches,
+  fetchLiveStatusFromApi,
+} from "@/lib/homeLiveStatus";
 import {
   groupMatchesByDate,
   localDateKey,
   pickScrollTargetGroup,
 } from "@/lib/homeDateGroups";
-
-const HOME_MATCH_POLL_MS = 20_000;
 
 interface GameGridHomeProps {
   initialMatches: MatchCatalogEntry[];
@@ -26,20 +28,33 @@ export default function GameGridHome({ initialMatches }: GameGridHomeProps) {
 
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
 
-    const refreshMatches = async () => {
+    const poll = async () => {
+      if (document.hidden) return;
+
       try {
-        const { matches: nextMatches } = await fetchMatchesFromApi();
-        if (!cancelled) setMatches(nextMatches);
+        const result = await fetchLiveStatusFromApi();
+        if (cancelled || result.skipped || result.patches.length === 0) return;
+
+        setMatches((prev) => applyLiveStatusPatches(prev, result.patches));
       } catch (error) {
-        console.warn("Home match list refresh failed:", error);
+        console.warn("Homepage live status poll failed:", error);
       }
     };
 
-    const intervalId = window.setInterval(refreshMatches, HOME_MATCH_POLL_MS);
+    void poll();
+    timer = setInterval(() => void poll(), HOME_LIVE_POLL_MS);
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) void poll();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      if (timer) clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 

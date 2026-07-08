@@ -21,7 +21,11 @@ export default function DateMatchSection({
     <section
       id={id}
       className="space-y-6 px-6 py-10"
-      style={{ scrollMarginTop: "var(--home-header-height, 400px)" }}
+      style={{
+        scrollMarginTop: "var(--home-header-height, 400px)",
+        contentVisibility: "auto",
+        containIntrinsicSize: "auto 720px",
+      }}
     >
       <div
         className="border-b pb-3"

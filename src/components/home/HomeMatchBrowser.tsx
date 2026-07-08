@@ -24,6 +24,7 @@ import { homeTitleMetrics } from "@/lib/stretchedInterText";
 
 const SCROLL_DIRECTION_THRESHOLD = 2;
 const SCROLL_PERSIST_MS = 100;
+const SCROLL_RESTORE_MAX_FRAMES = 24;
 const DEFAULT_VIEWPORT_WIDTH = 1920;
 
 interface HomeMatchBrowserProps {
@@ -143,15 +144,30 @@ export default function HomeMatchBrowser({
     const scroller = scrollRef.current;
     if (!scroller || pendingRestoreRef.current === null) return;
 
+    let frame = 0;
+    let rafId = 0;
+
     const retryRestore = () => {
+      if (pendingRestoreRef.current === null || hasInitializedScroll.current) return;
+
       applyPendingRestore();
+
+      frame += 1;
+      if (pendingRestoreRef.current === null || frame >= SCROLL_RESTORE_MAX_FRAMES) {
+        if (pendingRestoreRef.current !== null) {
+          pendingRestoreRef.current = null;
+          hasInitializedScroll.current = true;
+          clearHomeRestorePending();
+        }
+        return;
+      }
+
+      rafId = requestAnimationFrame(retryRestore);
     };
 
-    const observer = new ResizeObserver(retryRestore);
-    observer.observe(scroller);
-    retryRestore();
+    rafId = requestAnimationFrame(retryRestore);
 
-    return () => observer.disconnect();
+    return () => cancelAnimationFrame(rafId);
   }, [applyPendingRestore, compactHeader, expandedHeaderHeight]);
 
   useEffect(() => {

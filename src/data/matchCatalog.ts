@@ -246,18 +246,6 @@ function buildTbdEntry(
 /** Placeholder slots for knockout stages not yet in the demo/API schedule. */
 export const TBD_PLACEHOLDER_CATALOG: MatchCatalogEntry[] = [
   buildTbdEntry({
-    id: "2026-r16-tbd-1",
-    stage: "round_of_16",
-    matchNumber: 73,
-    dateSort: "2026-07-05",
-  }),
-  buildTbdEntry({
-    id: "2026-r16-tbd-2",
-    stage: "round_of_16",
-    matchNumber: 74,
-    dateSort: "2026-07-06",
-  }),
-  buildTbdEntry({
     id: "2026-third-place-tbd",
     stage: "third_place",
     matchNumber: 103,
