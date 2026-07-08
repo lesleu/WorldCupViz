@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T12:14:45.347Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T15:07:12.292Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5757,6 +5757,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-11",
     "kickoffAt": "2026-07-12T01:00:00+00:00",
     "kickoffTime": "9:00 PM ET",
+    "venue": "Arrowhead Stadium",
     "homeTeam": "Argentina",
     "awayTeam": "Switzerland",
     "homeTeamCode": "ARG",
@@ -5769,6 +5770,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "SUI",
       "stage": "QUARTERFINALS",
       "date": "July 11, 2026",
+      "venue": "Arrowhead Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
