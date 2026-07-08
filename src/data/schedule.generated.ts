@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T02:48:57.800Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T05:08:31.441Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5475,7 +5475,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Egypt",
     "homeTeamCode": "ARG",
     "awayTeamCode": "EGY",
-    "finalMinute": 90,
+    "finalMinute": 98,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Argentina",

@@ -278,17 +278,13 @@ async function resolveMatchFeedBundle(
     return staticFeed;
   }
 
-  if (catalogStatus === "completed") {
-    return staticFeed;
-  }
-
-  if (catalogStatus !== "live") {
-    return staticFeed;
-  }
-
   const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
   if (runtimeFeed && runtimeFeedHasContent(runtimeFeed)) {
     return runtimeFeed;
+  }
+
+  if (catalogStatus === "completed" || catalogStatus !== "live") {
+    return staticFeed;
   }
 
   const fixtureId = parseFixtureId(id);

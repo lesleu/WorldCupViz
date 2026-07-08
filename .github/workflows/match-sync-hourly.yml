@@ -1,0 +1,42 @@
+name: Match data hourly sync
+
+on:
+  schedule:
+    # Every hour on the hour — catches completed games soon after final whistle
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync-matches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync schedule and completed feeds from API-Football
+        env:
+          MATCH_API_KEY: ${{ secrets.MATCH_API_KEY }}
+        run: npm run sync:matches
+
+      - name: Commit updated static match data
+        env:
+          COMMIT_SUBJECT: chore(sync) hourly World Cup match schedule and feeds
+          COMMIT_BODY: Automated hourly pull from API-Football for committed static replay data.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/schedule.generated.ts src/data/feeds.index.generated.ts src/data/feeds/
+          if git diff --staged --quiet; then
+            echo "No match data changes to commit."
+            exit 0
+          fi
+          git commit -m "$COMMIT_SUBJECT" -m "$COMMIT_BODY"
+          git push

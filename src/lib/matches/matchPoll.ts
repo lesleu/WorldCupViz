@@ -14,7 +14,6 @@ import {
   deleteLiveFeed,
   getPollStatuses,
   getScheduleOverlay,
-  hasCompletedFeed,
   patchPollMeta,
   setCompletedFeed,
   setLiveFeed,
@@ -37,8 +36,7 @@ export interface PollTickResult {
 }
 
 async function feedAlreadyPersisted(matchId: string): Promise<boolean> {
-  if (hasStaticFeed(matchId)) return true;
-  return hasCompletedFeed(matchId);
+  return hasStaticFeed(matchId);
 }
 
 async function persistCompletedFeed(
