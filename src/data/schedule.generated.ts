@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T05:08:31.441Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-08T08:05:34.487Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5544,32 +5544,32 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 7, 2026",
       "venue": "BC Place",
       "home": {
-        "possession": 49,
-        "shots": 2,
-        "shotsOnTarget": 2,
-        "passAccuracy": 88,
-        "fouls": 6,
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
-        "corners": 1,
-        "offsides": 1,
-        "penaltyShootoutScored": 4,
-        "penaltyShootoutMissed": 1
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 51,
-        "shots": 5,
-        "shotsOnTarget": 1,
-        "passAccuracy": 85,
-        "fouls": 6,
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
         "goals": 0,
-        "corners": 4,
-        "offsides": 1,
-        "penaltyShootoutScored": 3,
-        "penaltyShootoutMissed": 2
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
       }
     }
   },
