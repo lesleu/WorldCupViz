@@ -1,9 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { AppMode } from "@/components/MatchVisualizer";
+import MatchVisualizer, { type AppMode } from "@/components/MatchVisualizer";
 import LiveBadge from "@/components/LiveBadge";
 import StatsPanel, {
   MatchModeControls,
@@ -27,30 +27,17 @@ import { markHomeReturningFromMatch } from "@/lib/homeScrollState";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
-const MatchVisualizer = dynamic(() => import("@/components/MatchVisualizer"), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
-      style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
-    >
-      <p
-        className="font-mono text-xs uppercase tracking-widest"
-        style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
-      >
-        Loading visualizer…
-      </p>
-    </div>
-  ),
-});
-
 const MATCH_POLL_MS = 20_000;
 const MOBILE_MAX_WIDTH_PX = 614;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
 
-/** Mobile-first — avoids blank mobile first paint and mounting desktop p5 on phones. */
+function readMobileLayout(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`).matches;
+}
+
 function useMobileLayout(): boolean {
-  const [mobile, setMobile] = useState(true);
+  const [mobile, setMobile] = useState(readMobileLayout);
 
   useLayoutEffect(() => {
     const query = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`);
@@ -69,6 +56,7 @@ interface MatchPageShellProps {
 }
 
 export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
@@ -79,7 +67,9 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       : entry.matchData
   );
   const [feedBundle, setFeedBundle] = useState<MatchFeedResponse>(initialFeed);
-  const [hasReplayFeed, setHasReplayFeed] = useState(entry.hasReplayFeed);
+  const [hasReplayFeed, setHasReplayFeed] = useState(
+    entry.hasReplayFeed || initialFeed.hasReplayFeed || initialFeed.feed.length > 1
+  );
   const [finalMinute, setFinalMinute] = useState(entry.finalMinute);
   const [replayUi, setReplayUi] = useState<ReplayUiState>(EMPTY_REPLAY_UI);
   const replayActionsRef = useRef<ReplayActions>(NOOP_REPLAY_ACTIONS);
@@ -88,7 +78,8 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
 
   const handleBackHome = useCallback(() => {
     markHomeReturningFromMatch();
-  }, []);
+    router.push("/");
+  }, [router]);
 
   const handleControls = useCallback((bundle: ReplayControlBundle) => {
     replayActionsRef.current = {
@@ -205,17 +196,18 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
           borderColor: panelBorder,
         }}
       >
-        <Link
-          href="/"
+        <button
+          type="button"
           onClick={handleBackHome}
           className="inline-flex rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
           style={{
             backgroundColor: VISUALIZER_CONFIG.colors.background,
             color: VISUALIZER_CONFIG.colors.text,
+            touchAction: "manipulation",
           }}
         >
           ← Back
-        </Link>
+        </button>
 
         <MatchTeamHeader
           match={matchData}
@@ -225,7 +217,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         />
       </header>
 
-      {/* Mobile: mode controls + interleaved team art + stats */}
+      {/* Mobile: one full poster canvas + stacked stats (avoids dual p5 on phones) */}
       <div className="flex shrink-0 flex-col min-[615px]:hidden">
         <MatchModeControls
           match={matchData}
@@ -238,14 +230,13 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         />
 
         <div
-          className="aspect-[4/5] w-full border-b"
+          className="aspect-[4/5] min-h-[320px] w-full border-b"
           style={{ borderColor: panelBorder }}
         >
           <MatchVisualizer
             {...visualizerProps}
-            teamSide="home"
             onControls={handleControls}
-            className="h-full"
+            className="h-full min-h-[320px]"
           />
         </div>
 
@@ -256,18 +247,6 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
             accent={homePalette.c1}
             teamPalette={homePalette}
             showPenaltyShootout={showPenaltyShootout}
-          />
-        </div>
-
-        <div
-          className="aspect-[4/5] w-full border-b"
-          style={{ borderColor: panelBorder }}
-        >
-          <MatchVisualizer
-            {...visualizerProps}
-            teamSide="away"
-            replayUi={replayUi}
-            className="h-full"
           />
         </div>
 
@@ -282,29 +261,30 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         </div>
       </div>
 
-      {/* Desktop: full poster + sidebar stats — skip on mobile to avoid extra p5 instances */}
+      {/* Desktop: full poster + sidebar stats */}
       {!isMobileLayout ? (
-      <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
-        <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
-          <Link
-            href="/"
-            onClick={handleBackHome}
-            className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
-            style={{
-              backgroundColor: VISUALIZER_CONFIG.colors.background,
-              color: VISUALIZER_CONFIG.colors.text,
-            }}
-          >
-            ← Back
-          </Link>
-          {matchStatus === "live" && <LiveBadge />}
-        </div>
+        <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
+          <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBackHome}
+              className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
+              style={{
+                backgroundColor: VISUALIZER_CONFIG.colors.background,
+                color: VISUALIZER_CONFIG.colors.text,
+                touchAction: "manipulation",
+              }}
+            >
+              ← Back
+            </button>
+            {matchStatus === "live" && <LiveBadge />}
+          </div>
 
-        <MatchVisualizer
-          {...visualizerProps}
-          onControls={handleControls}
-        />
-      </div>
+          <MatchVisualizer
+            {...visualizerProps}
+            onControls={handleControls}
+          />
+        </div>
       ) : null}
 
       <StatsPanel

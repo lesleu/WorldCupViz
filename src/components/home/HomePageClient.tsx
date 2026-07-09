@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useLayoutEffect, useState } from "react";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import GameGridHome from "@/components/GameGridHome";
@@ -28,18 +29,34 @@ function resolveInitialMatches(
 
 /** Homepage client shell — match list is server-rendered from static schedule JSON. */
 export default function HomePageClient({ initialMatches }: HomePageClientProps) {
-  const [scrollMode] = useState<HomeScrollInitMode>(() => resolveHomeScrollInitMode());
-  const [matches] = useState<MatchCatalogEntry[]>(() =>
+  const pathname = usePathname();
+  const [scrollMode, setScrollMode] = useState<HomeScrollInitMode>(() =>
+    resolveHomeScrollInitMode()
+  );
+  const [matches, setMatches] = useState<MatchCatalogEntry[]>(() =>
     resolveInitialMatches(scrollMode, initialMatches)
   );
 
   useLayoutEffect(() => {
-    if (scrollMode === "today") {
+    if (pathname !== "/") return;
+
+    const mode = resolveHomeScrollInitMode();
+    setScrollMode(mode);
+    setMatches(resolveInitialMatches(mode, initialMatches));
+
+    if (mode === "today") {
       clearHomeNavigationFlags();
       clearHomeScrollState();
+    } else {
+      writeHomeMatchesCache(resolveInitialMatches(mode, initialMatches));
     }
-    writeHomeMatchesCache(matches);
-  }, [matches, scrollMode]);
+  }, [pathname, initialMatches]);
 
-  return <GameGridHome initialMatches={matches} scrollMode={scrollMode} />;
+  return (
+    <GameGridHome
+      key={`${scrollMode}-${pathname}`}
+      initialMatches={matches}
+      scrollMode={scrollMode}
+    />
+  );
 }
