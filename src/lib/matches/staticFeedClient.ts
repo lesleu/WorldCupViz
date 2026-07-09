@@ -31,8 +31,7 @@ export async function loadStaticMatchFeed(
       ...data,
       feed: data.feed.filter((update) => update.minute > sinceMinute),
     };
-  } catch (error) {
-    console.warn(`Failed to load static feed ${matchId}:`, error);
+  } catch {
     return null;
   }
 }

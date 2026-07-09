@@ -1,13 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MatchVisualizer, { type AppMode } from "@/components/MatchVisualizer";
 import LiveBadge from "@/components/LiveBadge";
 import StatsPanel, {
@@ -36,59 +30,6 @@ import { VISUALIZER_CONFIG } from "@/config";
 const MATCH_POLL_MS = 20_000;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
 
-function CanvasPlaceholder() {
-  return (
-    <div
-      className="flex h-full min-h-[240px] w-full items-center justify-center"
-      style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
-    >
-      <p
-        className="font-mono text-xs uppercase tracking-widest"
-        style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
-      >
-        Loading artwork…
-      </p>
-    </div>
-  );
-}
-
-/** Mount heavy canvas children only when scrolled near the viewport. */
-function LazyWhenVisible({
-  children,
-  className,
-  style,
-}: {
-  children: ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setVisible(true);
-        observer.disconnect();
-      },
-      { rootMargin: "160px 0px" }
-    );
-
-    observer.observe(host);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={hostRef} className={className} style={style}>
-      {visible ? children : <CanvasPlaceholder />}
-    </div>
-  );
-}
-
 interface MatchPageShellProps {
   entry: MatchCatalogEntry;
   initialFeed: MatchFeedResponse;
@@ -114,6 +55,8 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
   const [replayUi, setReplayUi] = useState<ReplayUiState>(EMPTY_REPLAY_UI);
   const replayActionsRef = useRef<ReplayActions>(NOOP_REPLAY_ACTIONS);
   const prevStatusRef = useRef<MatchStatus>(entry.status);
+  /** Stable revision from SSR feed — completed matches should not reboot canvas on poll. */
+  const initialFeedRevisionRef = useRef(feedBundleSignature(initialFeed));
 
   const handleBackHome = useCallback(() => {
     markHomeReturningFromMatch();
@@ -208,6 +151,8 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
     matchData.away.penaltyShootoutScored > 0 ||
     matchData.away.penaltyShootoutMissed > 0;
 
+  const feedRevision = initialFeedRevisionRef.current;
+
   const visualizerProps = {
     matchId: entry.id,
     match: matchData,
@@ -216,24 +161,21 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
     hasReplayFeed,
     finalMinute,
     feedHint: feedBundle,
-    feedRevision: feedBundleSignature(feedBundle),
+    feedRevision,
+    skipLivePoll: true,
   };
-
-  const canvasLayoutKey = isMobileLayout ? "mobile" : "desktop";
-  const mountMobileCanvas = isMobileLayout;
-  const mountDesktopCanvas = !isMobileLayout;
 
   return (
     <main
-      className="flex min-h-screen w-screen flex-col overflow-y-auto max-[614px]:overflow-y-auto min-[615px]:h-screen min-[615px]:flex-row min-[615px]:overflow-hidden"
+      className="flex min-h-screen w-full flex-col overflow-y-auto min-[615px]:h-screen min-[615px]:flex-row min-[615px]:overflow-hidden"
       style={{
         backgroundColor: VISUALIZER_CONFIG.colors.background,
         color: VISUALIZER_CONFIG.colors.text,
       }}
     >
-      {/* Mobile chrome — visibility via CSS only */}
+      {/* Mobile chrome */}
       <header
-        className="sticky top-0 z-30 shrink-0 border-b px-4 py-3 max-[614px]:block min-[615px]:hidden"
+        className="sticky top-0 z-30 shrink-0 border-b px-4 py-3 min-[615px]:hidden"
         style={{
           backgroundColor: VISUALIZER_CONFIG.colors.background,
           borderColor: panelBorder,
@@ -260,8 +202,8 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         />
       </header>
 
-      {/* Mobile body — CSS shows this stack below 615px */}
-      <div className="flex shrink-0 flex-col max-[614px]:flex min-[615px]:hidden">
+      {/* Mobile: one full poster canvas + stacked stats (single p5 instance) */}
+      <div className="flex shrink-0 flex-col min-[615px]:hidden">
         <MatchModeControls
           match={matchData}
           mode={mode}
@@ -273,20 +215,16 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         />
 
         <div
-          className="aspect-[4/5] w-full border-b"
+          className="relative aspect-[4/5] min-h-[320px] w-full border-b"
           style={{ borderColor: panelBorder }}
         >
-          {mountMobileCanvas ? (
+          <div className="absolute inset-0">
             <MatchVisualizer
-              key={`${canvasLayoutKey}-home-${entry.id}`}
               {...visualizerProps}
-              teamSide="home"
               onControls={handleControls}
-              className="h-full"
+              className="h-full min-h-[320px]"
             />
-          ) : (
-            <CanvasPlaceholder />
-          )}
+          </div>
         </div>
 
         <div className="border-b p-4" style={{ borderColor: panelBorder }}>
@@ -299,23 +237,6 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
           />
         </div>
 
-        <LazyWhenVisible
-          className="aspect-[4/5] w-full border-b"
-          style={{ borderColor: panelBorder }}
-        >
-          {mountMobileCanvas ? (
-            <MatchVisualizer
-              key={`${canvasLayoutKey}-away-${entry.id}`}
-              {...visualizerProps}
-              teamSide="away"
-              replayUi={replayUi}
-              className="h-full"
-            />
-          ) : (
-            <CanvasPlaceholder />
-          )}
-        </LazyWhenVisible>
-
         <div className="p-4">
           <TeamStatsBlock
             teamName={matchData.awayTeam}
@@ -327,34 +248,28 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         </div>
       </div>
 
-      {/* Desktop body — CSS shows at 615px+ */}
-      <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
-        <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleBackHome}
-            className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
-            style={{
-              backgroundColor: VISUALIZER_CONFIG.colors.background,
-              color: VISUALIZER_CONFIG.colors.text,
-              touchAction: "manipulation",
-            }}
-          >
-            ← Back
-          </button>
-          {matchStatus === "live" && <LiveBadge />}
-        </div>
+      {/* Desktop: full poster + sidebar — skip on mobile to avoid dual p5 */}
+      {!isMobileLayout ? (
+        <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
+          <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleBackHome}
+              className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
+              style={{
+                backgroundColor: VISUALIZER_CONFIG.colors.background,
+                color: VISUALIZER_CONFIG.colors.text,
+                touchAction: "manipulation",
+              }}
+            >
+              ← Back
+            </button>
+            {matchStatus === "live" && <LiveBadge />}
+          </div>
 
-        {mountDesktopCanvas ? (
-          <MatchVisualizer
-            key={`${canvasLayoutKey}-${entry.id}`}
-            {...visualizerProps}
-            onControls={handleControls}
-          />
-        ) : (
-          <CanvasPlaceholder />
-        )}
-      </div>
+          <MatchVisualizer {...visualizerProps} onControls={handleControls} />
+        </div>
+      ) : null}
 
       <StatsPanel
         match={matchData}
@@ -364,7 +279,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         replayUi={replayUi}
         replayActions={replayActionsRef}
         onModeChange={setMode}
-        className="hidden min-[615px]:flex"
+        className={isMobileLayout ? "hidden" : "hidden min-[615px]:flex"}
       />
     </main>
   );

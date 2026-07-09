@@ -41,6 +41,8 @@ interface MatchVisualizerProps {
   feedHint?: MatchFeedResponse | null;
   /** Revision token from feedBundleSignature — avoids rebooting on identical polls. */
   feedRevision?: string;
+  /** Shell already polls live feeds — skip duplicate polling in the canvas. */
+  skipLivePoll?: boolean;
   className?: string;
 }
 
@@ -146,20 +148,22 @@ async function loadMatchFeed(
   sinceMinute?: number,
   feedHint?: MatchFeedResponse | null
 ): Promise<MatchFeedResponse> {
-  if (
-    feedHint &&
-    feedHint.feed.length > 0 &&
-    (feedHint.hasReplayFeed || feedHasReplayContent(feedHint.feed))
-  ) {
-    const feed =
-      sinceMinute != null
-        ? feedHint.feed.filter((update) => update.minute > sinceMinute)
-        : feedHint.feed;
-    return {
-      ...feedHint,
-      feed,
-      hasReplayFeed: feedHint.hasReplayFeed || feedHasReplayContent(feedHint.feed),
-    };
+  if (feedHint && feedHint.feed.length > 0) {
+    const hasContent =
+      feedHint.hasReplayFeed ||
+      feedHasReplayContent(feedHint.feed) ||
+      feedHint.feed.length > 1;
+    if (hasContent || matchStatus !== "live") {
+      const feed =
+        sinceMinute != null
+          ? feedHint.feed.filter((update) => update.minute > sinceMinute)
+          : feedHint.feed;
+      return {
+        ...feedHint,
+        feed,
+        hasReplayFeed: feedHint.hasReplayFeed || feedHasReplayContent(feedHint.feed),
+      };
+    }
   }
 
   if (matchStatus === "live") {
@@ -221,6 +225,7 @@ export default function MatchVisualizer({
   replayUi,
   feedHint,
   feedRevision,
+  skipLivePoll = false,
   className = "",
 }: MatchVisualizerProps) {
   const sketchHostRef = useRef<HTMLDivElement>(null);
@@ -254,7 +259,8 @@ export default function MatchVisualizer({
     let retryTimer: number | null = null;
     let uiTimer: ReturnType<typeof setInterval> | null = null;
     let livePollTimer: ReturnType<typeof setInterval> | null = null;
-    let resizeObserver: ResizeObserver | null = null;
+    let resizeDebounce: ReturnType<typeof setTimeout> | null = null;
+    let bootObserver: ResizeObserver | null = null;
     let p5Instance: p5 | null = null;
     let engine: ReplayEngine | null = null;
     let feedAvailable = false;
@@ -379,12 +385,17 @@ export default function MatchVisualizer({
 
       const { width, height } = getSize();
       if (width < 32 || height < 32) {
-        if (attempt < 120) {
+        if (attempt < 240) {
           retryTimer = window.setTimeout(() => void boot(attempt + 1), 50);
         } else if (mounted) {
           setInitError("Canvas area is too small to render. Try widening the window.");
         }
         return;
+      }
+
+      if (bootObserver) {
+        bootObserver.disconnect();
+        bootObserver = null;
       }
 
       try {
@@ -465,7 +476,7 @@ export default function MatchVisualizer({
         publish();
         uiTimer = setInterval(publish, 250);
 
-        if (isLiveMatch) {
+        if (isLiveMatch && !skipLivePoll) {
           livePollTimer = setInterval(() => void pollLiveFeed(), LIVE_POLL_MS);
         }
       } catch (error) {
@@ -479,26 +490,41 @@ export default function MatchVisualizer({
 
     void boot();
 
-    resizeObserver = new ResizeObserver(() => {
+    bootObserver = new ResizeObserver(() => {
+      const { width, height } = getSize();
+      if (width >= 32 && height >= 32 && !p5Instance) {
+        void boot();
+      }
+    });
+    bootObserver.observe(host);
+
+    const resizeObserver = new ResizeObserver(() => {
       p5Instance?.windowResized();
       if (!engine || !matchRef.current || isLiveMatch) return;
       if (mode === "replay" && engine.isPlaying) return;
-      const layout = resolveLayout();
-      const minute =
-        isCompletedMatch && mode === "live"
-          ? frozenMinute
-          : engine.minute;
-      engine.seekToMinute(minute, layout, matchRef.current);
-      p5Instance?.redraw();
+
+      if (resizeDebounce) clearTimeout(resizeDebounce);
+      resizeDebounce = setTimeout(() => {
+        if (!engine || !matchRef.current || !p5Instance) return;
+        const layout = resolveLayout();
+        const minute =
+          isCompletedMatch && mode === "live"
+            ? frozenMinute
+            : engine.minute;
+        engine.seekToMinute(minute, layout, matchRef.current);
+        p5Instance.redraw();
+      }, 150);
     });
     resizeObserver.observe(host);
 
     return () => {
       mounted = false;
       if (retryTimer) clearTimeout(retryTimer);
+      if (resizeDebounce) clearTimeout(resizeDebounce);
       if (uiTimer) clearInterval(uiTimer);
       if (livePollTimer) clearInterval(livePollTimer);
-      resizeObserver?.disconnect();
+      bootObserver?.disconnect();
+      resizeObserver.disconnect();
       p5Instance?.remove();
       p5Instance = null;
       engine = null;
@@ -506,7 +532,7 @@ export default function MatchVisualizer({
     };
     // match intentionally omitted — stats-only matchData updates must not reboot the sketch.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- stable boot on matchId/mode/status only
-  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, teamSide, feedRevision]);
+  }, [matchId, mode, matchStatus, hasReplayFeed, finalMinuteProp, teamSide, feedRevision, skipLivePoll]);
 
   useEffect(() => {
     const engine = engineRef.current;
@@ -533,6 +559,20 @@ export default function MatchVisualizer({
       engine.pause();
     }
   }, [replayUi, teamSide]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    const bundle = feedHint;
+    if (!engine || !bundle || matchStatus !== "live" || !skipLivePoll) return;
+
+    if (bundle.feed.length > 0) {
+      engine.extendFeed(bundle.feed);
+    }
+    if (bundle.currentMinute != null) {
+      engine.syncLiveMinute(bundle.currentMinute);
+    }
+    engine.play();
+  }, [feedHint, matchStatus, skipLivePoll]);
 
   const showIdle = !match;
 
