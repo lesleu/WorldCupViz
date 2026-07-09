@@ -279,11 +279,7 @@ export default function MatchVisualizer({
 
     const getSize = () => ({
       width: Math.max(sketchHostRef.current?.clientWidth ?? 1, 1),
-      height: Math.max(
-        sketchHostRef.current?.clientHeight ?? 1,
-        sketchHostRef.current?.parentElement?.clientHeight ?? 1,
-        1
-      ),
+      height: Math.max(sketchHostRef.current?.clientHeight ?? 1, 1),
     });
 
     const publish = () => {

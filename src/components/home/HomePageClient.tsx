@@ -54,7 +54,6 @@ export default function HomePageClient({ initialMatches }: HomePageClientProps) 
 
   return (
     <GameGridHome
-      key={`${scrollMode}-${pathname}`}
       initialMatches={matches}
       scrollMode={scrollMode}
     />

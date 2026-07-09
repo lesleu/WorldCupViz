@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
@@ -47,7 +46,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${interExtraBold.variable} ${interSemiBold.variable} antialiased`}
       >
-        <Script src="/vendor/p5.min.js" strategy="beforeInteractive" />
         <GoogleAnalytics />
         {children}
         <Analytics />
