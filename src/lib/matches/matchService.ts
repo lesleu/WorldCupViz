@@ -95,11 +95,14 @@ async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null
   if (base) {
     const merged = await getMergedMatchById(base);
     if (!merged) return null;
+    if (merged.status !== "live") return merged;
     return refreshEntryFromApi(merged);
   }
 
   const fromOverlay = await getOverlayDiscoveredMatchById(id);
   if (fromOverlay) return fromOverlay;
+
+  if (hasStaticSchedule()) return null;
 
   if (!getMatchApiConfig().enabled) return null;
 

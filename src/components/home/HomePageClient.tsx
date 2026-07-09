@@ -3,59 +3,43 @@
 import { useLayoutEffect, useState } from "react";
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 import GameGridHome from "@/components/GameGridHome";
-import HomePageSkeleton from "@/components/home/HomePageSkeleton";
-import { fetchMatchesFromApi } from "@/lib/matches/clientApi";
-import { readHomeMatchesCache } from "@/lib/homeMatchesCache";
 import {
   clearHomeNavigationFlags,
   clearHomeScrollState,
   resolveHomeScrollInitMode,
   type HomeScrollInitMode,
 } from "@/lib/homeScrollState";
+import { writeHomeMatchesCache, readHomeMatchesCache } from "@/lib/homeMatchesCache";
 
-/** Client-loaded homepage — uses session cache for instant back navigation. */
-export default function HomePageClient() {
+interface HomePageClientProps {
+  initialMatches: MatchCatalogEntry[];
+}
+
+function resolveInitialMatches(
+  scrollMode: HomeScrollInitMode,
+  initialMatches: MatchCatalogEntry[]
+): MatchCatalogEntry[] {
+  if (scrollMode === "restore") {
+    const cached = readHomeMatchesCache();
+    if (cached && cached.length > 0) return cached;
+  }
+  return initialMatches;
+}
+
+/** Homepage client shell — match list is server-rendered from static schedule JSON. */
+export default function HomePageClient({ initialMatches }: HomePageClientProps) {
   const [scrollMode] = useState<HomeScrollInitMode>(() => resolveHomeScrollInitMode());
-  const [matches, setMatches] = useState<MatchCatalogEntry[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [matches] = useState<MatchCatalogEntry[]>(() =>
+    resolveInitialMatches(scrollMode, initialMatches)
+  );
 
   useLayoutEffect(() => {
-    let cancelled = false;
-
-    const finish = (next: MatchCatalogEntry[]) => {
-      if (cancelled) return;
-      setMatches(next);
-      setLoading(false);
-    };
-
     if (scrollMode === "today") {
       clearHomeNavigationFlags();
       clearHomeScrollState();
     }
-
-    if (scrollMode === "restore") {
-      const cached = readHomeMatchesCache();
-      if (cached && cached.length > 0) {
-        finish(cached);
-        return;
-      }
-    }
-
-    void fetchMatchesFromApi()
-      .then((response) => finish(response.matches))
-      .catch((error) => {
-        console.warn("Homepage match list load failed:", error);
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [scrollMode]);
-
-  if (loading || !matches) {
-    return <HomePageSkeleton />;
-  }
+    writeHomeMatchesCache(matches);
+  }, [matches, scrollMode]);
 
   return <GameGridHome initialMatches={matches} scrollMode={scrollMode} />;
 }

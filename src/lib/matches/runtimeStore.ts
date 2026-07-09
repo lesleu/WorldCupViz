@@ -81,11 +81,38 @@ export function runtimeStoreEnabled(): boolean {
   return getRedis() !== null;
 }
 
+const RUNTIME_READ_TIMEOUT_MS = 2_000;
+
+async function withRuntimeTimeout<T>(
+  promise: Promise<T>,
+  fallback: T,
+  label: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => {
+          console.warn(`Runtime store read timed out: ${label}`);
+          resolve(fallback);
+        }, RUNTIME_READ_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function getScheduleOverlay(): Promise<ScheduleOverlay> {
   const redis = getRedis();
   if (!redis) return { ...memory.overlay };
 
-  const data = await redis.get<ScheduleOverlay>(KEYS.scheduleOverlay);
+  const data = await withRuntimeTimeout(
+    redis.get<ScheduleOverlay>(KEYS.scheduleOverlay),
+    null,
+    "schedule overlay"
+  );
   return data ?? {};
 }
 
@@ -121,7 +148,11 @@ export async function getPollMeta(): Promise<PollMeta> {
   const redis = getRedis();
   if (!redis) return { ...memory.pollMeta };
 
-  const data = await redis.get<PollMeta>(KEYS.pollMeta);
+  const data = await withRuntimeTimeout(
+    redis.get<PollMeta>(KEYS.pollMeta),
+    null,
+    "poll meta"
+  );
   return data ?? {};
 }
 
@@ -141,7 +172,13 @@ export async function getLiveFeed(matchId: string): Promise<MatchFeedResponse | 
   const redis = getRedis();
   if (!redis) return memory.liveFeeds.get(matchId) ?? null;
 
-  return (await redis.get<MatchFeedResponse>(KEYS.liveFeed(matchId))) ?? null;
+  return (
+    (await withRuntimeTimeout(
+      redis.get<MatchFeedResponse>(KEYS.liveFeed(matchId)),
+      null,
+      `live feed ${matchId}`
+    )) ?? null
+  );
 }
 
 export async function setLiveFeed(
@@ -173,7 +210,13 @@ export async function getCompletedFeed(
   const redis = getRedis();
   if (!redis) return memory.completedFeeds.get(matchId) ?? null;
 
-  return (await redis.get<MatchFeedResponse>(KEYS.completedFeed(matchId))) ?? null;
+  return (
+    (await withRuntimeTimeout(
+      redis.get<MatchFeedResponse>(KEYS.completedFeed(matchId)),
+      null,
+      `completed feed ${matchId}`
+    )) ?? null
+  );
 }
 
 export async function hasCompletedFeed(matchId: string): Promise<boolean> {

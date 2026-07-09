@@ -91,6 +91,15 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
     router.prefetch("/");
   }, [router]);
 
+  const handleBackHome = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      markHomeReturningFromMatch();
+      event.preventDefault();
+      router.push("/");
+    },
+    [router]
+  );
+
   const handleControls = useCallback((bundle: ReplayControlBundle) => {
     replayActionsRef.current = {
       play: bundle.play,
@@ -208,7 +217,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       >
         <Link
           href="/"
-          onClick={markHomeReturningFromMatch}
+          onClick={handleBackHome}
           className="inline-flex rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
           style={{
             backgroundColor: VISUALIZER_CONFIG.colors.background,
@@ -291,7 +300,7 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
           <Link
             href="/"
-            onClick={markHomeReturningFromMatch}
+            onClick={handleBackHome}
             className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
             style={{
               backgroundColor: VISUALIZER_CONFIG.colors.background,
