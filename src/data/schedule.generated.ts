@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-09T21:09:41.255Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-09T23:00:59.432Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5579,7 +5579,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "quarterfinals",
     "stageLabel": "Quarterfinals",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1578539,
     "date": "July 9, 2026",
@@ -5591,6 +5591,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Morocco",
     "homeTeamCode": "FRA",
     "awayTeamCode": "MAR",
+    "finalMinute": 90,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "France",
@@ -5601,29 +5602,29 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 9, 2026",
       "venue": "Gillette Stadium",
       "home": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
+        "possession": 48,
+        "shots": 22,
+        "shotsOnTarget": 8,
+        "passAccuracy": 89,
+        "fouls": 10,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
-        "corners": 0,
+        "goals": 2,
+        "corners": 5,
         "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
+        "possession": 52,
+        "shots": 5,
+        "shotsOnTarget": 1,
+        "passAccuracy": 86,
+        "fouls": 13,
+        "yellowCards": 1,
         "redCards": 0,
         "goals": 0,
-        "corners": 0,
+        "corners": 5,
         "offsides": 0,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
