@@ -12,9 +12,9 @@ import {
 } from "@/lib/homeScrollState";
 
 const RESTORE_RETRY_MS = 50;
-const RESTORE_MAX_ATTEMPTS = 80;
-const RESTORE_STABLE_MS = 200;
-const RESTORE_CORRECT_MS = 2500;
+const RESTORE_MAX_ATTEMPTS = 40;
+const RESTORE_STABLE_MS = 50;
+const RESTORE_CORRECT_MS = 600;
 
 interface UseHomeScrollInitOptions {
   scrollerRef: React.RefObject<HTMLDivElement | null>;

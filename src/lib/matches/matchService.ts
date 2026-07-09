@@ -29,10 +29,7 @@ import {
   maxFeedMinute,
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
-import {
-  getPollMeta,
-  getRuntimeFeed,
-} from "@/lib/matches/runtimeStore";
+import { getRuntimeFeed } from "@/lib/matches/runtimeStore";
 import {
   getDemoCatalog,
   getStaticMatchById,
@@ -44,7 +41,6 @@ import {
   getMergedMatchById,
   getOverlayDiscoveredMatchById,
   mergeEntryWithOverlay,
-  mergeScheduleWithOverlay,
   overlayEntryFromFixture,
 } from "@/lib/matches/scheduleOverlay";
 import {
@@ -155,11 +151,7 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
   }
 
-  const supplemented = await supplementCatalogFromApi([...byId.values()]);
-  const merged = enrichCatalogKickoff(
-    filterByStage(await mergeScheduleWithOverlay(supplemented), stage)
-  );
-  const pollMeta = await getPollMeta();
+  const merged = enrichCatalogKickoff(filterByStage([...byId.values()], stage));
 
   return {
     source: "static",
@@ -170,7 +162,6 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
       return byKickoff || a.id.localeCompare(b.id);
     }),
     syncedAt: getStaticScheduleSyncedAt() ?? undefined,
-    runtimePollAt: pollMeta.lastPollAt,
   };
 }
 

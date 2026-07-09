@@ -33,6 +33,33 @@ export function overlayEntryFromFixture(
   }
 }
 
+function overlayMatchDataIsUsable(
+  overlay?: ScheduleOverlayEntry,
+  base?: MatchCatalogEntry["matchData"]
+): boolean {
+  if (!overlay?.matchData) return false;
+  const h = overlay.matchData.home;
+  const a = overlay.matchData.away;
+  const overlaySignal =
+    h.goals +
+    a.goals +
+    h.shots +
+    a.shots +
+    h.penaltyShootoutScored +
+    a.penaltyShootoutScored;
+  if (overlaySignal > 0) return true;
+
+  const baseSignal = base
+    ? base.home.goals +
+      base.away.goals +
+      base.home.shots +
+      base.away.shots +
+      base.home.penaltyShootoutScored +
+      base.away.penaltyShootoutScored
+    : 0;
+  return overlaySignal > baseSignal;
+}
+
 export function mergeEntryWithOverlay(
   base: MatchCatalogEntry,
   overlay?: ScheduleOverlayEntry
@@ -43,8 +70,10 @@ export function mergeEntryWithOverlay(
     ...base,
     status: overlay.status ?? base.status,
     finalMinute: overlay.finalMinute ?? base.finalMinute,
-    hasReplayFeed: overlay.hasReplayFeed ?? base.hasReplayFeed,
-    matchData: overlay.matchData ?? base.matchData,
+    hasReplayFeed: base.hasReplayFeed || overlay.hasReplayFeed === true,
+    matchData: overlayMatchDataIsUsable(overlay, base.matchData)
+      ? overlay.matchData!
+      : base.matchData,
   };
 }
 
@@ -101,13 +130,14 @@ export async function mergeScheduleWithOverlay(
 export async function getMergedMatchById(
   base: MatchCatalogEntry | undefined
 ): Promise<MatchCatalogEntry | null> {
-  const overlay = await getScheduleOverlay();
+  if (!base) return null;
 
-  if (base) {
-    return mergeEntryWithOverlay(base, overlay[base.id]);
+  if (base.status === "completed" && base.hasReplayFeed) {
+    return base;
   }
 
-  return null;
+  const overlay = await getScheduleOverlay();
+  return mergeEntryWithOverlay(base, overlay[base.id]);
 }
 
 export async function getOverlayDiscoveredMatchById(

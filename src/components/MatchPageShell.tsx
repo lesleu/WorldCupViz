@@ -2,8 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppMode } from "@/components/MatchVisualizer";
 import LiveBadge from "@/components/LiveBadge";
 import StatsPanel, {
@@ -49,10 +48,11 @@ const MATCH_POLL_MS = 20_000;
 const MOBILE_MAX_WIDTH_PX = 614;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
 
+/** Mobile-first — avoids blank mobile first paint and mounting desktop p5 on phones. */
 function useMobileLayout(): boolean {
-  const [mobile, setMobile] = useState(false);
+  const [mobile, setMobile] = useState(true);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const query = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`);
     const update = () => setMobile(query.matches);
     update();
@@ -69,7 +69,6 @@ interface MatchPageShellProps {
 }
 
 export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
-  const router = useRouter();
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
@@ -87,18 +86,9 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
   const prevStatusRef = useRef<MatchStatus>(entry.status);
   const isMobileLayout = useMobileLayout();
 
-  useEffect(() => {
-    router.prefetch("/");
-  }, [router]);
-
-  const handleBackHome = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      markHomeReturningFromMatch();
-      event.preventDefault();
-      router.push("/");
-    },
-    [router]
-  );
+  const handleBackHome = useCallback(() => {
+    markHomeReturningFromMatch();
+  }, []);
 
   const handleControls = useCallback((bundle: ReplayControlBundle) => {
     replayActionsRef.current = {
@@ -236,7 +226,6 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       </header>
 
       {/* Mobile: mode controls + interleaved team art + stats */}
-      {isMobileLayout ? (
       <div className="flex shrink-0 flex-col min-[615px]:hidden">
         <MatchModeControls
           match={matchData}
@@ -292,9 +281,8 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
           />
         </div>
       </div>
-      ) : null}
 
-      {/* Desktop: full poster + sidebar stats */}
+      {/* Desktop: full poster + sidebar stats — skip on mobile to avoid extra p5 instances */}
       {!isMobileLayout ? (
       <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
         <div className="absolute left-4 top-4 z-30 flex items-center gap-3">

@@ -37,6 +37,7 @@ import {
   estimateTeamStatsFromFixture,
   feedHasReplayContent,
   maxFeedMinute,
+  mergeMatchDataWithFeedStats,
 } from "../src/lib/matches/feedAdapter";
 import {
   adaptFixtureToCatalogEntry,
@@ -229,12 +230,29 @@ function reconcileScheduleWithFeeds(schedule: MatchCatalogEntry[]): MatchCatalog
         ? Math.max(entry.finalMinute ?? 0, feedFinalMinute)
         : entry.finalMinute;
 
-    if (entry.hasReplayFeed === hasReplayFeed && entry.finalMinute === finalMinute) {
+    const matchData =
+      hasReplayFeed && entry.matchData
+        ? mergeMatchDataWithFeedStats(entry.matchData, feed.feed)
+        : entry.matchData;
+
+    const statsChanged =
+      matchData.home.goals !== entry.matchData.home.goals ||
+      matchData.home.shots !== entry.matchData.home.shots ||
+      matchData.home.penaltyShootoutScored !== entry.matchData.home.penaltyShootoutScored ||
+      matchData.away.goals !== entry.matchData.away.goals ||
+      matchData.away.shots !== entry.matchData.away.shots ||
+      matchData.away.penaltyShootoutScored !== entry.matchData.away.penaltyShootoutScored;
+
+    if (
+      entry.hasReplayFeed === hasReplayFeed &&
+      entry.finalMinute === finalMinute &&
+      !statsChanged
+    ) {
       return entry;
     }
 
     updated += 1;
-    return { ...entry, hasReplayFeed, finalMinute };
+    return { ...entry, hasReplayFeed, finalMinute, matchData };
   });
 
   if (updated > 0) {
