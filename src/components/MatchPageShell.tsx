@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -30,27 +29,24 @@ import { fetchMatchFeedFromApi, fetchMatchFromApi } from "@/lib/matches/clientAp
 import { mergeMatchDataWithFeedStats } from "@/lib/matches/feedAdapter";
 import { feedBundleSignature } from "@/lib/matches/feedSignature";
 import { markHomeReturningFromMatch } from "@/lib/homeScrollState";
+import { useIsMobileLayout } from "@/lib/useIsMobileLayout";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
 const MATCH_POLL_MS = 20_000;
-const MOBILE_MAX_WIDTH_PX = 614;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
 
-type LayoutMode = "mobile" | "desktop";
-
-function useLayoutMode(): LayoutMode | null {
-  const [mode, setMode] = useState<LayoutMode | null>(null);
-
-  useLayoutEffect(() => {
-    const query = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`);
-    const update = () => setMode(query.matches ? "mobile" : "desktop");
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  return mode;
+function CanvasPlaceholder() {
+  return (
+    <div className="flex h-full min-h-[240px] w-full items-center justify-center">
+      <p
+        className="font-mono text-xs uppercase tracking-widest"
+        style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
+      >
+        Loading artwork…
+      </p>
+    </div>
+  );
 }
 
 /** Mount heavy canvas children only when scrolled near the viewport. */
@@ -85,7 +81,7 @@ function LazyWhenVisible({
 
   return (
     <div ref={hostRef} className={className} style={style}>
-      {visible ? children : null}
+      {visible ? children : <CanvasPlaceholder />}
     </div>
   );
 }
@@ -97,7 +93,7 @@ interface MatchPageShellProps {
 
 export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
   const router = useRouter();
-  const layoutMode = useLayoutMode();
+  const isMobileLayout = useIsMobileLayout();
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
@@ -220,29 +216,121 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
     feedRevision: feedBundleSignature(feedBundle),
   };
 
-  const isMobile = layoutMode === "mobile";
-  const isDesktop = layoutMode === "desktop";
+  const canvasLayoutKey = isMobileLayout === true ? "mobile" : "desktop";
+  const mountMobileCanvas = isMobileLayout === true;
+  const mountDesktopCanvas = isMobileLayout === false;
 
   return (
     <main
-      className="flex min-h-screen w-screen flex-col overflow-y-auto min-[615px]:h-screen min-[615px]:flex-row min-[615px]:overflow-hidden"
+      className="flex min-h-screen w-screen flex-col overflow-y-auto max-[614px]:overflow-y-auto min-[615px]:h-screen min-[615px]:flex-row min-[615px]:overflow-hidden"
       style={{
         backgroundColor: VISUALIZER_CONFIG.colors.background,
         color: VISUALIZER_CONFIG.colors.text,
       }}
     >
-      {isMobile ? (
-        <header
-          className="sticky top-0 z-30 shrink-0 border-b px-4 py-3"
+      {/* Mobile chrome — visibility via CSS only */}
+      <header
+        className="sticky top-0 z-30 shrink-0 border-b px-4 py-3 max-[614px]:block min-[615px]:hidden"
+        style={{
+          backgroundColor: VISUALIZER_CONFIG.colors.background,
+          borderColor: panelBorder,
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleBackHome}
+          className="inline-flex rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
           style={{
             backgroundColor: VISUALIZER_CONFIG.colors.background,
-            borderColor: panelBorder,
+            color: VISUALIZER_CONFIG.colors.text,
+            touchAction: "manipulation",
           }}
         >
+          ← Back
+        </button>
+
+        <MatchTeamHeader
+          match={matchData}
+          matchStatus={matchStatus}
+          homeAccent={homePalette.c1}
+          awayAccent={awayPalette.c1}
+        />
+      </header>
+
+      {/* Mobile body — CSS shows this stack below 615px */}
+      <div className="flex shrink-0 flex-col max-[614px]:flex min-[615px]:hidden">
+        <MatchModeControls
+          match={matchData}
+          mode={mode}
+          matchStatus={matchStatus}
+          hasReplayFeed={hasReplayFeed}
+          replayUi={replayUi}
+          replayActions={replayActionsRef}
+          onModeChange={setMode}
+        />
+
+        <div
+          className="aspect-[4/5] w-full border-b"
+          style={{ borderColor: panelBorder }}
+        >
+          {mountMobileCanvas ? (
+            <MatchVisualizer
+              key={`${canvasLayoutKey}-home-${entry.id}`}
+              {...visualizerProps}
+              teamSide="home"
+              onControls={handleControls}
+              className="h-full"
+            />
+          ) : (
+            <CanvasPlaceholder />
+          )}
+        </div>
+
+        <div className="border-b p-4" style={{ borderColor: panelBorder }}>
+          <TeamStatsBlock
+            teamName={matchData.homeTeam}
+            stats={matchData.home}
+            accent={homePalette.c1}
+            teamPalette={homePalette}
+            showPenaltyShootout={showPenaltyShootout}
+          />
+        </div>
+
+        <LazyWhenVisible
+          className="aspect-[4/5] w-full border-b"
+          style={{ borderColor: panelBorder }}
+        >
+          {mountMobileCanvas ? (
+            <MatchVisualizer
+              key={`${canvasLayoutKey}-away-${entry.id}`}
+              {...visualizerProps}
+              teamSide="away"
+              replayUi={replayUi}
+              className="h-full"
+            />
+          ) : (
+            <CanvasPlaceholder />
+          )}
+        </LazyWhenVisible>
+
+        <div className="p-4">
+          <TeamStatsBlock
+            teamName={matchData.awayTeam}
+            stats={matchData.away}
+            accent={awayPalette.c1}
+            teamPalette={awayPalette}
+            showPenaltyShootout={showPenaltyShootout}
+          />
+        </div>
+      </div>
+
+      {/* Desktop body — CSS shows at 615px+ */}
+      <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
+        <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
           <button
             type="button"
             onClick={handleBackHome}
-            className="inline-flex rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
+            className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
             style={{
               backgroundColor: VISUALIZER_CONFIG.colors.background,
               color: VISUALIZER_CONFIG.colors.text,
@@ -251,117 +339,30 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
           >
             ← Back
           </button>
+          {matchStatus === "live" && <LiveBadge />}
+        </div>
 
-          <MatchTeamHeader
-            match={matchData}
-            matchStatus={matchStatus}
-            homeAccent={homePalette.c1}
-            awayAccent={awayPalette.c1}
+        {mountDesktopCanvas ? (
+          <MatchVisualizer
+            key={`${canvasLayoutKey}-${entry.id}`}
+            {...visualizerProps}
+            onControls={handleControls}
           />
-        </header>
-      ) : null}
+        ) : (
+          <CanvasPlaceholder />
+        )}
+      </div>
 
-      {isMobile ? (
-        <div className="flex shrink-0 flex-col">
-          <MatchModeControls
-            match={matchData}
-            mode={mode}
-            matchStatus={matchStatus}
-            hasReplayFeed={hasReplayFeed}
-            replayUi={replayUi}
-            replayActions={replayActionsRef}
-            onModeChange={setMode}
-          />
-
-          <div
-            className="aspect-[4/5] w-full border-b"
-            style={{ borderColor: panelBorder }}
-          >
-            <MatchVisualizer
-              {...visualizerProps}
-              teamSide="home"
-              onControls={handleControls}
-              className="h-full"
-            />
-          </div>
-
-          <div className="border-b p-4" style={{ borderColor: panelBorder }}>
-            <TeamStatsBlock
-              teamName={matchData.homeTeam}
-              stats={matchData.home}
-              accent={homePalette.c1}
-              teamPalette={homePalette}
-              showPenaltyShootout={showPenaltyShootout}
-            />
-          </div>
-
-          <LazyWhenVisible
-            className="aspect-[4/5] w-full border-b"
-            style={{ borderColor: panelBorder }}
-          >
-            <MatchVisualizer
-              {...visualizerProps}
-              teamSide="away"
-              replayUi={replayUi}
-              className="h-full"
-            />
-          </LazyWhenVisible>
-
-          <div className="p-4">
-            <TeamStatsBlock
-              teamName={matchData.awayTeam}
-              stats={matchData.away}
-              accent={awayPalette.c1}
-              teamPalette={awayPalette}
-              showPenaltyShootout={showPenaltyShootout}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {isDesktop ? (
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleBackHome}
-              className="rounded-md border border-white/15 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest transition hover:border-white/35"
-              style={{
-                backgroundColor: VISUALIZER_CONFIG.colors.background,
-                color: VISUALIZER_CONFIG.colors.text,
-                touchAction: "manipulation",
-              }}
-            >
-              ← Back
-            </button>
-            {matchStatus === "live" && <LiveBadge />}
-          </div>
-
-          <MatchVisualizer {...visualizerProps} onControls={handleControls} />
-        </div>
-      ) : null}
-
-      {layoutMode === null ? (
-        <div
-          className="flex flex-1 items-center justify-center px-6"
-          style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
-        >
-          <p className="font-mono text-xs uppercase tracking-widest">Loading match…</p>
-        </div>
-      ) : null}
-
-      {isDesktop ? (
-        <StatsPanel
-          match={matchData}
-          mode={mode}
-          matchStatus={matchStatus}
-          hasReplayFeed={hasReplayFeed}
-          replayUi={replayUi}
-          replayActions={replayActionsRef}
-          onModeChange={setMode}
-          className="hidden min-[615px]:flex"
-        />
-      ) : null}
+      <StatsPanel
+        match={matchData}
+        mode={mode}
+        matchStatus={matchStatus}
+        hasReplayFeed={hasReplayFeed}
+        replayUi={replayUi}
+        replayActions={replayActionsRef}
+        onModeChange={setMode}
+        className="hidden min-[615px]:flex"
+      />
     </main>
   );
 }
