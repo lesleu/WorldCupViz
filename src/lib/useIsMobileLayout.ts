@@ -1,14 +1,14 @@
 "use client";
 
 import { useLayoutEffect, useState } from "react";
-import { MOBILE_MEDIA_QUERY } from "@/lib/layoutBreakpoint";
+import { MOBILE_MEDIA_QUERY, readIsMobileLayout } from "@/lib/layoutBreakpoint";
 
 /**
  * Tracks mobile vs desktop using the same breakpoint as Tailwind
- * `max-[614px]` / `min-[615px]`. Returns null until the client has measured.
+ * `max-[614px]` / `min-[615px]`.
  */
-export function useIsMobileLayout(): boolean | null {
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+export function useIsMobileLayout(): boolean {
+  const [isMobile, setIsMobile] = useState(readIsMobileLayout);
 
   useLayoutEffect(() => {
     const media = window.matchMedia(MOBILE_MEDIA_QUERY);

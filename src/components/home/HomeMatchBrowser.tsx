@@ -41,7 +41,10 @@ export default function HomeMatchBrowser({
   const compactHeaderRef = useRef(false);
   const expandedHeightRef = useRef(REF_HEADER_FULL_HEIGHT);
 
-  const [viewportWidth, setViewportWidth] = useState(DEFAULT_VIEWPORT_WIDTH);
+  const [viewportWidth, setViewportWidth] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_VIEWPORT_WIDTH;
+    return window.innerWidth;
+  });
   const [compactHeader, setCompactHeader] = useState(() => {
     if (scrollMode === "restore") {
       return readHomeScrollState()?.compactHeader === true;

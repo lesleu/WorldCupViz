@@ -38,7 +38,10 @@ const panelBorder = "rgba(234, 234, 234, 0.15)";
 
 function CanvasPlaceholder() {
   return (
-    <div className="flex h-full min-h-[240px] w-full items-center justify-center">
+    <div
+      className="flex h-full min-h-[240px] w-full items-center justify-center"
+      style={{ backgroundColor: VISUALIZER_CONFIG.colors.background }}
+    >
       <p
         className="font-mono text-xs uppercase tracking-widest"
         style={{ color: VISUALIZER_CONFIG.colors.textMuted }}
@@ -216,9 +219,9 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
     feedRevision: feedBundleSignature(feedBundle),
   };
 
-  const canvasLayoutKey = isMobileLayout === true ? "mobile" : "desktop";
-  const mountMobileCanvas = isMobileLayout === true;
-  const mountDesktopCanvas = isMobileLayout === false;
+  const canvasLayoutKey = isMobileLayout ? "mobile" : "desktop";
+  const mountMobileCanvas = isMobileLayout;
+  const mountDesktopCanvas = !isMobileLayout;
 
   return (
     <main
