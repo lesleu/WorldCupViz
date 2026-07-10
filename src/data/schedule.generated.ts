@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-10T20:11:55.464Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-10T21:49:53.350Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5637,7 +5637,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "quarterfinals",
     "stageLabel": "Quarterfinals",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1581821,
     "date": "July 10, 2026",
@@ -5649,6 +5649,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Belgium",
     "homeTeamCode": "ESP",
     "awayTeamCode": "BEL",
+    "finalMinute": 95,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Spain",
@@ -5659,30 +5660,30 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 10, 2026",
       "venue": "SoFi Stadium",
       "home": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
+        "possession": 68,
+        "shots": 17,
+        "shotsOnTarget": 8,
+        "passAccuracy": 90,
+        "fouls": 13,
+        "yellowCards": 2,
         "redCards": 0,
-        "goals": 1,
-        "corners": 0,
-        "offsides": 0,
+        "goals": 2,
+        "corners": 5,
+        "offsides": 3,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
+        "possession": 32,
+        "shots": 5,
+        "shotsOnTarget": 2,
+        "passAccuracy": 78,
+        "fouls": 18,
+        "yellowCards": 2,
         "redCards": 0,
         "goals": 1,
-        "corners": 0,
-        "offsides": 0,
+        "corners": 1,
+        "offsides": 1,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
@@ -5772,6 +5773,61 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "stage": "QUARTERFINALS",
       "date": "July 11, 2026",
       "venue": "Arrowhead Stadium",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1585131",
+    "providerFixtureId": 1585131,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "semifinals",
+    "stageLabel": "Semifinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1585131,
+    "date": "July 14, 2026",
+    "dateSort": "2026-07-14",
+    "kickoffAt": "2026-07-14T19:00:00+00:00",
+    "kickoffTime": "3:00 PM ET",
+    "homeTeam": "France",
+    "awayTeam": "Spain",
+    "homeTeamCode": "FRA",
+    "awayTeamCode": "ESP",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "France",
+      "awayTeam": "Spain",
+      "homeTeamCode": "FRA",
+      "awayTeamCode": "ESP",
+      "stage": "SEMIFINALS",
+      "date": "July 14, 2026",
       "home": {
         "possession": 50,
         "shots": 0,
