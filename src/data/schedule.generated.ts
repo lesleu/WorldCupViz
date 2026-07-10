@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-10T18:15:52.073Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-10T20:11:55.464Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5637,7 +5637,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "quarterfinals",
     "stageLabel": "Quarterfinals",
-    "status": "scheduled",
+    "status": "live",
     "isTbd": false,
     "matchNumber": 1581821,
     "date": "July 10, 2026",
@@ -5649,7 +5649,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Belgium",
     "homeTeamCode": "ESP",
     "awayTeamCode": "BEL",
-    "hasReplayFeed": false,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Spain",
       "awayTeam": "Belgium",
@@ -5666,7 +5666,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5680,7 +5680,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
