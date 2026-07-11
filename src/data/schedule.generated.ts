@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-11T20:42:26.827Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-11T21:38:21.617Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5695,7 +5695,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "quarterfinals",
     "stageLabel": "Quarterfinals",
-    "status": "scheduled",
+    "status": "live",
     "isTbd": false,
     "matchNumber": 1581037,
     "date": "July 11, 2026",
@@ -5707,7 +5707,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "England",
     "homeTeamCode": "NOR",
     "awayTeamCode": "ENG",
-    "hasReplayFeed": false,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Norway",
       "awayTeam": "England",
@@ -5724,7 +5724,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
