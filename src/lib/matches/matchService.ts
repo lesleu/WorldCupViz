@@ -30,6 +30,7 @@ import {
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
 import { getRuntimeFeed } from "@/lib/matches/runtimeStore";
+import { isWithinLiveWindow } from "@/lib/matches/liveWindow";
 import {
   getDemoCatalog,
   getStaticMatchById,
@@ -75,15 +76,44 @@ async function supplementCatalogFromApi(
   return entries;
 }
 
+/**
+ * Probe API-Football for a fresh status when a match's kickoff clock is live but
+ * the committed schedule / overlay hasn't caught up (no cron/Redis). Returns null
+ * when the API is disabled, out of window, or the call fails.
+ */
+async function fetchLiveAwareStatus(
+  id: string,
+  entry: { status: MatchStatus; kickoffAt?: string }
+): Promise<MatchStatus | null> {
+  if (entry.status === "live" || entry.status === "completed") return entry.status;
+  if (!isWithinLiveWindow(entry)) return null;
+  if (!getMatchApiConfig().enabled) return null;
+
+  const fixtureId = parseFixtureId(id);
+  if (!fixtureId) return null;
+
+  try {
+    const fixture = await fetchFixtureById(fixtureId, 0);
+    if (!fixture) return null;
+    return mapFixtureStatus(fixture.fixture.status.short);
+  } catch (error) {
+    console.warn(`Live-window status check failed for ${id}:`, error);
+    return null;
+  }
+}
+
 async function resolveCatalogStatus(id: string): Promise<MatchStatus | undefined> {
   const base = getStaticMatchById(id);
   if (base) {
-    const merged = await getMergedMatchById(base);
-    return merged?.status ?? base.status;
+    const merged = (await getMergedMatchById(base)) ?? base;
+    const live = await fetchLiveAwareStatus(id, merged);
+    return live ?? merged.status;
   }
 
   const fromOverlay = await getOverlayDiscoveredMatchById(id);
-  return fromOverlay?.status;
+  if (!fromOverlay) return undefined;
+  const live = await fetchLiveAwareStatus(id, fromOverlay);
+  return live ?? fromOverlay.status;
 }
 
 async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null> {
@@ -91,8 +121,10 @@ async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null
   if (base) {
     const merged = await getMergedMatchById(base);
     if (!merged) return null;
-    if (merged.status !== "live") return merged;
-    return refreshEntryFromApi(merged);
+    if (merged.status === "live" || isWithinLiveWindow(merged)) {
+      return refreshEntryFromApi(merged);
+    }
+    return merged;
   }
 
   const fromOverlay = await getOverlayDiscoveredMatchById(id);
@@ -293,7 +325,8 @@ async function resolveMatchFeedBundle(
 async function refreshEntryFromApi(
   entry: MatchCatalogEntry
 ): Promise<MatchCatalogEntry> {
-  if (!getMatchApiConfig().enabled || entry.status !== "live") return entry;
+  if (!getMatchApiConfig().enabled) return entry;
+  if (entry.status !== "live" && !isWithinLiveWindow(entry)) return entry;
 
   const fixtureId = parseFixtureId(entry.id);
   if (!fixtureId) return entry;

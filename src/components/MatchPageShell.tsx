@@ -28,6 +28,11 @@ import type { MatchFeedResponse } from "@/lib/matches/types";
 import { VISUALIZER_CONFIG } from "@/config";
 
 const MATCH_POLL_MS = 20_000;
+/** Slower poll while waiting for a scheduled match to kick off. */
+const PRE_LIVE_POLL_MS = 60_000;
+/** Probe for kickoff from ~2 min early to ~3.5h after (ET + penalties). */
+const PRE_LIVE_LEAD_MS = 2 * 60_000;
+const PRE_LIVE_TRAIL_MS = 3.5 * 60 * 60_000;
 const panelBorder = "rgba(234, 234, 234, 0.15)";
 
 interface MatchPageShellProps {
@@ -124,6 +129,41 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       clearInterval(timer);
     };
   }, [entry.id, matchStatus]);
+
+  // Scheduled match with the page left open: poll status near kickoff so live
+  // art starts automatically without a manual refresh.
+  useEffect(() => {
+    if (matchStatus !== "scheduled") return;
+    const kickoffMs = entry.kickoffAt ? Date.parse(entry.kickoffAt) : NaN;
+    if (Number.isNaN(kickoffMs)) return;
+
+    let cancelled = false;
+
+    const checkKickoff = async () => {
+      const now = Date.now();
+      if (now < kickoffMs - PRE_LIVE_LEAD_MS || now > kickoffMs + PRE_LIVE_TRAIL_MS) {
+        return;
+      }
+      try {
+        const updated = await fetchMatchFromApi(entry.id);
+        if (cancelled || !updated || updated.status === "scheduled") return;
+        setMatchData(updated.matchData);
+        setHasReplayFeed(updated.hasReplayFeed);
+        setFinalMinute(updated.finalMinute);
+        setMatchStatus(updated.status);
+      } catch (error) {
+        console.warn("Kickoff status check failed:", error);
+      }
+    };
+
+    void checkKickoff();
+    const timer = setInterval(() => void checkKickoff(), PRE_LIVE_POLL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [entry.id, entry.kickoffAt, matchStatus]);
 
   useEffect(() => {
     if (mode !== "replay" || !feedBundle || feedBundle.feed.length <= 1) return;
