@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T01:26:24.173Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T05:15:21.600Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5690,63 +5690,6 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     }
   },
   {
-    "id": "1582681",
-    "providerFixtureId": 1582681,
-    "tournament": "FIFA World Cup 2026",
-    "stage": "quarterfinals",
-    "stageLabel": "Quarterfinals",
-    "status": "live",
-    "isTbd": false,
-    "matchNumber": 1582681,
-    "date": "July 11, 2026",
-    "dateSort": "2026-07-11",
-    "kickoffAt": "2026-07-12T01:00:00+00:00",
-    "kickoffTime": "9:00 PM ET",
-    "venue": "Arrowhead Stadium",
-    "homeTeam": "Argentina",
-    "awayTeam": "Switzerland",
-    "homeTeamCode": "ARG",
-    "awayTeamCode": "SUI",
-    "hasReplayFeed": true,
-    "matchData": {
-      "homeTeam": "Argentina",
-      "awayTeam": "Switzerland",
-      "homeTeamCode": "ARG",
-      "awayTeamCode": "SUI",
-      "stage": "QUARTERFINALS",
-      "date": "July 11, 2026",
-      "venue": "Arrowhead Stadium",
-      "home": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
-        "redCards": 0,
-        "goals": 1,
-        "corners": 0,
-        "offsides": 0,
-        "penaltyShootoutScored": 0,
-        "penaltyShootoutMissed": 0
-      },
-      "away": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
-        "redCards": 0,
-        "goals": 0,
-        "corners": 0,
-        "offsides": 0,
-        "penaltyShootoutScored": 0,
-        "penaltyShootoutMissed": 0
-      }
-    }
-  },
-  {
     "id": "1581037",
     "providerFixtureId": 1581037,
     "tournament": "FIFA World Cup 2026",
@@ -5799,6 +5742,64 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "goals": 2,
         "corners": 4,
         "offsides": 5,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1582681",
+    "providerFixtureId": 1582681,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "quarterfinals",
+    "stageLabel": "Quarterfinals",
+    "status": "completed",
+    "isTbd": false,
+    "matchNumber": 1582681,
+    "date": "July 11, 2026",
+    "dateSort": "2026-07-11",
+    "kickoffAt": "2026-07-12T01:00:00+00:00",
+    "kickoffTime": "9:00 PM ET",
+    "venue": "Arrowhead Stadium",
+    "homeTeam": "Argentina",
+    "awayTeam": "Switzerland",
+    "homeTeamCode": "ARG",
+    "awayTeamCode": "SUI",
+    "finalMinute": 121,
+    "hasReplayFeed": true,
+    "matchData": {
+      "homeTeam": "Argentina",
+      "awayTeam": "Switzerland",
+      "homeTeamCode": "ARG",
+      "awayTeamCode": "SUI",
+      "stage": "QUARTERFINALS",
+      "date": "July 11, 2026",
+      "venue": "Arrowhead Stadium",
+      "home": {
+        "possession": 59,
+        "shots": 22,
+        "shotsOnTarget": 7,
+        "passAccuracy": 89,
+        "fouls": 14,
+        "yellowCards": 3,
+        "redCards": 0,
+        "goals": 3,
+        "corners": 8,
+        "offsides": 4,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 41,
+        "shots": 11,
+        "shotsOnTarget": 5,
+        "passAccuracy": 84,
+        "fouls": 18,
+        "yellowCards": 2,
+        "redCards": 1,
+        "goals": 1,
+        "corners": 2,
+        "offsides": 3,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
