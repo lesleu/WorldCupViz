@@ -66,6 +66,13 @@ export function mergeEntryWithOverlay(
 ): MatchCatalogEntry {
   if (!overlay) return base;
 
+  // Once the committed build knows a match is completed with a replay feed, it
+  // is authoritative — never let a stale runtime overlay (e.g. a "scheduled"/
+  // "live" entry left over from before the final whistle) downgrade it. This
+  // mirrors the early return in getMergedMatchById so the list and detail views
+  // stay consistent.
+  if (base.status === "completed" && base.hasReplayFeed) return base;
+
   return {
     ...base,
     status: overlay.status ?? base.status,
