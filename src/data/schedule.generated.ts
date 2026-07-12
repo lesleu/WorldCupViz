@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T15:46:56.556Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T16:43:18.777Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5718,10 +5718,10 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 11, 2026",
       "venue": "Hard Rock Stadium",
       "home": {
-        "possession": 47,
+        "possession": 48,
         "shots": 13,
         "shotsOnTarget": 4,
-        "passAccuracy": 86,
+        "passAccuracy": 85,
         "fouls": 10,
         "yellowCards": 1,
         "redCards": 0,
@@ -5732,7 +5732,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 53,
+        "possession": 52,
         "shots": 14,
         "shotsOnTarget": 8,
         "passAccuracy": 91,
