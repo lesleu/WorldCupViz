@@ -5695,7 +5695,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "quarterfinals",
     "stageLabel": "Quarterfinals",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1581037,
     "date": "July 11, 2026",
@@ -5744,7 +5744,8 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
-    }
+    },
+    "finalMinute": 120
   },
   {
     "id": "1582681",

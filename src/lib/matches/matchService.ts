@@ -29,7 +29,8 @@ import {
   maxFeedMinute,
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
-import { getRuntimeFeed } from "@/lib/matches/runtimeStore";
+import { getRuntimeFeed, setCompletedFeed } from "@/lib/matches/runtimeStore";
+import { persistStaticMatchFeed } from "@/lib/matches/staticFeedPersistence";
 import { isWithinLiveWindow } from "@/lib/matches/liveWindow";
 import {
   getDemoCatalog,
@@ -267,13 +268,37 @@ async function loadFixtureFeedFromApi(
   };
 }
 
-async function loadLiveFeedFromApi(
+/**
+ * Fetch a fixture feed (live or completed) from the API. Completed feeds are
+ * cached to Redis + committed JSON so later loads render from storage without
+ * hitting the API again.
+ */
+async function loadAndCacheApiFeed(
+  id: string,
   fixtureId: number,
   sinceMinute?: number
 ): Promise<MatchFeedResponse | null> {
-  const bundle = await loadFixtureFeedFromApi(fixtureId, sinceMinute);
-  if (!bundle || bundle.status !== "live") return null;
-  return bundle;
+  const full = await loadFixtureFeedFromApi(fixtureId);
+  if (!full || !feedHasReplayContent(full.feed)) return null;
+
+  if (full.status === "completed") {
+    try {
+      await setCompletedFeed(id, full);
+      await persistStaticMatchFeed(id, full, {
+        status: "completed",
+        hasReplayFeed: true,
+        finalMinute: full.currentMinute,
+      });
+    } catch (error) {
+      console.warn(`Failed to cache completed feed ${id}:`, error);
+    }
+  }
+
+  if (sinceMinute == null) return full;
+  return {
+    ...full,
+    feed: full.feed.filter((update) => update.minute > sinceMinute),
+  };
 }
 
 function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
@@ -309,14 +334,17 @@ async function resolveMatchFeedBundle(
     return runtimeFeed;
   }
 
-  if (catalogStatus === "completed" || catalogStatus !== "live") {
-    return staticFeed;
-  }
-
+  // No committed/runtime feed yet. Pull from the API for both live AND
+  // completed matches — a game that just finished (like a fresh knockout
+  // result) often has no JSON committed yet, and must still render.
   const fixtureId = parseFixtureId(id);
-  if (fixtureId && getMatchApiConfig().enabled && catalogStatus === "live") {
-    const liveFeed = await loadLiveFeedFromApi(fixtureId, sinceMinute);
-    if (liveFeed) return liveFeed;
+  if (
+    fixtureId != null &&
+    getMatchApiConfig().enabled &&
+    (catalogStatus === "live" || catalogStatus === "completed")
+  ) {
+    const apiFeed = await loadAndCacheApiFeed(id, fixtureId, sinceMinute);
+    if (apiFeed) return apiFeed;
   }
 
   return staticFeed;
