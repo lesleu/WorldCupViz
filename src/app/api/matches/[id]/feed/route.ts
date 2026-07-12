@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getMatchFeed } from "@/lib/matches/matchService";
 
+// Live feeds must never be served from a cached response — resolve per request.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface RouteContext {
   params: Promise<{ id: string }>;
 }

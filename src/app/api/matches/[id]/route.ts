@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getMatch } from "@/lib/matches/matchService";
 
+// Live/just-completed status is resolved per request — do not cache.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface RouteContext {
   params: Promise<{ id: string }>;
 }

@@ -29,7 +29,13 @@ import {
   maxFeedMinute,
   mergeMatchDataWithFeedStats,
 } from "@/lib/matches/feedAdapter";
-import { getRuntimeFeed, setCompletedFeed } from "@/lib/matches/runtimeStore";
+import {
+  getRuntimeFeed,
+  getScheduleOverlay,
+  setCompletedFeed,
+  setScheduleOverlay,
+  type ScheduleOverlayEntry,
+} from "@/lib/matches/runtimeStore";
 import { persistStaticMatchFeed } from "@/lib/matches/staticFeedPersistence";
 import { isWithinLiveWindow } from "@/lib/matches/liveWindow";
 import {
@@ -43,6 +49,7 @@ import {
   getMergedMatchById,
   getOverlayDiscoveredMatchById,
   mergeEntryWithOverlay,
+  mergeScheduleWithOverlay,
   overlayEntryFromFixture,
 } from "@/lib/matches/scheduleOverlay";
 import {
@@ -184,7 +191,10 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
     if (!byId.has(entry.id)) byId.set(entry.id, entry);
   }
 
-  const merged = enrichCatalogKickoff(filterByStage([...byId.values()], stage));
+  // Overlay live/completed status + stats written by the cron poll so the home
+  // grid reflects in-progress and just-finished matches without a redeploy.
+  const withOverlay = await mergeScheduleWithOverlay([...byId.values()]);
+  const merged = enrichCatalogKickoff(filterByStage(withOverlay, stage));
 
   return {
     source: "static",
@@ -282,16 +292,7 @@ async function loadAndCacheApiFeed(
   if (!full || !feedHasReplayContent(full.feed)) return null;
 
   if (full.status === "completed") {
-    try {
-      await setCompletedFeed(id, full);
-      await persistStaticMatchFeed(id, full, {
-        status: "completed",
-        hasReplayFeed: true,
-        finalMinute: full.currentMinute,
-      });
-    } catch (error) {
-      console.warn(`Failed to cache completed feed ${id}:`, error);
-    }
+    await cacheCompletedFeed(id, full);
   }
 
   if (sinceMinute == null) return full;
@@ -299,6 +300,62 @@ async function loadAndCacheApiFeed(
     ...full,
     feed: full.feed.filter((update) => update.minute > sinceMinute),
   };
+}
+
+/**
+ * Persist a just-finished match so it renders without hitting the API again:
+ *   - Redis completed-feed cache (durable in prod)
+ *   - Redis schedule overlay with final status + real team stats
+ *   - committed JSON + schedule patch (durable in local/dev where FS is writable)
+ * The Vercel filesystem is read-only, so the JSON write is best-effort; the
+ * overlay + feed cache are what make production self-heal between GitHub syncs.
+ */
+async function cacheCompletedFeed(
+  id: string,
+  feed: MatchFeedResponse
+): Promise<void> {
+  try {
+    const base = getStaticMatchById(id);
+    const matchData = base
+      ? mergeMatchDataWithFeedStats(base.matchData, feed.feed)
+      : undefined;
+    const finalMinute =
+      feed.currentMinute ?? maxFeedMinute(feed.feed) ?? base?.finalMinute;
+
+    await setCompletedFeed(id, feed);
+
+    if (base) {
+      const overlay = await getScheduleOverlay();
+      const completedEntry: ScheduleOverlayEntry = {
+        status: "completed",
+        finalMinute,
+        hasReplayFeed: true,
+        matchData: matchData ?? base.matchData,
+        date: base.date,
+        dateSort: base.dateSort,
+        kickoffAt: base.kickoffAt,
+        kickoffTime: base.kickoffTime,
+        venue: base.venue,
+        stage: base.stage,
+        stageLabel: base.stageLabel,
+        homeTeam: base.homeTeam,
+        awayTeam: base.awayTeam,
+        homeTeamCode: base.homeTeamCode,
+        awayTeamCode: base.awayTeamCode,
+      };
+      overlay[id] = { ...overlay[id], ...completedEntry };
+      await setScheduleOverlay(overlay);
+    }
+
+    await persistStaticMatchFeed(id, feed, {
+      status: "completed",
+      hasReplayFeed: true,
+      finalMinute,
+      matchData,
+    });
+  } catch (error) {
+    console.warn(`Failed to cache completed feed ${id}:`, error);
+  }
 }
 
 function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {

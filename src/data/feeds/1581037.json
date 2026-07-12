@@ -470,13 +470,13 @@
       "minute": 120,
       "type": "state_update",
       "home": {
-        "possession": 47,
-        "passAccuracy": 86,
-        "totalPasses": 172,
-        "passesAccurate": 86
+        "possession": 48,
+        "passAccuracy": 85,
+        "totalPasses": 170,
+        "passesAccurate": 85
       },
       "away": {
-        "possession": 53,
+        "possession": 52,
         "passAccuracy": 91,
         "totalPasses": 182,
         "passesAccurate": 91

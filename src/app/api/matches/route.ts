@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { listMatches } from "@/lib/matches/matchService";
 import type { TournamentStage } from "@/data/matchCatalog";
 
+// Reflect live/completed status changes from the runtime overlay immediately.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const STAGES = new Set<TournamentStage>([
   "group_stage",
   "round_of_32",
