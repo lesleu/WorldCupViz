@@ -182,15 +182,30 @@ export function resolveOffsideMarkSizePx(
   });
 }
 
-/** Enforce minMarkPx on the shorter side (from eventMarks.config, default 20px). */
+/** Global experiment: shrink every asset's footprint by this many px (long side). */
+export const MARK_SHRINK_PX = 10;
+
+/**
+ * Shrink each mark by MARK_SHRINK_PX (aspect-preserving, off the long side), then
+ * enforce minMarkPx on the shorter side (from eventMarks.config, default 20px).
+ */
 export function clampMarkDimsMin(
   dims: MarkPixelDims,
   minPx = eventMarksConfig.minMarkPx
 ): MarkPixelDims {
-  const short = Math.min(dims.widthPx, dims.heightPx);
-  if (short >= minPx || short <= 0) return dims;
+  let { widthPx, heightPx } = dims;
+
+  const long = Math.max(widthPx, heightPx);
+  if (long > 0 && MARK_SHRINK_PX > 0) {
+    const shrink = Math.max(0, (long - MARK_SHRINK_PX) / long);
+    widthPx *= shrink;
+    heightPx *= shrink;
+  }
+
+  const short = Math.min(widthPx, heightPx);
+  if (short >= minPx || short <= 0) return { widthPx, heightPx };
   const s = minPx / short;
-  return { widthPx: dims.widthPx * s, heightPx: dims.heightPx * s };
+  return { widthPx: widthPx * s, heightPx: heightPx * s };
 }
 
 /** Min uniform scale so every mark's short side stays ≥ minPx. */

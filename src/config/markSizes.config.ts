@@ -11,12 +11,12 @@ export const markSizesConfig: MarkSizesConfig = {
   /** Design px base for Shot + ShotOnTarget (not Figma 72–84 tokens). */
   shotDesignBasePx: 225,
   markSizeScale: {
-    [VISUAL_COMPONENT.Goal]: 1.00,
-    [VISUAL_COMPONENT.Shot]: 0.70,
+    [VISUAL_COMPONENT.Goal]: 0.70,
+    [VISUAL_COMPONENT.Shot]: 0.60,
     [VISUAL_COMPONENT.ShotOnTarget]: 0.5,
     [VISUAL_COMPONENT.Corner]: 0.5,
     [VISUAL_COMPONENT.Offside]: 0.7,
-    [VISUAL_COMPONENT.Foul]: 0.6,
+    [VISUAL_COMPONENT.Foul]: 0.5,
     [VISUAL_COMPONENT.YellowCard]: 0.7,
     [VISUAL_COMPONENT.RedCard]: 0.7,
   },
