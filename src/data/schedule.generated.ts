@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T05:15:21.600Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-12T07:56:06.819Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5830,6 +5830,61 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ESP",
       "stage": "SEMIFINALS",
       "date": "July 14, 2026",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1586077",
+    "providerFixtureId": 1586077,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "semifinals",
+    "stageLabel": "Semifinals",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1586077,
+    "date": "July 15, 2026",
+    "dateSort": "2026-07-15",
+    "kickoffAt": "2026-07-15T19:00:00+00:00",
+    "kickoffTime": "3:00 PM ET",
+    "homeTeam": "England",
+    "awayTeam": "Argentina",
+    "homeTeamCode": "ENG",
+    "awayTeamCode": "ARG",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "England",
+      "awayTeam": "Argentina",
+      "homeTeamCode": "ENG",
+      "awayTeamCode": "ARG",
+      "stage": "SEMIFINALS",
+      "date": "July 15, 2026",
       "home": {
         "possession": 50,
         "shots": 0,
