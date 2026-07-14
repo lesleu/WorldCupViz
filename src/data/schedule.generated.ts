@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-13T23:41:24.847Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-14T01:16:35.067Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
