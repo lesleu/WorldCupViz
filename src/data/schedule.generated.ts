@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-14T18:04:43.435Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-14T20:03:46.098Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5811,18 +5811,19 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "semifinals",
     "stageLabel": "Semifinals",
-    "status": "scheduled",
+    "status": "live",
     "isTbd": false,
     "matchNumber": 1585131,
     "date": "July 14, 2026",
     "dateSort": "2026-07-14",
     "kickoffAt": "2026-07-14T19:00:00+00:00",
     "kickoffTime": "3:00 PM ET",
+    "venue": "Dallas Stadium",
     "homeTeam": "France",
     "awayTeam": "Spain",
     "homeTeamCode": "FRA",
     "awayTeamCode": "ESP",
-    "hasReplayFeed": false,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "France",
       "awayTeam": "Spain",
@@ -5830,6 +5831,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ESP",
       "stage": "SEMIFINALS",
       "date": "July 14, 2026",
+      "venue": "Dallas Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
@@ -5852,7 +5854,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 0,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
+        "goals": 1,
         "corners": 0,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -5873,6 +5875,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-15",
     "kickoffAt": "2026-07-15T19:00:00+00:00",
     "kickoffTime": "3:00 PM ET",
+    "venue": "Mercedes-Benz Stadium",
     "homeTeam": "England",
     "awayTeam": "Argentina",
     "homeTeamCode": "ENG",
@@ -5885,6 +5888,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ARG",
       "stage": "SEMIFINALS",
       "date": "July 15, 2026",
+      "venue": "Mercedes-Benz Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
