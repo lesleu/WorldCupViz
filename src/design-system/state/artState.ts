@@ -145,12 +145,26 @@ export interface Offside {
   phase: number;
 }
 
+/** Possession circle — count tracks possession %; placed with event marks (no overlap). */
+export interface PossessionCircleMark {
+  id: string;
+  side: TeamSide;
+  minute: number;
+  nx: number;
+  ny: number;
+  spawnScale: number;
+  layoutScale: number;
+  phase: number;
+}
+
 /**
  * Accumulated art state — each team builds its own side artifact.
  * possessionGrid morphs continuously; event marks are append-only until reset.
+ * possessionCircles are discrete mosaic marks synced from possession %.
  */
 export interface AccumulatedArtState {
   possessionGrid: ContinuousMatchState;
+  possessionCircles: PossessionCircleMark[];
   shots: ShotMark[];
   goals: GoalMark[];
   fouls: FoulMark[];
@@ -164,6 +178,7 @@ export interface AccumulatedArtState {
 export function createKickoffArtState(initial: ContinuousMatchState): AccumulatedArtState {
   return {
     possessionGrid: cloneContinuous(initial),
+    possessionCircles: [],
     shots: [],
     goals: [],
     fouls: [],
@@ -224,6 +239,64 @@ export function resetArtPlacement(art: AccumulatedArtState): void {
   resetPlacementState(art.placement);
 }
 
+/** Circles that represent 100% possession when mosaic-placed. */
+export function possessionCircleCount(pct: number): number {
+  const at100 = Math.max(0, cfg.possession.placedCirclesAt100 ?? 36);
+  if (at100 <= 0 || pct <= 0) return 0;
+  return Math.max(0, Math.min(at100, Math.round((pct / 100) * at100)));
+}
+
+/**
+ * Sync possession circle marks from discrete possession % so they join the
+ * event mosaic (same placement path, no intentional overlap).
+ *
+ * Pass the *target* / feed possession — not the smoothed lerp — so frame-to-frame
+ * rounding cannot flicker the count and endlessly re-layout.
+ */
+export function syncPossessionCircles(
+  art: AccumulatedArtState,
+  layout: PosterLayout,
+  possessionSource?: ContinuousMatchState
+): void {
+  const source = possessionSource ?? art.possessionGrid;
+  let changed = false;
+
+  for (const side of ["home", "away"] as const) {
+    const pct = side === "home" ? source.home.possession : source.away.possession;
+    const target = possessionCircleCount(pct);
+    const existing = art.possessionCircles.filter((c) => c.side === side);
+    if (existing.length === target) continue;
+
+    changed = true;
+    const kept = existing.slice(0, target);
+    while (kept.length < target) {
+      const i = kept.length;
+      const rng = createRng(
+        (side === "home" ? 17 : 41) * 1009 + i * 131 + cfg.randomness.seed
+      );
+      kept.push({
+        id: `poss-${side}-${i}`,
+        side,
+        minute: 0,
+        nx: 0,
+        ny: 0,
+        spawnScale: 1,
+        layoutScale: 1,
+        phase: rand(rng, 0, Math.PI * 2),
+      });
+    }
+    art.possessionCircles = [
+      ...art.possessionCircles.filter((c) => c.side !== side),
+      ...kept,
+    ];
+  }
+
+  if (changed) {
+    relayoutTeamTimedMarks(art, "home", layout);
+    relayoutTeamTimedMarks(art, "away", layout);
+  }
+}
+
 /** Total timed mosaic marks on one team side (for uniform sizing). */
 export function timedMarkCountOnSide(art: AccumulatedArtState, side: TeamSide): number {
   let count = 0;
@@ -236,6 +309,7 @@ export function timedMarkCountOnSide(art: AccumulatedArtState, side: TeamSide): 
   count += art.shotsOnTarget.filter((m) => m.side === side).length;
   count += art.goals.filter((m) => m.side === side).length;
   count += art.cards.filter((m) => m.side === side).length;
+  count += art.possessionCircles.filter((m) => m.side === side).length;
   return count;
 }
 
@@ -248,6 +322,14 @@ function collectTimedMarks(
   side: TeamSide
 ): TimedMarkEntry[] {
   const entries: TimedMarkEntry[] = [];
+
+  for (const circle of art.possessionCircles) {
+    if (circle.side !== side) continue;
+    entries.push({
+      mark: circle as LayoutMark,
+      component: VISUAL_COMPONENT.PossessionGrid,
+    });
+  }
 
   for (const shot of art.shots) {
     if (shot.side !== side) continue;
@@ -325,6 +407,8 @@ function rankForLayoutEntry(
     case VISUAL_COMPONENT.YellowCard:
     case VISUAL_COMPONENT.RedCard:
       return rankInDataset(art, side, "card", mark.id);
+    case VISUAL_COMPONENT.PossessionGrid:
+      return rankInDataset(art, side, "possession", mark.id);
     default:
       return 0;
   }

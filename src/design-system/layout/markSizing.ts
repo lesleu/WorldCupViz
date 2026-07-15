@@ -1,4 +1,5 @@
 import { COMPONENT_SIZES } from "@/config/componentSizes.generated";
+import { cfg } from "@/config";
 import { eventMarksConfig } from "@/config/eventMarks.config";
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
 import { goalsConfig } from "@/config/goals.config";
@@ -52,6 +53,8 @@ export function figmaDesignPx(
       return pickRange(spec, "sizeXMin", "sizeXMax", rng);
     case VISUAL_COMPONENT.ShotOnTarget:
       return pickRange(spec, "sizeMin", "sizeMax", rng);
+    case VISUAL_COMPONENT.PossessionGrid:
+      return (spec as { circleSize?: number }).circleSize ?? 60;
     default:
       return pickRange(spec, "sizeMin", "sizeMax", rng);
   }
@@ -261,6 +264,18 @@ export function resolveQuadrantEntryDimensions(
     const vb = COMPONENT_PATHS.Foul?.viewBox;
     const widthPx = vb ? heightPx * (vb.w / vb.h) : heightPx * 3;
     return clampMarkDimsMin({ widthPx, heightPx });
+  }
+
+  if (component === VISUAL_COMPONENT.PossessionGrid) {
+    const diameterPx = resolveMarkSizePx(
+      component,
+      layout,
+      rank,
+      side,
+      rng,
+      mark.spawnScale * (cfg.possession.circleScale ?? 1)
+    );
+    return clampMarkDimsMin({ widthPx: diameterPx, heightPx: diameterPx });
   }
 
   const widthPx = resolveMarkSizePx(
