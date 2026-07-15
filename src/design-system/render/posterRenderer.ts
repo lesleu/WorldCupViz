@@ -128,7 +128,7 @@ export function createReplaySketch(
     const ink = hexToRgb(cfg.colors.text);
     const inkMuted = hexToRgb(cfg.colors.textMuted);
     const black = hexToRgb(cfg.colors.black);
-    const possessionGridBg: Rgb = [0, 0, 0];
+    const teamLetterBg: Rgb = [0, 0, 0];
 
     function rebuildLayout() {
       const { width, height } = getSize();
@@ -262,15 +262,12 @@ export function createReplaySketch(
       };
     }
 
-    /** Pure black slab under possession circles — covers team letter pixels in the corner. */
-    function drawPossessionGridBackdrop() {
+    /** Pure black under team letter codes — spans the full artwork canvas (both halves). */
+    function drawTeamLetterBackdrop() {
       p.noStroke();
-      fillRgb(p, possessionGridBg);
-      for (const side of drawSides()) {
-        const region = gridRegionForSide(layout, side);
-        if (region.width <= 0 || region.height <= 0) continue;
-        p.rect(region.left, region.top, region.width, region.height);
-      }
+      fillRgb(p, teamLetterBg);
+      const top = posterArtworkCrop ? 0 : layout.artworkTop;
+      p.rect(0, top, layout.width, layout.artworkHeight);
     }
 
     /** PossessionGrid — aligned row/column grid; circles stagger in one-by-one early in the match. */
@@ -623,30 +620,12 @@ export function createReplaySketch(
       drawCard(art);
     }
 
-    /** Solid poster base — fills former team-gradient halves at the lowest layer. */
+    /** Poster chrome bands — artwork fill is handled by drawTeamLetterBackdrop. */
     function drawPosterBackground() {
       backgroundRgb(p, posterBg);
 
-      const { homeZone, awayZone } = layout;
-      p.noStroke();
-      fillRgb(p, posterBg);
-      if (homeZone.width > 0 && homeZone.height > 0) {
-        p.rect(homeZone.left, homeZone.top, homeZone.width, homeZone.height);
-      }
-      if (awayZone.width > 0 && awayZone.height > 0) {
-        p.rect(awayZone.left, awayZone.top, awayZone.width, awayZone.height);
-      }
-
-      if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
-        p.rect(
-          layout.centerGapLeft,
-          homeZone.top,
-          layout.centerGapRight - layout.centerGapLeft,
-          homeZone.height
-        );
-      }
-
       if (!artworkOnly) {
+        p.noStroke();
         fillRgb(p, chrome);
         p.rect(0, 0, layout.width, layout.titleBandBottom);
         p.rect(0, layout.artworkBottom, layout.width, layout.height - layout.artworkBottom);
@@ -781,12 +760,12 @@ export function createReplaySketch(
 
         drawPosterBackground();
 
+        drawTeamLetterBackdrop();
         drawTeamBackgroundType();
 
         const artPresence = gameArtPresence(snapshot.minute);
 
         if (artPresence > 0.005 || snapshot.minute >= 0) {
-          drawPossessionGridBackdrop();
           drawPossessionGrid(snapshot);
         }
 
