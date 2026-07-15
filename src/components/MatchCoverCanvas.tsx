@@ -179,7 +179,7 @@ export default function MatchCoverCanvas({
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 overflow-hidden bg-[#121212] [&>canvas]:!h-full [&>canvas]:!w-full"
+      className="absolute inset-0 overflow-hidden bg-[#1A1A1A] [&>canvas]:!h-full [&>canvas]:!w-full"
     />
   );
 }

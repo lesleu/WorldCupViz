@@ -37,7 +37,7 @@ export default function LazyInView({
 
   return (
     <div ref={hostRef} className={className}>
-      {visible ? children : <div className="aspect-video w-full bg-[#121212]" aria-hidden />}
+      {visible ? children : <div className="aspect-video w-full bg-[#1A1A1A]" aria-hidden />}
     </div>
   );
 }

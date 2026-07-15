@@ -5,8 +5,8 @@ const F = foundationsGenerated;
 
 /** Global foundation colors synced from Figma (poster chrome overrides for dark canvas). */
 export const colorsConfig: ColorsConfig = {
-  background: "#121212",
-  cream: "#121212",
+  background: "#1A1A1A",
+  cream: "#1A1A1A",
   text: "#EAEAEA",
   textMuted: "#948F87",
   black: F.ink.mark,
