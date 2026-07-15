@@ -109,7 +109,6 @@ export function createReplaySketch(
   return (p: p5) => {
     let time = 0;
     let layout!: PosterLayout;
-    let grainDots: { x: number; y: number }[] = [];
     let possessionSlots: { home: PossessionCircleSlot[]; away: PossessionCircleSlot[] } = {
       home: [],
       away: [],
@@ -125,21 +124,10 @@ export function createReplaySketch(
     }
 
     const chrome = hexToRgb(cfg.colors.cream);
+    const posterBg = hexToRgb(cfg.colors.background);
     const ink = hexToRgb(cfg.colors.text);
     const inkMuted = hexToRgb(cfg.colors.textMuted);
     const black = hexToRgb(cfg.colors.black);
-
-    function rebuildGrain(width: number, height: number) {
-      grainDots = [];
-      const rng = createRng(cfg.randomness.seed + width * 17 + height * 31);
-      const count = Math.floor(width * height * cfg.texture.grainAmount);
-      for (let i = 0; i < count; i++) {
-        grainDots.push({
-          x: randBetween(rng, 0, width),
-          y: randBetween(rng, 0, height),
-        });
-      }
-    }
 
     function rebuildLayout() {
       const { width, height } = getSize();
@@ -153,7 +141,6 @@ export function createReplaySketch(
       possessionSlots.away = buildPossessionGridSlots(layout, "away", seed);
       possessionCircleSize.home = resolvePossessionCircleDiameter(layout, "home");
       possessionCircleSize.away = resolvePossessionCircleDiameter(layout, "away");
-      rebuildGrain(width, height);
     }
 
     function motion(snapshot: ReplaySnapshot) {
@@ -255,7 +242,7 @@ export function createReplaySketch(
             height: zone.height,
           },
           code,
-          "rgba(255, 255, 255, 0.5)"
+          `rgb(255, 255, 255)`
         );
       }
 
@@ -624,12 +611,30 @@ export function createReplaySketch(
       drawCard(art);
     }
 
-    /** Flat chrome canvas — no team color fills on individual match posters. */
+    /** Solid poster base — fills former team-gradient halves at the lowest layer. */
     function drawPosterBackground() {
-      backgroundRgb(p, chrome);
+      backgroundRgb(p, posterBg);
+
+      const { homeZone, awayZone } = layout;
+      p.noStroke();
+      fillRgb(p, posterBg);
+      if (homeZone.width > 0 && homeZone.height > 0) {
+        p.rect(homeZone.left, homeZone.top, homeZone.width, homeZone.height);
+      }
+      if (awayZone.width > 0 && awayZone.height > 0) {
+        p.rect(awayZone.left, awayZone.top, awayZone.width, awayZone.height);
+      }
+
+      if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
+        p.rect(
+          layout.centerGapLeft,
+          homeZone.top,
+          layout.centerGapRight - layout.centerGapLeft,
+          homeZone.height
+        );
+      }
 
       if (!artworkOnly) {
-        p.noStroke();
         fillRgb(p, chrome);
         p.rect(0, 0, layout.width, layout.titleBandBottom);
         p.rect(0, layout.artworkBottom, layout.width, layout.height - layout.artworkBottom);
@@ -719,22 +724,6 @@ export function createReplaySketch(
       p.line(progressX, axisY - 6, progressX, axisY + 2);
     }
 
-    function drawGrain() {
-      const ctx = p.drawingContext as CanvasRenderingContext2D;
-      const clipTop = posterArtworkCrop ? 0 : layout.artworkTop;
-      const clipH = layout.artworkBottom - layout.artworkTop;
-      p.push();
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, clipTop, layout.width, clipH);
-      ctx.clip();
-      p.noStroke();
-      fillRgb(p, ink, cfg.texture.paperNoiseOpacity);
-      for (const dot of grainDots) p.circle(dot.x, dot.y, cfg.texture.grainDotSize);
-      ctx.restore();
-      p.pop();
-    }
-
     p.setup = () => {
       const { width, height } = getSize();
       rebuildLayout();
@@ -817,7 +806,6 @@ export function createReplaySketch(
 
         p.pop();
 
-        drawGrain();
         if (!artworkOnly) {
           drawPosterChromeMask();
           drawMatchChrome(snapshot);
