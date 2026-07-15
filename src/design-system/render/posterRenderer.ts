@@ -191,14 +191,46 @@ export function createReplaySketch(
       p.rect(0, top, layout.width, layout.artworkHeight);
     }
 
-    /** Possession circles — mosaic-placed with other assets (nx/ny from layout). */
+    /** Per-asset live pulse — same rhythm system as shots/fouls/cards. */
+    function liveAssetScale(itemPhase = 0, speed = 1.05): number {
+      if (!liveAssetMotion || frozenSnapshot) return 1;
+      const base = cfg.animation.liveBreathingSpeed;
+      const amount = cfg.animation.liveBreathingAmount;
+      const t = time * base * speed + itemPhase;
+      return (
+        1 +
+        Math.sin(t) * amount +
+        Math.sin(t * 1.71 + 0.8) * amount * 0.3
+      );
+    }
+
+    /** Ease new marks from 0 → 1 over spawnGrowMs (wall clock). */
+    function spawnGrowProgress(bornAtMs: number): number {
+      if (frozenSnapshot || bornAtMs <= 0) return 1;
+      const duration = Math.max(1, cfg.possession.spawnGrowMs ?? 550);
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const t = Math.min(1, Math.max(0, (now - bornAtMs) / duration));
+      // Smoothstep with a light overshoot so the grow reads like other live assets.
+      const s = t * t * (3 - 2 * t);
+      return s < 1 ? s : 1;
+    }
+
+    /** Possession circles — mosaic-placed; grow in + live pulse like event marks. */
     function drawPossessionCircles(snapshot: ReplaySnapshot) {
       const { art, minute } = snapshot;
       if (minute <= 0) return;
 
+      const intensity = motion(snapshot);
+      const g = cfg.possession;
       p.noStroke();
       for (const mark of art.possessionCircles) {
         if (!markSideVisible(mark.side)) continue;
+        // Appear-minute gate — circles wait for their stagger slot (kickoff / % jumps).
+        if (minute + 1e-6 < mark.minute) continue;
+
+        const grow = spawnGrowProgress(mark.bornAtMs ?? 0);
+        if (grow <= 0.01) continue;
+
         const palette = paletteForSide(getMatch(), mark.side);
         const color = getComponentColor(
           VISUAL_COMPONENT.PossessionGrid,
@@ -214,11 +246,26 @@ export function createReplaySketch(
           spawnScale: mark.spawnScale,
           layoutScale: mark.layoutScale,
         };
+        // quadrantEntryDims already applies layoutScale — don't multiply again.
         const dims = quadrantEntryDims(VISUAL_COMPONENT.PossessionGrid, art, proxy);
-        const diameter = Math.min(dims.widthPx, dims.heightPx) * mark.layoutScale;
+        const minPx = g.minCirclePx ?? cfg.eventMarks.minMarkPx ?? 20;
+        const baseDiameter = Math.max(minPx, Math.min(dims.widthPx, dims.heightPx));
+        if (baseDiameter <= 0.5) continue;
+
+        const liveScale = liveAssetScale(
+          mark.phase + (mark.side === "away" ? 1.7 : 0),
+          1.05
+        );
+        const ripple =
+          1 +
+          Math.sin(time * Math.max(cfg.animation.liveBreathingSpeed, 0.2) * 2 + mark.phase) *
+            g.gridBreathingAmount *
+            (liveAssetMotion ? 1 : intensity);
+        const diameter = baseDiameter * grow * liveScale * Math.max(0.85, ripple);
         if (diameter <= 0.5) continue;
+
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
-        fillRgb(p, rgb, cfg.possession.filledOpacity);
+        fillRgb(p, rgb, g.filledOpacity * Math.min(1, grow));
         p.circle(x, y, diameter);
       }
     }

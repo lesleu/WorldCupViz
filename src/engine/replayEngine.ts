@@ -134,6 +134,18 @@ export class ReplayEngine {
     this.liveClockMode = enabled;
   }
 
+  private syncPossession(layout: PosterLayout, animateSpawn: boolean): void {
+    syncPossessionCircles(this.art, layout, this.targetContinuous, {
+      currentMinute: this.minute,
+      animateSpawn,
+      feed: this.feed,
+      kickoff: {
+        home: this.kickoff.home,
+        away: this.kickoff.away,
+      },
+    });
+  }
+
   /** Apply feed updates immediately (e.g. after a live poll). */
   flushUpdates(layout: PosterLayout, match: MatchData): void {
     this.applyPendingUpdates(layout, match);
@@ -144,7 +156,7 @@ export class ReplayEngine {
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
     // Sync from target (not lerped float) so circle count stays stable.
-    syncPossessionCircles(this.art, layout, this.targetContinuous);
+    this.syncPossession(layout, true);
   }
 
   /** Clear all accumulated marks and restart from kickoff. */
@@ -184,7 +196,8 @@ export class ReplayEngine {
     this.applyPendingUpdates(layout, match);
     this.smoothContinuous = cloneContinuous(this.targetContinuous);
     this.art.possessionGrid = cloneContinuous(this.targetContinuous);
-    syncPossessionCircles(this.art, layout, this.targetContinuous);
+    // Static seek — circles are fully grown (no wall-clock pop-in).
+    this.syncPossession(layout, false);
     this.pause();
   }
 
@@ -207,7 +220,8 @@ export class ReplayEngine {
       cfg.replay.continuousSmoothing
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-    syncPossessionCircles(this.art, layout, this.targetContinuous);
+    // Replay + live: appear-minutes from feed; wall-clock grow for new circles.
+    this.syncPossession(layout, true);
     tickEnergy(this.energy, deltaSeconds, this.isPlaying, true);
   }
 
@@ -252,9 +266,22 @@ export class ReplayEngine {
   ): void {
     if (update.type === "state_update") {
       // Continuous mappings: possession → PossessionGrid, passAccuracy → PassAccuracy
+      // Ignore barren 0/0 possession rows — they wipe mosaic circles mid-match.
+      const hasPossession =
+        update.home.possession > 0 || update.away.possession > 0;
       this.targetContinuous = {
-        home: { ...update.home },
-        away: { ...update.away },
+        home: {
+          ...update.home,
+          possession: hasPossession
+            ? update.home.possession
+            : this.targetContinuous.home.possession,
+        },
+        away: {
+          ...update.away,
+          possession: hasPossession
+            ? update.away.possession
+            : this.targetContinuous.away.possession,
+        },
       };
       return;
     }

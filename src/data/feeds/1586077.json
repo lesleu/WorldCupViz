@@ -1,0 +1,204 @@
+{
+  "feed": [
+    {
+      "minute": 0,
+      "type": "state_update",
+      "home": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 50,
+        "passAccuracy": 0,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 10,
+      "type": "state_update",
+      "home": {
+        "possession": 48,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 52,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 20,
+      "type": "state_update",
+      "home": {
+        "possession": 46,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 54,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 30,
+      "type": "state_update",
+      "home": {
+        "possession": 45,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 55,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 45,
+      "type": "state_update",
+      "home": {
+        "possession": 47,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 53,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 55,
+      "type": "event",
+      "team": "home",
+      "eventType": "goal",
+      "sequence": 0
+    },
+    {
+      "minute": 60,
+      "type": "state_update",
+      "home": {
+        "possession": 51,
+        "passAccuracy": 79,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 49,
+        "passAccuracy": 81,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 70,
+      "type": "state_update",
+      "home": {
+        "possession": 49,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 51,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 80,
+      "type": "state_update",
+      "home": {
+        "possession": 46,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 54,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 85,
+      "type": "event",
+      "team": "away",
+      "eventType": "goal",
+      "sequence": 0
+    },
+    {
+      "minute": 88,
+      "type": "state_update",
+      "home": {
+        "possession": 44,
+        "passAccuracy": 78,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 56,
+        "passAccuracy": 82,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    },
+    {
+      "minute": 92,
+      "type": "event",
+      "team": "away",
+      "eventType": "goal",
+      "sequence": 1
+    },
+    {
+      "minute": 92,
+      "type": "state_update",
+      "home": {
+        "possession": 43,
+        "passAccuracy": 77,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      },
+      "away": {
+        "possession": 57,
+        "passAccuracy": 84,
+        "totalPasses": 0,
+        "passesAccurate": 0
+      }
+    }
+  ],
+  "kickoff": {
+    "minute": 0,
+    "type": "state_update",
+    "home": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    },
+    "away": {
+      "possession": 50,
+      "passAccuracy": 0,
+      "totalPasses": 0,
+      "passesAccurate": 0
+    }
+  },
+  "currentMinute": 92,
+  "status": "completed",
+  "hasReplayFeed": true
+}

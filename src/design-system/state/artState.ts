@@ -1,4 +1,4 @@
-import type { MatchEvent, MatchEventType } from "@/data/mockLiveFeed";
+import type { LiveFeedUpdate, MatchEvent, MatchEventType } from "@/data/mockLiveFeed";
 import { paletteForSide, type MatchData, type TeamSide } from "@/data/mockMatch";
 import {
   type PosterLayout,
@@ -155,6 +155,8 @@ export interface PossessionCircleMark {
   spawnScale: number;
   layoutScale: number;
   phase: number;
+  /** Wall-clock birth for spawn grow animation (0 = fully grown / static cover). */
+  bornAtMs: number;
 }
 
 /**
@@ -246,44 +248,160 @@ export function possessionCircleCount(pct: number): number {
   return Math.max(0, Math.min(at100, Math.round((pct / 100) * at100)));
 }
 
+/** Runtime floor for possession circle diameter (px). */
+export function possessionCircleMinPx(): number {
+  return Math.max(
+    1,
+    cfg.possession.minCirclePx ?? cfg.eventMarks.minMarkPx ?? 20
+  );
+}
+
+/**
+ * Chronological appear-minutes for possession circles on one side.
+ * Walks feed state_updates up to `upToMinute` so replay can reveal circles
+ * one-by-one as the clock advances (kickoff batch is staggered through the
+ * opening phase).
+ */
+export function buildPossessionCircleAppearMinutes(
+  feed: LiveFeedUpdate[],
+  kickoff: ContinuousMatchState,
+  side: TeamSide,
+  upToMinute: number
+): number[] {
+  let pct = side === "home" ? kickoff.home.possession : kickoff.away.possession;
+  const appear: number[] = [];
+  let target = possessionCircleCount(pct);
+  const kickoffPhase = Math.min(6, cfg.replay.kickoffPhaseMinutes);
+
+  for (let i = 0; i < target; i++) {
+    appear.push((i / Math.max(target, 1)) * kickoffPhase);
+  }
+
+  const updates = feed
+    .filter((u): u is Extract<LiveFeedUpdate, { type: "state_update" }> => {
+      return u.type === "state_update" && u.minute > 0 && u.minute <= upToMinute;
+    })
+    .slice()
+    .sort((a, b) => a.minute - b.minute);
+
+  for (const update of updates) {
+    pct = side === "home" ? update.home.possession : update.away.possession;
+    target = possessionCircleCount(pct);
+    const before = appear.length;
+    while (appear.length < target) {
+      const k = appear.length - before;
+      // Spread new circles across ~a few match-minutes so replay shows them
+      // arriving one-by-one rather than as a single pop.
+      appear.push(update.minute + k * 0.45);
+    }
+    if (appear.length > target) appear.length = target;
+  }
+
+  return appear.filter((m) => m <= upToMinute + 1e-9);
+}
+
+export interface SyncPossessionOptions {
+  currentMinute?: number;
+  /** When false (static cover seek), skip wall-clock grow-in. */
+  animateSpawn?: boolean;
+  /** Full replay feed — drives one-by-one appear minutes on past games. */
+  feed?: LiveFeedUpdate[];
+  kickoff?: ContinuousMatchState;
+}
+
 /**
  * Sync possession circle marks from discrete possession % so they join the
- * event mosaic (same placement path, no intentional overlap).
+ * event mosaic (edge-touch, no overlap, grow with mosaic sizing).
  *
  * Pass the *target* / feed possession — not the smoothed lerp — so frame-to-frame
  * rounding cannot flicker the count and endlessly re-layout.
+ *
+ * Replay: appear minutes from `buildPossessionCircleAppearMinutes` so circles
+ * gate in one-by-one as the clock advances. Live batches still get wall-clock
+ * `bornAtMs` stagger for a grow-on pop.
  */
 export function syncPossessionCircles(
   art: AccumulatedArtState,
   layout: PosterLayout,
-  possessionSource?: ContinuousMatchState
+  possessionSource?: ContinuousMatchState,
+  options: SyncPossessionOptions | number = {}
 ): void {
+  // Back-compat: older call sites passed (…, currentMinute, animateSpawn).
+  const opts: SyncPossessionOptions =
+    typeof options === "number"
+      ? { currentMinute: options, animateSpawn: true }
+      : options;
+  const currentMinute = opts.currentMinute ?? 0;
+  const animateSpawn = opts.animateSpawn ?? true;
   const source = possessionSource ?? art.possessionGrid;
+  const kickoff = opts.kickoff ?? source;
   let changed = false;
+  const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
 
   for (const side of ["home", "away"] as const) {
+    const sideAppear =
+      opts.feed && opts.feed.length > 0
+        ? buildPossessionCircleAppearMinutes(
+            opts.feed,
+            kickoff,
+            side,
+            currentMinute
+          )
+        : null;
+
     const pct = side === "home" ? source.home.possession : source.away.possession;
-    const target = possessionCircleCount(pct);
+    // Prefer timeline appear list during replay so count tracks history, not
+    // just the latest lerped %. Fall back to current % when no feed given.
+    const target = sideAppear
+      ? sideAppear.length
+      : possessionCircleCount(pct);
     const existing = art.possessionCircles.filter((c) => c.side === side);
-    if (existing.length === target) continue;
+
+    if (existing.length === target) {
+      if (sideAppear) {
+        for (let i = 0; i < existing.length; i++) {
+          const appear = sideAppear[i];
+          if (appear !== undefined && existing[i].minute !== appear) {
+            existing[i].minute = appear;
+          }
+        }
+      }
+      continue;
+    }
 
     changed = true;
     const kept = existing.slice(0, target);
+    const batchStart = kept.length;
     while (kept.length < target) {
       const i = kept.length;
       const rng = createRng(
         (side === "home" ? 17 : 41) * 1009 + i * 131 + cfg.randomness.seed
       );
+      const stagger = i - batchStart;
+      const appearMinute = sideAppear?.[i] ??
+        (!animateSpawn
+          ? 0
+          : currentMinute <= 0.5
+            ? (i / Math.max(target, 1)) *
+              Math.min(6, cfg.replay.kickoffPhaseMinutes)
+            : currentMinute);
       kept.push({
         id: `poss-${side}-${i}`,
         side,
-        minute: 0,
+        minute: Math.max(0, appearMinute),
         nx: 0,
         ny: 0,
         spawnScale: 1,
         layoutScale: 1,
         phase: rand(rng, 0, Math.PI * 2),
+        bornAtMs: animateSpawn ? nowMs + stagger * 90 : 0,
       });
+    }
+    if (sideAppear) {
+      for (let i = 0; i < kept.length; i++) {
+        const appear = sideAppear[i];
+        if (appear !== undefined) kept[i].minute = appear;
+      }
     }
     art.possessionCircles = [
       ...art.possessionCircles.filter((c) => c.side !== side),

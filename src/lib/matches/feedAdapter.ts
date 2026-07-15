@@ -99,6 +99,14 @@ export function adaptStatisticsPair(
     ),
   };
 
+  // Missing Ball Possession totals often arrive as null → 0/0, which blanks the
+  // poster. Fall back to a goal-weighted estimate when both sides are empty.
+  if (base.home.possession <= 0 && base.away.possession <= 0) {
+    const estimated = estimateTeamStatsFromFixture(fixture);
+    base.home.possession = estimated.home.possession;
+    base.away.possession = estimated.away.possession;
+  }
+
   return adaptPenaltyShootoutStats(base, fixture, events);
 }
 
@@ -162,29 +170,42 @@ function countFeedEvents(feed: LiveFeedUpdate[]): Record<TeamSide, EventCounts> 
   return counts;
 }
 
+function stateHasPossessionSignal(update: StateUpdate): boolean {
+  return update.home.possession > 0 || update.away.possession > 0;
+}
+
 function latestStateUpdate(
   feed: LiveFeedUpdate[],
   upToMinute: number
 ): StateUpdate | null {
   let latest: StateUpdate | null = null;
+  let latestWithPossession: StateUpdate | null = null;
   for (const update of feed) {
     if (update.type !== "state_update" || update.minute > upToMinute) continue;
     latest = update;
+    if (stateHasPossessionSignal(update)) latestWithPossession = update;
   }
-  return latest;
+  // Prefer a state with real possession — APIs sometimes emit a trailing 0/0
+  // FT row that would wipe the board/canvas.
+  return latestWithPossession ?? latest;
 }
 
 function teamStatsFromFeedSide(
   side: TeamSide,
   counts: Record<TeamSide, EventCounts>,
   continuous: StateUpdate["home"] | undefined,
-  fallbackGoals: number
+  fallbackGoals: number,
+  fallbackPossession = 50
 ): TeamStats {
   const events = counts[side];
   const goals = Math.max(events.goal, fallbackGoals);
+  const possession =
+    continuous && continuous.possession > 0
+      ? continuous.possession
+      : fallbackPossession;
 
   return {
-    possession: continuous?.possession ?? 50,
+    possession,
     passAccuracy: continuous?.passAccuracy ?? 0,
     shots: events.shot + events.shot_on_target + goals,
     shotsOnTarget: events.shot_on_target + goals,
@@ -219,13 +240,15 @@ export function deriveTeamStatsFromFeed(
       "home",
       counts,
       state?.home,
-      options?.homeGoals ?? 0
+      options?.homeGoals ?? 0,
+      50
     ),
     away: teamStatsFromFeedSide(
       "away",
       counts,
       state?.away,
-      options?.awayGoals ?? 0
+      options?.awayGoals ?? 0,
+      50
     ),
   };
 }
@@ -237,14 +260,46 @@ export function mergeMatchDataWithFeedStats(
 ): MatchData {
   const derived = deriveTeamStatsFromFeed(feed, {
     upToMinute,
+    // Live scoreline is source of truth; replay minutes count feed events only.
     homeGoals: upToMinute != null ? 0 : matchData.home.goals,
     awayGoals: upToMinute != null ? 0 : matchData.away.goals,
   });
 
+  // For live/full views, never let over-counted feed goals inflate the scoreboard.
+  const homeGoals =
+    upToMinute != null ? derived.home.goals : matchData.home.goals;
+  const awayGoals =
+    upToMinute != null ? derived.away.goals : matchData.away.goals;
+
+  // Don't let a barren API FT state (0% possession) blank the stats board
+  // when the catalog already has usable possession.
+  const homePossession =
+    derived.home.possession > 0
+      ? derived.home.possession
+      : matchData.home.possession > 0
+        ? matchData.home.possession
+        : 50;
+  const awayPossession =
+    derived.away.possession > 0
+      ? derived.away.possession
+      : matchData.away.possession > 0
+        ? matchData.away.possession
+        : Math.max(0, 100 - homePossession);
+
   return {
     ...matchData,
-    home: { ...matchData.home, ...derived.home },
-    away: { ...matchData.away, ...derived.away },
+    home: {
+      ...matchData.home,
+      ...derived.home,
+      goals: homeGoals,
+      possession: homePossession,
+    },
+    away: {
+      ...matchData.away,
+      ...derived.away,
+      goals: awayGoals,
+      possession: awayPossession,
+    },
   };
 }
 
@@ -268,7 +323,9 @@ function appendSyntheticEvents(
   eventType: MatchEventType,
   count: number,
   maxMinute: number,
-  seed: number
+  seed: number,
+  /** Continue after timeline event sequences so identities never collide. */
+  startSequence = 0
 ): void {
   if (count <= 0 || maxMinute <= 0) return;
 
@@ -276,7 +333,8 @@ function appendSyntheticEvents(
   // clock ticking 12 → 13 does not move every synthetic minute.
   const horizon = Math.max(90, maxMinute);
 
-  for (let sequence = 0; sequence < count; sequence++) {
+  for (let i = 0; i < count; i++) {
+    const sequence = startSequence + i;
     const target = syntheticEventMinute(sequence, seed, horizon);
     // Clamp into elapsed window so early live matches still show current totals.
     const minute = Math.min(target, maxMinute);
@@ -327,21 +385,29 @@ function enrichFeedFromStatistics(
     const existing = counts[side];
     const statList = row?.statistics ?? [];
 
+    // Prefer the live scoreline when present — stats Totals can lag/edge cases.
+    const goalTarget = Math.max(
+      stats.goals,
+      side === "home" ? fixture.goals.home ?? 0 : fixture.goals.away ?? 0
+    );
+
     appendSyntheticEvents(
       feed,
       side,
       "goal",
-      Math.max(0, stats.goals - existing.goal),
+      Math.max(0, goalTarget - existing.goal),
       maxMinute,
-      seedBase + 1
+      seedBase + 1,
+      existing.goal
     );
     appendSyntheticEvents(
       feed,
       side,
       "shot_on_target",
-      Math.max(0, stats.shotsOnTarget - stats.goals - existing.shot_on_target),
+      Math.max(0, stats.shotsOnTarget - goalTarget - existing.shot_on_target),
       maxMinute,
-      seedBase + 2
+      seedBase + 2,
+      existing.shot_on_target
     );
     appendSyntheticEvents(
       feed,
@@ -349,7 +415,8 @@ function enrichFeedFromStatistics(
       "shot",
       Math.max(0, stats.shots - stats.shotsOnTarget - existing.shot),
       maxMinute,
-      seedBase + 3
+      seedBase + 3,
+      existing.shot
     );
     appendSyntheticEvents(
       feed,
@@ -357,7 +424,8 @@ function enrichFeedFromStatistics(
       "foul",
       Math.max(0, stats.fouls - existing.foul),
       maxMinute,
-      seedBase + 4
+      seedBase + 4,
+      existing.foul
     );
     appendSyntheticEvents(
       feed,
@@ -365,7 +433,8 @@ function enrichFeedFromStatistics(
       "yellow_card",
       Math.max(0, stats.yellowCards - existing.yellow_card),
       maxMinute,
-      seedBase + 5
+      seedBase + 5,
+      existing.yellow_card
     );
     appendSyntheticEvents(
       feed,
@@ -373,7 +442,8 @@ function enrichFeedFromStatistics(
       "red_card",
       Math.max(0, stats.redCards - existing.red_card),
       maxMinute,
-      seedBase + 6
+      seedBase + 6,
+      existing.red_card
     );
     appendSyntheticEvents(
       feed,
@@ -381,7 +451,8 @@ function enrichFeedFromStatistics(
       "corner",
       Math.max(0, extraStatCount(statList, "Corner Kicks") - existing.corner),
       maxMinute,
-      seedBase + 7
+      seedBase + 7,
+      existing.corner
     );
     appendSyntheticEvents(
       feed,
@@ -389,7 +460,8 @@ function enrichFeedFromStatistics(
       "offside",
       Math.max(0, extraStatCount(statList, "Offsides") - existing.offside),
       maxMinute,
-      seedBase + 8
+      seedBase + 8,
+      existing.offside
     );
   }
 }
@@ -471,17 +543,24 @@ export function estimateTeamStatsFromFixture(fixture: ApiFootballFixture): {
 } {
   const homeGoals = fixture.goals.home ?? 0;
   const awayGoals = fixture.goals.away ?? 0;
+  const totalGoals = homeGoals + awayGoals;
+  // Without statistics, keep a usable possession split so the canvas still
+  // grows circles (0/0 blanks possession marks and the board).
+  const homePossession =
+    totalGoals <= 0 ? 50 : Math.round((homeGoals / totalGoals) * 100);
+  const awayPossession = Math.max(0, 100 - homePossession);
 
-  const estimateSide = (goals: number): TeamStats => ({
+  const estimateSide = (goals: number, possession: number): TeamStats => ({
     ...adaptStatisticsToTeamStats([], goals),
+    possession,
     goals,
     shots: Math.max(goals * 2, goals),
     shotsOnTarget: Math.max(goals, goals > 0 ? 1 : 0),
   });
 
   return {
-    home: estimateSide(homeGoals),
-    away: estimateSide(awayGoals),
+    home: estimateSide(homeGoals, homePossession),
+    away: estimateSide(awayGoals, awayPossession),
   };
 }
 
@@ -504,6 +583,15 @@ export function adaptEventsToFeed(
 
   const sorted = [...events].sort((a, b) => eventMinute(a) - eventMinute(b));
   let shootoutKickIndex = 0;
+  /** Per (team, eventType) sequences so live polls identity-match synthetics. */
+  const eventSequences = new Map<string, number>();
+
+  const nextSequence = (team: TeamSide, eventType: MatchEventType): number => {
+    const key = `${team}:${eventType}`;
+    const next = eventSequences.get(key) ?? 0;
+    eventSequences.set(key, next + 1);
+    return next;
+  };
 
   for (const event of sorted) {
     const mapped = mapEventType(event, fixture);
@@ -514,13 +602,16 @@ export function adaptEventsToFeed(
     const minute = isShootoutKick
       ? penaltyShootoutMinute(shootoutKickIndex)
       : eventMinute(event);
+    const team = sideForTeam(event, homeId, awayId, fixture.teams.home.name);
 
     feed.push({
       minute,
       type: "event",
-      team: sideForTeam(event, homeId, awayId, fixture.teams.home.name),
+      team,
       eventType: mapped,
-      ...(isShootoutKick ? { sequence: shootoutKickIndex } : {}),
+      sequence: isShootoutKick
+        ? shootoutKickIndex
+        : nextSequence(team, mapped),
     });
 
     if (isShootoutKick) shootoutKickIndex += 1;
