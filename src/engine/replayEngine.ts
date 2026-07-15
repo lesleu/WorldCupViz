@@ -1,8 +1,10 @@
 import {
   addEventMark,
+  beginDeferredTeamLayout,
   buildPossessionCircleAppearMinutes,
   cloneContinuous,
   createKickoffArtState,
+  endDeferredTeamLayout,
   removeCancelledGoalMark,
   syncPossessionMosaic,
   type AccumulatedArtState,
@@ -157,14 +159,19 @@ export class ReplayEngine {
 
   /** Apply feed updates immediately (e.g. after a live poll). */
   flushUpdates(layout: PosterLayout, match: MatchData): void {
-    this.applyPendingUpdates(layout, match);
-    this.smoothContinuous = lerpContinuous(
-      this.smoothContinuous,
-      this.targetContinuous,
-      cfg.replay.continuousSmoothing
-    );
-    this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-    this.syncPossessionAtMinute(layout);
+    beginDeferredTeamLayout();
+    try {
+      this.applyPendingUpdates(layout, match);
+      this.smoothContinuous = lerpContinuous(
+        this.smoothContinuous,
+        this.targetContinuous,
+        cfg.replay.continuousSmoothing
+      );
+      this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
+      this.syncPossessionAtMinute(layout);
+    } finally {
+      endDeferredTeamLayout(this.art, layout);
+    }
   }
 
   /** Clear all accumulated marks and restart from kickoff. */
@@ -201,10 +208,15 @@ export class ReplayEngine {
   seekToMinute(minute: number, layout: PosterLayout, match: MatchData): void {
     this.reset();
     this.minute = Math.min(Math.max(minute, 0), cfg.replay.maxMatchMinutes);
-    this.applyPendingUpdates(layout, match);
-    this.smoothContinuous = cloneContinuous(this.targetContinuous);
-    this.art.possessionGrid = cloneContinuous(this.targetContinuous);
-    this.syncPossessionAtMinute(layout);
+    beginDeferredTeamLayout();
+    try {
+      this.applyPendingUpdates(layout, match);
+      this.smoothContinuous = cloneContinuous(this.targetContinuous);
+      this.art.possessionGrid = cloneContinuous(this.targetContinuous);
+      this.syncPossessionAtMinute(layout);
+    } finally {
+      endDeferredTeamLayout(this.art, layout);
+    }
     this.pause();
   }
 
@@ -220,16 +232,21 @@ export class ReplayEngine {
       }
     }
 
-    this.applyPendingUpdates(layout, match);
-    this.smoothContinuous = lerpContinuous(
-      this.smoothContinuous,
-      this.targetContinuous,
-      cfg.replay.continuousSmoothing
-    );
-    this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-    // Sync once per tick from discrete feed timeline — count grows as possession
-    // state_updates arrive (not every lerped float frame).
-    this.syncPossessionAtMinute(layout);
+    beginDeferredTeamLayout();
+    try {
+      this.applyPendingUpdates(layout, match);
+      this.smoothContinuous = lerpContinuous(
+        this.smoothContinuous,
+        this.targetContinuous,
+        cfg.replay.continuousSmoothing
+      );
+      this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
+      // Sync once per tick from discrete feed timeline — count grows as possession
+      // state_updates arrive (not every lerped float frame).
+      this.syncPossessionAtMinute(layout);
+    } finally {
+      endDeferredTeamLayout(this.art, layout);
+    }
     tickEnergy(this.energy, deltaSeconds, this.isPlaying, true);
   }
 

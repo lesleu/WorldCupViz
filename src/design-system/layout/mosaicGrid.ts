@@ -1,19 +1,30 @@
 import { cfg } from "@/config";
+import { mosaicGridCellRuntimePx } from "@/design-system/layout/designScale";
 import type { MarkPixelDims } from "@/design-system/layout/markSizing";
+import type { PosterLayout } from "@/design-system/layout/posterLayout";
 
-/** Artwork mosaic grid cell size (px). Marks snap so edges land on lines. */
-export function mosaicGridCellPx(): number {
+/** Design-px cell at 1920×1080 (composition token). Prefer layout-aware runtime helper. */
+export function mosaicGridCellDesignPx(): number {
   return cfg.composition.mosaicGridCellPx ?? 40;
 }
 
-export function snapDimToGrid(px: number, cell = mosaicGridCellPx()): number {
-  if (!(px > 0)) return 0;
+/**
+ * Mosaic grid cell in runtime px.
+ * Pass `layout` so the cell scales with artwork (mobile ~8px, full HD ~40px).
+ */
+export function mosaicGridCellPx(layout?: PosterLayout): number {
+  if (layout) return mosaicGridCellRuntimePx(layout);
+  return mosaicGridCellDesignPx();
+}
+
+export function snapDimToGrid(px: number, cell: number): number {
+  if (!(px > 0) || !(cell > 0)) return 0;
   return Math.max(cell, Math.round(px / cell) * cell);
 }
 
 export function snapDimsToGrid(
   dims: MarkPixelDims,
-  cell = mosaicGridCellPx()
+  cell: number
 ): MarkPixelDims {
   return {
     widthPx: snapDimToGrid(dims.widthPx, cell),
@@ -27,7 +38,7 @@ export function snapDimsToGrid(
  */
 export function snapElongatedDimsToGrid(
   dims: MarkPixelDims,
-  cell = mosaicGridCellPx()
+  cell: number
 ): MarkPixelDims {
   let widthPx = snapDimToGrid(dims.widthPx, cell);
   let heightPx = snapDimToGrid(dims.heightPx, cell);
@@ -59,8 +70,9 @@ export function snapCenterToGrid(
   h: number,
   originX: number,
   originY: number,
-  cell = mosaicGridCellPx()
+  cell: number
 ): { cx: number; cy: number } {
+  if (!(cell > 0)) return { cx, cy };
   const left = cx - w / 2;
   const top = cy - h / 2;
   const snappedLeft = originX + Math.round((left - originX) / cell) * cell;
@@ -80,9 +92,9 @@ export function snapRectToGrid<T extends GridSnappableRect>(
   rect: T,
   originX: number,
   originY: number,
-  cell = mosaicGridCellPx()
+  cell: number
 ): T {
-  if (rect.w <= 0 || rect.h <= 0) return rect;
+  if (rect.w <= 0 || rect.h <= 0 || !(cell > 0)) return rect;
   const w = snapDimToGrid(rect.w, cell);
   const h = snapDimToGrid(rect.h, cell);
   const { cx, cy } = snapCenterToGrid(

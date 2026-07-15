@@ -321,8 +321,7 @@ export function syncPossessionMosaic(
   if (!layout.diagonalSplit) {
     if (art.possessionCircles.length > 0) {
       art.possessionCircles = [];
-      relayoutTeamTimedMarks(art, "home", layout);
-      relayoutTeamTimedMarks(art, "away", layout);
+      requestBothTeamsLayout(art, layout);
     }
     return;
   }
@@ -380,8 +379,7 @@ export function syncPossessionMosaic(
   }
 
   if (changed) {
-    relayoutTeamTimedMarks(art, "home", layout);
-    relayoutTeamTimedMarks(art, "away", layout);
+    requestBothTeamsLayout(art, layout);
   }
 }
 
@@ -533,6 +531,52 @@ function relayoutTeamTimedMarks(
 const markScale = () => cfg.composition.markScale;
 const density = () => cfg.composition.densityMultiplier;
 
+/**
+ * Seek/flush apply dozens of events; relayouting the mosaic after each one
+ * freezes phones (quadratic pack per mark). Batch to one pack at end.
+ */
+let deferredTeamLayoutDepth = 0;
+let deferredTeamLayoutDirty = false;
+
+export function beginDeferredTeamLayout(): void {
+  deferredTeamLayoutDepth++;
+}
+
+export function endDeferredTeamLayout(
+  art: AccumulatedArtState,
+  layout: PosterLayout
+): void {
+  deferredTeamLayoutDepth = Math.max(0, deferredTeamLayoutDepth - 1);
+  if (deferredTeamLayoutDepth > 0 || !deferredTeamLayoutDirty) return;
+  deferredTeamLayoutDirty = false;
+  relayoutTeamTimedMarks(art, "home", layout);
+  relayoutTeamTimedMarks(art, "away", layout);
+}
+
+function requestTeamLayout(
+  art: AccumulatedArtState,
+  side: TeamSide,
+  layout: PosterLayout
+): void {
+  if (deferredTeamLayoutDepth > 0) {
+    deferredTeamLayoutDirty = true;
+    return;
+  }
+  relayoutTeamTimedMarks(art, side, layout);
+}
+
+function requestBothTeamsLayout(
+  art: AccumulatedArtState,
+  layout: PosterLayout
+): void {
+  if (deferredTeamLayoutDepth > 0) {
+    deferredTeamLayoutDirty = true;
+    return;
+  }
+  relayoutTeamTimedMarks(art, "home", layout);
+  relayoutTeamTimedMarks(art, "away", layout);
+}
+
 function eventScale(rng: () => number) {
   return markScale() * rand(rng, cfg.composition.markScaleMin, cfg.composition.markScaleMax);
 }
@@ -644,7 +688,7 @@ export function addEventMark(
         });
       }
       art.shots.push({ id, side, minute: event.minute, squares });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.ShotOnTarget: {
@@ -667,7 +711,7 @@ export function addEventMark(
         color: impactColor,
         phase,
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Goal: {
@@ -685,7 +729,7 @@ export function addEventMark(
         phase,
         ...(isShootout ? { variant: "shootout" as const } : {}),
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Foul: {
@@ -699,7 +743,7 @@ export function addEventMark(
         layoutScale: 1,
         phase,
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Corner: {
@@ -714,7 +758,7 @@ export function addEventMark(
         color: palette.c5,
         phase,
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Offside: {
@@ -729,7 +773,7 @@ export function addEventMark(
         color: getComponentColor(VISUAL_COMPONENT.Offside, palette, "c2", "event.offside"),
         phase,
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.YellowCard:
@@ -746,7 +790,7 @@ export function addEventMark(
         kind: isYellow ? "yellow" : "red",
         phase,
       });
-      relayoutTeamTimedMarks(art, side, layout);
+      requestTeamLayout(art, side, layout);
       break;
     }
   }

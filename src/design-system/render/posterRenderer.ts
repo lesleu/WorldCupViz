@@ -45,7 +45,12 @@ import {
   resolveQuadrantEntryDimensions,
   type MarkPixelDims,
 } from "@/design-system/layout/markSizing";
-import { diagonalCompositionMarkScale } from "@/design-system/layout/designScale";
+import {
+  diagonalCompositionMarkScale,
+  mosaicGridCellRuntimePx,
+  possessionMosaicMinRuntimePx,
+  scaleDesignPx,
+} from "@/design-system/layout/designScale";
 import { cfg } from "@/config";
 import { HOME_THUMBNAIL_FIT } from "@/config/home.config";
 
@@ -698,7 +703,7 @@ export function createReplaySketch(
       currentMinute: number
     ) {
       if (!diagonalComposition) return;
-      const minDiameter = cfg.composition.possessionMosaicMinPx ?? 40;
+      const minDiameter = possessionMosaicMinRuntimePx(layout);
       p.noStroke();
       for (const mark of art.possessionCircles) {
         if (!markSideVisible(mark.side)) continue;
@@ -737,16 +742,18 @@ export function createReplaySketch(
 
     /** Subtle mosaic grid + brighter intersection dots (diagonal compositions). */
     function drawMosaicBackgroundGrid() {
-      const cell = cfg.composition.mosaicGridCellPx ?? 40;
+      const cell = mosaicGridCellRuntimePx(layout);
       const left = layout.margin;
       const top = layout.artworkTop;
       const right = left + layout.artworkWidth;
       const bottom = layout.artworkBottom;
       if (right <= left || bottom <= top || cell < 4) return;
 
+      const dotR = Math.max(1, scaleDesignPx(3, layout));
+
       p.push();
       p.stroke(255, 255, 255, 16);
-      p.strokeWeight(1);
+      p.strokeWeight(Math.max(0.5, scaleDesignPx(1, layout)));
       for (let x = left; x <= right + 0.5; x += cell) {
         p.line(x, top, x, bottom);
       }
@@ -757,7 +764,7 @@ export function createReplaySketch(
       p.fill(255, 255, 255, 140);
       for (let x = left; x <= right + 0.5; x += cell) {
         for (let y = top; y <= bottom + 0.5; y += cell) {
-          p.circle(x, y, 3);
+          p.circle(x, y, dotR);
         }
       }
       p.pop();

@@ -13,7 +13,12 @@ import {
   minMosaicScaleForMinPx,
   scaleMarkDims,
 } from "@/design-system/layout/markSizing";
-import { diagonalCompositionMarkScale } from "@/design-system/layout/designScale";
+import {
+  diagonalCompositionMarkScale,
+  mosaicGridCellRuntimePx,
+  mosaicMinMarkRuntimePx,
+  possessionMosaicMinRuntimePx,
+} from "@/design-system/layout/designScale";
 import {
   mosaicGridCellPx,
   snapDimsToGrid,
@@ -90,7 +95,23 @@ function isPossessionComponent(component: VisualComponent): boolean {
 }
 
 function possessionMosaicMinPx(): number {
-  return cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx;
+  const layout = activePlacementLayout;
+  if (!layout) {
+    return cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx;
+  }
+  return possessionMosaicMinRuntimePx(layout);
+}
+
+function eventMinMarkPx(): number {
+  const layout = activePlacementLayout;
+  if (!layout) return eventMarksConfig.minMarkPx;
+  return mosaicMinMarkRuntimePx(layout);
+}
+
+function mosaicCellPx(): number {
+  const layout = activePlacementLayout;
+  if (!layout) return mosaicGridCellPx();
+  return mosaicGridCellRuntimePx(layout);
 }
 
 function mosaicGrowthSporadicity(): number {
@@ -117,7 +138,7 @@ function dimsForMosaicScale(
   baseDims: MarkPixelDims[],
   mosaicScale: number
 ): MarkPixelDims[] {
-  const cell = mosaicGridCellPx();
+  const cell = mosaicCellPx();
   const snap = activePlacementLayout?.diagonalSplit === true;
   return baseDims.map((d, i) => {
     if (isPossessionComponent(ordered[i].component)) return d;
@@ -1199,10 +1220,14 @@ function spiralPackNoOverlap(
     // Sporadic adjacent forks first (all asset types) — spiral is fallback only.
     if (mosaicGrowthSporadicity() > 0.05) {
       let forkScale = scale;
+      let forkTries = 0;
+      const forkCap = activePlacementLayout?.diagonalSplit ? 10 : 28;
       while (
         !found &&
+        forkTries < forkCap &&
         markMinDimension(baseDims[i], forkScale) >= minMarkPx * 0.8
       ) {
+        forkTries++;
         const scales = layoutScales.map((s, idx) => (idx === i ? forkScale : s));
         found = placeMarkInLayout(
           i,
@@ -1320,7 +1345,11 @@ function repairOverlaps(
   const fixed = rects.map((r) => ({ ...r }));
   const anchor = placementAnchorCenter(teamBounds);
 
-  for (let iter = 0; iter < 800; iter++) {
+  // Diagonal packs are dense; 800×N² rescue passes froze mobile seek.
+  const maxIters = activePlacementLayout?.diagonalSplit ? 48 : 800;
+  const rescueSteps = activePlacementLayout?.diagonalSplit ? 48 : 200;
+
+  for (let iter = 0; iter < maxIters; iter++) {
     if (!layoutHasOverlaps(fixed)) break;
 
     let repaired = false;
@@ -1351,7 +1380,7 @@ function repairOverlaps(
       const current = fixed[j];
       if (others.every((o) => !rectsOverlap(current, o, 0))) continue;
 
-      for (let step = 0; step < 200; step++) {
+      for (let step = 0; step < rescueSteps; step++) {
         const angle = j * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.33;
         const r = Math.max(current.w, current.h) * (0.35 + step * 0.065);
         const cx = anchor.cx + Math.cos(angle) * r;
@@ -1455,7 +1484,8 @@ function enforcePossessionClearance(
     others: PlacedRect[]
   ): PlacedRect | null {
     const moving = fixed[moveIdx];
-    for (let step = 0; step < 320; step++) {
+    const stepCap = activePlacementLayout?.diagonalSplit ? 64 : 320;
+    for (let step = 0; step < stepCap; step++) {
       const angle = (moveIdx + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
       const r = Math.max(moving.w, moving.h) * (0.2 + step * 0.05);
       const cx = anchor.cx + Math.cos(angle) * r;
@@ -1468,7 +1498,8 @@ function enforcePossessionClearance(
     return null;
   }
 
-  for (let iter = 0; iter < 80; iter++) {
+  const maxIters = activePlacementLayout?.diagonalSplit ? 24 : 80;
+  for (let iter = 0; iter < maxIters; iter++) {
     let hit = false;
     for (let i = 0; i < fixed.length; i++) {
       if (!isPossessionComponent(ordered[i].component)) continue;
@@ -1608,7 +1639,11 @@ function placeAllMarks(
           placedSoFar,
           floorPx
         );
-      next = clampRectToMinVisible(next, baseDims[i], floorPx);
+
+      // Don't inflate zeroed (hidden) possession slots back to min size.
+      if (next.w > 0 && next.h > 0) {
+        next = clampRectToMinVisible(next, baseDims[i], floorPx);
+      }
       if (next.w > baseDims[i].widthPx * 1.01 || next.h > baseDims[i].heightPx * 1.01) {
         next = {
           ...next,
@@ -1624,29 +1659,24 @@ function placeAllMarks(
         next.h > 0 &&
         placedSoFar.some((other) => rectsOverlap(next, other, 0))
       ) {
-        const anchor = placementAnchorCenter(teamBounds);
-        let found: PlacedRect | null = null;
-        for (let step = 0; step < 500 && !found; step++) {
-          const angle = (i + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.29;
-          const r = Math.max(next.w, next.h) * (0.15 + step * 0.048);
-          const cx = anchor.cx + Math.cos(angle) * r;
-          const cy = anchor.cy + Math.sin(angle) * r;
-          const candidate = {
-            cx,
-            cy,
-            w: next.w,
-            h: next.h,
-            layoutScale: next.layoutScale,
-          };
-          if (placementValid(candidate, placedSoFar, teamBounds, false)) {
-            found = candidate;
-          }
-        }
-        if (found) {
-          next = found;
-        } else if (isPossessionComponent(ordered[i].component)) {
-          next = { cx: next.cx, cy: next.cy, w: 0, h: 0, layoutScale: 0 };
-        }
+        const relocated = forcePlaceMarkAtTarget(
+          ordered[i],
+          i,
+          ordered.length,
+          baseDims[i],
+          teamBounds,
+          region,
+          side,
+          maxMinute,
+          placedSoFar,
+          floorPx
+        );
+        next =
+          relocated.w > 0 && relocated.h > 0
+            ? relocated
+            : isPossessionComponent(ordered[i].component)
+              ? { cx: next.cx, cy: next.cy, w: 0, h: 0, layoutScale: 0 }
+              : next;
       }
 
       if (next.w > 0 && next.h > 0) placedSoFar.push(next);
@@ -1743,18 +1773,83 @@ function forcePlaceMarkAtTarget(
   placed: PlacedRect[],
   minMarkPx: number
 ): PlacedRect {
+  const layout = activePlacementLayout;
+  const floorScale = Math.max(
+    minMarkPx / Math.min(base.widthPx, base.heightPx),
+    0.025
+  );
+  const { w, h, layoutScale } = dimsAt(base, floorScale);
+  const anchor = placementAnchorCenter(teamBounds);
   const target = temporalTarget(entry, index, total, region, side, maxMinute);
+
+  // Diagonal: stay on a tight budget. The long golden spirals below freeze phones
+  // once possession circles approach ~36 on a mobile canvas.
+  if (layout?.diagonalSplit) {
+    const cell = Math.max(mosaicCellPx(), Math.max(w, h));
+    const cols = Math.max(4, Math.floor(teamBounds.width / cell));
+    const rows = Math.max(4, Math.floor(teamBounds.height / cell));
+
+    const tryCandidate = (cx: number, cy: number): PlacedRect | null => {
+      const clamped = clampCenterToBounds(cx, cy, w, h, teamBounds);
+      const candidate = {
+        cx: clamped.cx,
+        cy: clamped.cy,
+        w,
+        h,
+        layoutScale,
+      };
+      return placementValid(candidate, placed, teamBounds, false)
+        ? candidate
+        : null;
+    };
+
+    let found = tryCandidate(target.cx, target.cy);
+    if (found) return found;
+
+    for (let step = 0; step < 48; step++) {
+      const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
+      const r = Math.max(w, h) * (0.15 + step * 0.08);
+      found = tryCandidate(
+        anchor.cx + Math.cos(angle) * r,
+        anchor.cy + Math.sin(angle) * r
+      );
+      if (found) return found;
+    }
+
+    for (let gy = 0; gy < rows; gy++) {
+      for (let gx = 0; gx < cols; gx++) {
+        const cx = teamBounds.left + ((gx + 0.5) / cols) * teamBounds.width;
+        const cy = teamBounds.top + ((gy + 0.5) / rows) * teamBounds.height;
+        found = tryCandidate(cx, cy);
+        if (found) return found;
+      }
+    }
+
+    if (isPossessionComponent(entry.component)) {
+      return { cx: anchor.cx, cy: anchor.cy, w: 0, h: 0, layoutScale: 0 };
+    }
+
+    const parked = clampCenterToBounds(anchor.cx, anchor.cy, w, h, teamBounds);
+    return { cx: parked.cx, cy: parked.cy, w, h, layoutScale };
+  }
+
   let scale = eventMarksConfig.crowdedScaleMin;
 
   while (scale >= 0.025) {
-    const { w, h, layoutScale } = dimsAt(base, scale);
+    const dims = dimsAt(base, scale);
     let radius = 0;
     for (let step = 0; step < 600; step++) {
       const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.27;
-      radius += Math.max(w, h) * 0.038;
+      radius += Math.max(dims.w, dims.h) * 0.038;
       const cx = target.cx + Math.cos(angle) * radius;
       const cy = target.cy + Math.sin(angle) * radius;
-      const candidate = { cx, cy, w, h, layoutScale };
+      const candidate = {
+        cx,
+        cy,
+        w: dims.w,
+        h: dims.h,
+        layoutScale: dims.layoutScale,
+      };
       if (placementValid(candidate, placed, teamBounds, false)) {
         return candidate;
       }
@@ -1762,12 +1857,6 @@ function forcePlaceMarkAtTarget(
     scale *= 0.85;
   }
 
-  const floorScale = Math.max(
-    minMarkPx / Math.min(base.widthPx, base.heightPx),
-    0.025
-  );
-  const { w, h, layoutScale } = dimsAt(base, floorScale);
-  const anchor = placementAnchorCenter(teamBounds);
   for (let step = 0; step < 400; step++) {
     const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
     const r = Math.max(w, h) * (0.2 + step * 0.055);
@@ -1794,62 +1883,6 @@ function forcePlaceMarkAtTarget(
 
   const offsetY = index * h * 0.85;
   const clamped = clampCenterToBounds(anchor.cx, anchor.cy + offsetY, w, h, teamBounds);
-  const layout = activePlacementLayout;
-  if (layout?.diagonalSplit) {
-    // Last resort under diagonal: park at the growth corner and shrink until
-    // the bbox clears the seam — never drop across into the other team.
-    // Possession circles refuse to shrink below possessionMosaicMinPx.
-    const floorCap = isPossessionComponent(entry.component)
-      ? Math.max(floorScale, possessionMosaicMinPx() / Math.min(base.widthPx, base.heightPx))
-      : 0.02;
-    let parkScale = floorScale;
-    while (parkScale >= floorCap) {
-      const parkedDims = dimsAt(base, parkScale);
-      const parked = clampCenterToBounds(
-        anchor.cx,
-        anchor.cy,
-        parkedDims.w,
-        parkedDims.h,
-        teamBounds
-      );
-      const candidate = {
-        cx: parked.cx,
-        cy: parked.cy,
-        w: parkedDims.w,
-        h: parkedDims.h,
-        layoutScale: parkedDims.layoutScale,
-      };
-      if (
-        markClearsDiagonal(candidate.cx, candidate.cy, candidate.w, candidate.h, layout, side) &&
-        !placed.some((other) => rectsOverlap(candidate, other, 0))
-      ) {
-        return candidate;
-      }
-      parkScale *= 0.85;
-    }
-
-    // Dense in-triangle scan at the size floor — never return an overlapping rect.
-    const scanScale = Math.max(floorScale, floorCap);
-    const { w: sw, h: sh, layoutScale: sls } = dimsAt(base, scanScale);
-    const cols = 28;
-    const rows = 28;
-    for (let gy = 0; gy < rows; gy++) {
-      for (let gx = 0; gx < cols; gx++) {
-        const cx = teamBounds.left + ((gx + 0.5) / cols) * teamBounds.width;
-        const cy = teamBounds.top + ((gy + 0.5) / rows) * teamBounds.height;
-        const candidate = { cx, cy, w: sw, h: sh, layoutScale: sls };
-        if (placementValid(candidate, placed, teamBounds, false)) {
-          return candidate;
-        }
-      }
-    }
-
-    // Possession must stay ≥ min and never overlap — hide rather than collide.
-    if (isPossessionComponent(entry.component)) {
-      return { cx: anchor.cx, cy: anchor.cy, w: 0, h: 0, layoutScale: 0 };
-    }
-  }
-  // Legacy non-diagonal fallback (may overlap as absolute last resort).
   return { cx: clamped.cx, cy: clamped.cy, w, h, layoutScale };
 }
 
@@ -1904,7 +1937,7 @@ function incrementalGuidedLayout(
   layout: PosterLayout,
   startIndex: number
 ): PlacedRect[] | null {
-  const { minMarkPx } = eventMarksConfig;
+  const minMarkPx = eventMinMarkPx();
   const preferEdgeTouch = mosaicGrowthSporadicity() > 0.35 ? false : true;
   const placed: PlacedRect[] = [];
   const results: PlacedRect[] = new Array(ordered.length);
@@ -2060,44 +2093,14 @@ function layoutInRegion(
   side: TeamSide,
   layout: PosterLayout
 ): PlacedRect[] {
-  const { minMarkPx } = eventMarksConfig;
+  const minMarkPx = eventMinMarkPx();
   const weights = randomPerMarkWeights(ordered);
   const maxMinute = maxMinuteForEntries(ordered);
 
-  // Diagonal packs get dense (possession + events). Cap work hard — the old
-  // spiral rescue loops (80 + 40 attempts) froze match pages for minutes.
+  // Diagonal packs get dense (possession + events). Skip aesthetic / spiral
+  // thrash — those froze mobile seek for minutes once circles ≥ ~36.
+  // Guarantee + light overlap repair is enough for the mosaic look.
   if (layout.diagonalSplit) {
-    const layoutScales = layoutScalesFromWeights(weights, 1);
-    const aesthetic = tryPlaceWithScales(
-      ordered,
-      baseDims,
-      region,
-      teamBounds,
-      layoutScales,
-      maxMinute,
-      side,
-      false
-    );
-    if (aesthetic && !layoutHasOverlaps(aesthetic)) {
-      return repairOverlaps(aesthetic, teamBounds);
-    }
-
-    let globalMult = 0.85;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const scales = layoutScalesFromWeights(weights, globalMult);
-      const packed = spiralPackNoOverlap(
-        ordered,
-        baseDims,
-        teamBounds,
-        scales,
-        minMarkPx,
-        maxMinute,
-        side
-      );
-      if (packed) return repairOverlaps(packed, teamBounds);
-      globalMult *= 0.75;
-    }
-
     return repairOverlaps(
       guaranteeAllMarksPlaced(
         ordered,
@@ -2263,8 +2266,8 @@ export function relayoutTimedMarkEntries(
   // Must stay in sync with diagonalCompositionMarkScale() used at draw time.
   const diagonalScale = diagonalCompositionMarkScale(layout);
   const possMin = possessionMosaicMinPx();
-  const { minMarkPx } = eventMarksConfig;
-  const cell = mosaicGridCellPx();
+  const minMarkPx = eventMinMarkPx();
+  const cell = mosaicCellPx();
   const gridOriginX = layout.margin;
   const gridOriginY = layout.artworkTop;
   // Possession raw dims are already floored for diagonal in markSizing — scale only.
@@ -2294,49 +2297,65 @@ export function relayoutTimedMarkEntries(
 
   let mosaicScale = 1;
   let rects: PlacedRect[] = [];
-  for (let scale = 1; scale >= scaleFloor; scale -= 0.02) {
-    const scaledDims = dimsForMosaicScale(ordered, baseDims, scale);
+
+  if (layout.diagonalSplit) {
+    // One pack only — multi-scale postProcess thrashed phones on dense mosaics.
     const placed = placeAllMarks(
       ordered,
-      scaledDims,
+      baseDims,
       region,
       teamBounds,
       side,
       layout,
       minMarkPx
     );
-    const processed = postProcessMosaic(placed, teamBounds, ordered);
-    if (mosaicLayoutValid(processed, baseDims, scale, teamBounds, layout, side)) {
-      mosaicScale = scale;
-      rects = processed;
-      break;
-    }
-    if (scale <= scaleFloor) {
-      mosaicScale = scale;
-      rects = postProcessMosaic(placed, teamBounds, ordered);
-    }
-  }
-
-  if (!mosaicLayoutValid(rects, baseDims, mosaicScale, teamBounds, layout, side)) {
-    for (let pass = 0; pass < 4; pass++) {
-      mosaicScale = Math.max(scaleFloor, mosaicScale - 0.05);
-      const scaledDims = dimsForMosaicScale(ordered, baseDims, mosaicScale);
-      const candidate = postProcessMosaic(
-        placeAllMarks(
-          ordered,
-          scaledDims,
-          region,
-          teamBounds,
-          side,
-          layout,
-          minMarkPx
-        ),
+    rects = repairOverlaps(placed, teamBounds);
+    mosaicScale = 1;
+  } else {
+    for (let scale = 1; scale >= scaleFloor; scale -= 0.02) {
+      const scaledDims = dimsForMosaicScale(ordered, baseDims, scale);
+      const placed = placeAllMarks(
+        ordered,
+        scaledDims,
+        region,
         teamBounds,
-        ordered
+        side,
+        layout,
+        minMarkPx
       );
-      if (mosaicLayoutValid(candidate, baseDims, mosaicScale, teamBounds, layout, side)) {
-        rects = candidate;
+      const processed = postProcessMosaic(placed, teamBounds, ordered);
+      if (mosaicLayoutValid(processed, baseDims, scale, teamBounds, layout, side)) {
+        mosaicScale = scale;
+        rects = processed;
         break;
+      }
+      if (scale <= scaleFloor) {
+        mosaicScale = scale;
+        rects = postProcessMosaic(placed, teamBounds, ordered);
+      }
+    }
+
+    if (!mosaicLayoutValid(rects, baseDims, mosaicScale, teamBounds, layout, side)) {
+      for (let pass = 0; pass < 4; pass++) {
+        mosaicScale = Math.max(scaleFloor, mosaicScale - 0.05);
+        const scaledDims = dimsForMosaicScale(ordered, baseDims, mosaicScale);
+        const candidate = postProcessMosaic(
+          placeAllMarks(
+            ordered,
+            scaledDims,
+            region,
+            teamBounds,
+            side,
+            layout,
+            minMarkPx
+          ),
+          teamBounds,
+          ordered
+        );
+        if (mosaicLayoutValid(candidate, baseDims, mosaicScale, teamBounds, layout, side)) {
+          rects = candidate;
+          break;
+        }
       }
     }
   }

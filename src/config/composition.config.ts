@@ -49,9 +49,9 @@ export const compositionConfig: CompositionConfig = {
   possessionMosaicCirclesAt100: 36,
   /** Circle diameter in Figma design px before canvas / diagonal scaling. */
   possessionMosaicDesignPx: 44,
-  /** Possession mosaic circles never render smaller than this (px). */
+  /** Possession mosaic circles never render smaller than this (design px @ 1920×1080; 40 on desktop, ≥20 on mobile). */
   possessionMosaicMinPx: 40,
-  /** Subtle bg grid + mark snap size (matches min asset size). */
+  /** Subtle bg grid + mark snap (design px). Desktop stays 40; mobile scales down to ≥20. */
   mosaicGridCellPx: 40,
   /**
    * Boost team palette saturation toward neon while keeping hue (0 = off, 1 = max).

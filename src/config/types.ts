@@ -320,11 +320,11 @@ export interface CompositionConfig {
   possessionMosaicCirclesAt100?: number;
   /** Design-px diameter for each possession mosaic circle (before layout scales). */
   possessionMosaicDesignPx?: number;
-  /** Hard floor for rendered possession mosaic circle diameter (px). */
+  /** Hard floor for rendered possession mosaic circle diameter (design px @ 1920×1080). */
   possessionMosaicMinPx?: number;
   /**
-   * Diagonal artwork: subtle background grid cell size (px). Marks snap so
-   * edges land on grid lines; typically matches possessionMosaicMinPx / minMarkPx.
+   * Diagonal artwork: subtle background grid cell size (design px @ 1920×1080).
+   * Scaled at runtime via getDesignScale; marks snap so edges land on grid lines.
    */
   mosaicGridCellPx?: number;
   /**

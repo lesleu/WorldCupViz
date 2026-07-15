@@ -5,11 +5,13 @@ import { MOBILE_MEDIA_QUERY } from "@/lib/layoutBreakpoint";
 
 /**
  * Tracks mobile vs desktop using the same breakpoint as Tailwind
- * `max-[614px]` / `min-[615px]`. Starts false for SSR-safe hydration;
- * syncs before first paint via useLayoutEffect.
+ * `max-[614px]` / `min-[615px]`.
+ *
+ * Returns `null` until measured so we never mount the wrong p5 canvas
+ * (hidden 0×0 hosts + dual engines freeze phones, especially with diagonal pack).
  */
-export function useIsMobileLayout(): boolean {
-  const [isMobile, setIsMobile] = useState(false);
+export function useIsMobileLayout(): boolean | null {
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useLayoutEffect(() => {
     const media = window.matchMedia(MOBILE_MEDIA_QUERY);

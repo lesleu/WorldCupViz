@@ -1,5 +1,6 @@
 import { cfg } from "@/config";
 import { designConfig } from "@/config/design.config";
+import { eventMarksConfig } from "@/config/eventMarks.config";
 import { COMPONENT_SIZES } from "@/config/componentSizes.generated";
 import type { VisualComponent } from "@/design-system/mapping/visualMappings";
 import { teamZoneForSide, type PosterLayout } from "@/design-system/layout/posterLayout";
@@ -15,6 +16,47 @@ export function getDesignScale(layout: PosterLayout): number {
 
 export function scaleDesignPx(px: number, layout: PosterLayout): number {
   return px * getDesignScale(layout);
+}
+
+/**
+ * Mosaic grid / mark floors are design px at 1920×1080 (typically 40).
+ * Desktop: keep the design size (40) — do not scale mid-viewport.
+ * Mobile (artwork ≤ 614px, same as layout breakpoint): scale with a 20px floor.
+ */
+const MOSAIC_MOBILE_FLOOR_PX = 20;
+/** Matches `MOBILE_MAX_WIDTH_PX` / match-page mobile artwork. */
+const MOSAIC_MOBILE_ARTWORK_MAX_PX = 614;
+
+function isMobileMosaicArtwork(layout: PosterLayout): boolean {
+  return layout.artworkWidth <= MOSAIC_MOBILE_ARTWORK_MAX_PX;
+}
+
+/** Design-px mosaic/grid values → runtime px for this artwork size. */
+export function scaleMosaicDesignPx(designPx: number, layout: PosterLayout): number {
+  const design = Math.max(Math.round(designPx), 1);
+  if (!isMobileMosaicArtwork(layout)) {
+    return design;
+  }
+  const scaled = Math.round(scaleDesignPx(design, layout));
+  return Math.max(MOSAIC_MOBILE_FLOOR_PX, Math.min(design, scaled));
+}
+
+/** Background + snap grid cell (composition.mosaicGridCellPx is design px). */
+export function mosaicGridCellRuntimePx(layout: PosterLayout): number {
+  return scaleMosaicDesignPx(cfg.composition.mosaicGridCellPx ?? 40, layout);
+}
+
+/** Event mark short-side floor (eventMarks.minMarkPx is design px). */
+export function mosaicMinMarkRuntimePx(layout: PosterLayout): number {
+  return scaleMosaicDesignPx(eventMarksConfig.minMarkPx, layout);
+}
+
+/** Possession circle diameter floor (composition.possessionMosaicMinPx is design px). */
+export function possessionMosaicMinRuntimePx(layout: PosterLayout): number {
+  return scaleMosaicDesignPx(
+    cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx,
+    layout
+  );
 }
 
 /** Normalize a runtime px value to artwork width (for resize-safe marks). */

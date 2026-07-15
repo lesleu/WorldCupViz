@@ -43,6 +43,9 @@ interface MatchPageShellProps {
 export default function MatchPageShell({ entry, initialFeed }: MatchPageShellProps) {
   const router = useRouter();
   const isMobileLayout = useIsMobileLayout();
+  const layoutReady = isMobileLayout !== null;
+  const mountMobileCanvas = layoutReady && isMobileLayout === true;
+  const mountDesktopCanvas = layoutReady && isMobileLayout === false;
   const [mode, setMode] = useState<AppMode>(
     entry.status === "live" || entry.status === "completed" ? "live" : "replay"
   );
@@ -243,53 +246,64 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
       </header>
 
       {/* Mobile: one full poster canvas + stacked stats (single p5 instance) */}
-      <div className="flex shrink-0 flex-col min-[615px]:hidden">
-        <MatchModeControls
-          match={matchData}
-          mode={mode}
-          matchStatus={matchStatus}
-          hasReplayFeed={hasReplayFeed}
-          replayUi={replayUi}
-          replayActions={replayActionsRef}
-          onModeChange={setMode}
-        />
+      {mountMobileCanvas ? (
+        <div className="flex shrink-0 flex-col min-[615px]:hidden">
+          <MatchModeControls
+            match={matchData}
+            mode={mode}
+            matchStatus={matchStatus}
+            hasReplayFeed={hasReplayFeed}
+            replayUi={replayUi}
+            replayActions={replayActionsRef}
+            onModeChange={setMode}
+          />
 
-        <div
-          className="relative aspect-[4/5] min-h-[320px] w-full border-b"
-          style={{ borderColor: panelBorder }}
-        >
-          <div className="absolute inset-0">
-            <MatchVisualizer
-              {...visualizerProps}
-              onControls={handleControls}
-              className="h-full min-h-[320px]"
+          <div
+            className="relative aspect-[4/5] min-h-[320px] w-full border-b"
+            style={{ borderColor: panelBorder }}
+          >
+            <div className="absolute inset-0">
+              <MatchVisualizer
+                {...visualizerProps}
+                onControls={handleControls}
+                className="h-full min-h-[320px]"
+              />
+            </div>
+          </div>
+
+          <div className="border-b p-4" style={{ borderColor: panelBorder }}>
+            <TeamStatsBlock
+              teamName={matchData.homeTeam}
+              stats={matchData.home}
+              accent={homePalette.c1}
+              teamPalette={homePalette}
+              showPenaltyShootout={showPenaltyShootout}
+            />
+          </div>
+
+          <div className="p-4">
+            <TeamStatsBlock
+              teamName={matchData.awayTeam}
+              stats={matchData.away}
+              accent={awayPalette.c1}
+              teamPalette={awayPalette}
+              showPenaltyShootout={showPenaltyShootout}
             />
           </div>
         </div>
+      ) : null}
 
-        <div className="border-b p-4" style={{ borderColor: panelBorder }}>
-          <TeamStatsBlock
-            teamName={matchData.homeTeam}
-            stats={matchData.home}
-            accent={homePalette.c1}
-            teamPalette={homePalette}
-            showPenaltyShootout={showPenaltyShootout}
-          />
+      {!layoutReady ? (
+        <div
+          className="flex min-h-[40vh] flex-1 items-center justify-center px-4 font-mono text-xs uppercase tracking-widest text-white/45 min-[615px]:hidden"
+          aria-busy="true"
+        >
+          Loading artwork…
         </div>
-
-        <div className="p-4">
-          <TeamStatsBlock
-            teamName={matchData.awayTeam}
-            stats={matchData.away}
-            accent={awayPalette.c1}
-            teamPalette={awayPalette}
-            showPenaltyShootout={showPenaltyShootout}
-          />
-        </div>
-      </div>
+      ) : null}
 
       {/* Desktop: full poster + sidebar — skip on mobile to avoid dual p5 */}
-      {!isMobileLayout ? (
+      {mountDesktopCanvas ? (
         <div className="relative hidden min-h-0 min-w-0 flex-1 flex-col min-[615px]:flex">
           <div className="absolute left-4 top-4 z-30 flex items-center gap-3">
             <button
@@ -319,7 +333,9 @@ export default function MatchPageShell({ entry, initialFeed }: MatchPageShellPro
         replayUi={replayUi}
         replayActions={replayActionsRef}
         onModeChange={setMode}
-        className={isMobileLayout ? "hidden" : "hidden min-[615px]:flex"}
+        className={
+          mountDesktopCanvas ? "hidden min-[615px]:flex" : "hidden"
+        }
       />
     </main>
   );

@@ -9,6 +9,8 @@ import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/
 import type { TeamSide } from "@/data/mockMatch";
 import {
   getTeamZoneFillScale,
+  mosaicMinMarkRuntimePx,
+  possessionMosaicMinRuntimePx,
   scaleDesignPx,
 } from "@/design-system/layout/designScale";
 import type { PosterLayout } from "@/design-system/layout/posterLayout";
@@ -101,7 +103,9 @@ export function resolveMarkSizePx(
   spawnScale = 1,
   options: { zoneFill?: boolean } = {}
 ): number {
-  const zoneFill = options.zoneFill ?? !usesShotDesignBase(component);
+  const zoneFill =
+    options.zoneFill ??
+    (!usesShotDesignBase(component) && !layout.diagonalSplit);
   const rankScale = rankDecayMultiplier(component, rank);
   const scale = markSizeScale(component) * spawnScale * rankScale;
 
@@ -154,7 +158,7 @@ export function resolveGoalMarkSizePx(
     heightPx *= cap;
   }
 
-  return clampMarkDimsMin({ widthPx, heightPx });
+  return clampMarkDimsMin({ widthPx, heightPx }, layout);
 }
 
 /** Offside bar — width and height use separate Figma axes. */
@@ -180,30 +184,45 @@ export function resolveOffsideMarkSizePx(
           ? heightDesign * (vb.w / vb.h)
           : figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale;
       })();
-  const zone = getTeamZoneFillScale(layout, side);
+  const zone = layout.diagonalSplit ? 1 : getTeamZoneFillScale(layout, side);
 
-  return clampMarkDimsMin({
-    widthPx: scaleDesignPx(widthDesign, layout) * zone,
-    heightPx: scaleDesignPx(heightDesign, layout) * zone,
-  });
+  return clampMarkDimsMin(
+    {
+      widthPx: scaleDesignPx(widthDesign, layout) * zone,
+      heightPx: scaleDesignPx(heightDesign, layout) * zone,
+    },
+    layout
+  );
 }
 
-/** Global experiment: shrink every asset's footprint by this many px (long side). */
+/** Global experiment: shrink every asset's footprint by this many design px (long side). */
 export const MARK_SHRINK_PX = 10;
 
 /**
  * Shrink each mark by MARK_SHRINK_PX (aspect-preserving, off the long side), then
- * enforce minMarkPx on the shorter side (from eventMarks.config).
+ * enforce a short-side floor. Pass `layout` so both shrink and floor scale with
+ * the artboard; or pass a runtime min px number (already scaled).
  */
 export function clampMarkDimsMin(
   dims: MarkPixelDims,
-  minPx = eventMarksConfig.minMarkPx
+  layoutOrMinPx?: PosterLayout | number
 ): MarkPixelDims {
+  const layout =
+    layoutOrMinPx && typeof layoutOrMinPx === "object" ? layoutOrMinPx : undefined;
+  const minPx =
+    typeof layoutOrMinPx === "number"
+      ? layoutOrMinPx
+      : layout
+        ? mosaicMinMarkRuntimePx(layout)
+        : eventMarksConfig.minMarkPx;
+  const shrinkPx = layout ? scaleDesignPx(MARK_SHRINK_PX, layout) : MARK_SHRINK_PX;
+
   let { widthPx, heightPx } = dims;
 
   const long = Math.max(widthPx, heightPx);
-  if (long > 0 && MARK_SHRINK_PX > 0) {
-    const shrink = Math.max(0, (long - MARK_SHRINK_PX) / long);
+  // Never shrink past zero — absolute MARK_SHRINK_PX can exceed mobile design-scaled sizes.
+  if (long > shrinkPx && shrinkPx > 0) {
+    const shrink = (long - shrinkPx) / long;
     widthPx *= shrink;
     heightPx *= shrink;
   }
@@ -249,8 +268,7 @@ export function resolveQuadrantEntryDimensions(
 ): MarkPixelDims {
   if (component === VISUAL_COMPONENT.PossessionGrid) {
     const design = cfg.composition.possessionMosaicDesignPx ?? 44;
-    const minPx =
-      cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx;
+    const minPx = possessionMosaicMinRuntimePx(layout);
     const scale =
       markSizeScale(component) *
       mark.spawnScale *
@@ -261,6 +279,7 @@ export function resolveQuadrantEntryDimensions(
       ? (cfg.composition.diagonalMarkScale ?? 0.58)
       : 1;
     const floor = minPx / Math.max(diagonal, 1e-6);
+    // Numeric floor is already runtime-scaled; shrink is skipped when ≥ long side.
     return clampMarkDimsMin({ widthPx: px, heightPx: px }, floor);
   }
 
@@ -283,7 +302,7 @@ export function resolveQuadrantEntryDimensions(
     );
     const vb = COMPONENT_PATHS.Foul?.viewBox;
     const widthPx = vb ? heightPx * (vb.w / vb.h) : heightPx * 3;
-    return clampMarkDimsMin({ widthPx, heightPx });
+    return clampMarkDimsMin({ widthPx, heightPx }, layout);
   }
 
   const widthPx = resolveMarkSizePx(
@@ -296,9 +315,12 @@ export function resolveQuadrantEntryDimensions(
   );
   const vb = COMPONENT_PATHS[component]?.viewBox;
   if (vb) {
-    return clampMarkDimsMin({ widthPx, heightPx: widthPx * (vb.h / vb.w) });
+    return clampMarkDimsMin(
+      { widthPx, heightPx: widthPx * (vb.h / vb.w) },
+      layout
+    );
   }
-  return clampMarkDimsMin({ widthPx, heightPx: widthPx });
+  return clampMarkDimsMin({ widthPx, heightPx: widthPx }, layout);
 }
 
 export function markRng(markId: string, minute: number): () => number {
