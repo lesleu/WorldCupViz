@@ -292,45 +292,6 @@ export interface CompositionConfig {
   usePoissonCandidates: boolean;
   /** Visual-component keyed placement profiles. */
   eventPlacementProfiles: Record<string, EventPlacementProfile>;
-  /**
-   * realone experiment: split the artwork along the top-right→bottom-left
-   * diagonal. Home owns the upper-left triangle (grows from top-left), away owns
-   * the lower-right triangle (grows from bottom-right). Replaces the left/right
-   * split; also drops team gradients, initials, possession grid, and pass accuracy.
-   */
-  diagonalSplit?: boolean;
-  /** Normalized dead band around the diagonal seam (u+v units) so teams never overlap. */
-  diagonalSeamGap?: number;
-  /** How strongly marks cluster toward each team's growth corner (0 = off). */
-  cornerGrowthBias?: number;
-  /**
-   * Diagonal mosaic: how sporadic / multi-branched growth is (0 = two main arms,
-   * 1 = wilder random forks). Soft-picks among top placements + edge slides.
-   */
-  mosaicGrowthSporadicity?: number;
-  /**
-   * Uniform size multiplier for mosaic marks under diagonalSplit — smaller so
-   * both teams pack into opposite triangles without crossing the seam.
-   */
-  diagonalMarkScale?: number;
-  /**
-   * Diagonal mosaic: possession represented as circle marks (not the 10×10 grid).
-   * Count at 100% possession; scaled linearly (55% → round(0.55 * this)).
-   */
-  possessionMosaicCirclesAt100?: number;
-  /** Design-px diameter for each possession mosaic circle (before layout scales). */
-  possessionMosaicDesignPx?: number;
-  /** Hard floor for rendered possession mosaic circle diameter (design px @ 1920×1080). */
-  possessionMosaicMinPx?: number;
-  /**
-   * Diagonal artwork: subtle background grid cell size (design px @ 1920×1080).
-   * Scaled at runtime via getDesignScale; marks snap so edges land on grid lines.
-   */
-  mosaicGridCellPx?: number;
-  /**
-   * Keep team hue; raise saturation / punch toward neon (0–1). Diagonal draw only.
-   */
-  neonPaletteBoost?: number;
 }
 
 export type MatchEventTypeKey =

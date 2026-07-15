@@ -1,12 +1,8 @@
 import {
   addEventMark,
-  beginDeferredTeamLayout,
-  buildPossessionCircleAppearMinutes,
   cloneContinuous,
   createKickoffArtState,
-  endDeferredTeamLayout,
   removeCancelledGoalMark,
-  syncPossessionMosaic,
   type AccumulatedArtState,
   type ContinuousMatchState,
 } from "@/design-system/state/artState";
@@ -104,12 +100,10 @@ export class ReplayEngine {
   extendFeed(updates: LiveFeedUpdate[]): void {
     if (updates.length === 0) return;
 
-    const existing = new Set(
-      this.feed.map((update, index) => feedUpdateSignature(update, index))
-    );
+    const existing = new Set(this.feed.map((update) => feedUpdateSignature(update)));
 
     for (const update of updates) {
-      const key = feedUpdateSignature(update, this.feed.length);
+      const key = feedUpdateSignature(update);
       if (existing.has(key)) continue;
       existing.add(key);
       this.feed.push(update);
@@ -139,39 +133,15 @@ export class ReplayEngine {
     this.liveClockMode = enabled;
   }
 
-  private syncPossessionAtMinute(layout: PosterLayout): void {
-    const appear = {
-      home: buildPossessionCircleAppearMinutes(
-        this.feed,
-        this.kickoff,
-        "home",
-        this.minute
-      ),
-      away: buildPossessionCircleAppearMinutes(
-        this.feed,
-        this.kickoff,
-        "away",
-        this.minute
-      ),
-    };
-    syncPossessionMosaic(this.art, layout, this.targetContinuous, appear);
-  }
-
   /** Apply feed updates immediately (e.g. after a live poll). */
   flushUpdates(layout: PosterLayout, match: MatchData): void {
-    beginDeferredTeamLayout();
-    try {
-      this.applyPendingUpdates(layout, match);
-      this.smoothContinuous = lerpContinuous(
-        this.smoothContinuous,
-        this.targetContinuous,
-        cfg.replay.continuousSmoothing
-      );
-      this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-      this.syncPossessionAtMinute(layout);
-    } finally {
-      endDeferredTeamLayout(this.art, layout);
-    }
+    this.applyPendingUpdates(layout, match);
+    this.smoothContinuous = lerpContinuous(
+      this.smoothContinuous,
+      this.targetContinuous,
+      cfg.replay.continuousSmoothing
+    );
+    this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
   }
 
   /** Clear all accumulated marks and restart from kickoff. */
@@ -208,15 +178,9 @@ export class ReplayEngine {
   seekToMinute(minute: number, layout: PosterLayout, match: MatchData): void {
     this.reset();
     this.minute = Math.min(Math.max(minute, 0), cfg.replay.maxMatchMinutes);
-    beginDeferredTeamLayout();
-    try {
-      this.applyPendingUpdates(layout, match);
-      this.smoothContinuous = cloneContinuous(this.targetContinuous);
-      this.art.possessionGrid = cloneContinuous(this.targetContinuous);
-      this.syncPossessionAtMinute(layout);
-    } finally {
-      endDeferredTeamLayout(this.art, layout);
-    }
+    this.applyPendingUpdates(layout, match);
+    this.smoothContinuous = cloneContinuous(this.targetContinuous);
+    this.art.possessionGrid = cloneContinuous(this.targetContinuous);
     this.pause();
   }
 
@@ -232,21 +196,13 @@ export class ReplayEngine {
       }
     }
 
-    beginDeferredTeamLayout();
-    try {
-      this.applyPendingUpdates(layout, match);
-      this.smoothContinuous = lerpContinuous(
-        this.smoothContinuous,
-        this.targetContinuous,
-        cfg.replay.continuousSmoothing
-      );
-      this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-      // Sync once per tick from discrete feed timeline — count grows as possession
-      // state_updates arrive (not every lerped float frame).
-      this.syncPossessionAtMinute(layout);
-    } finally {
-      endDeferredTeamLayout(this.art, layout);
-    }
+    this.applyPendingUpdates(layout, match);
+    this.smoothContinuous = lerpContinuous(
+      this.smoothContinuous,
+      this.targetContinuous,
+      cfg.replay.continuousSmoothing
+    );
+    this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
     tickEnergy(this.energy, deltaSeconds, this.isPlaying, true);
   }
 
@@ -268,7 +224,7 @@ export class ReplayEngine {
       const update = this.feed[index];
       if (update.minute > this.minute) continue;
 
-      const key = feedUpdateSignature(update, index);
+      const key = feedUpdateSignature(update);
       if (this.appliedKeys.has(key)) continue;
 
       this.applyUpdate(update, index, layout, match);
@@ -295,8 +251,6 @@ export class ReplayEngine {
         home: { ...update.home },
         away: { ...update.away },
       };
-      // Don't sync circles here — seek/flush apply dozens of state_updates.
-      // One sync at the end rebuilds the mosaic once.
       return;
     }
 

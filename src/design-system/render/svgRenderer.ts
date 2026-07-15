@@ -66,11 +66,6 @@ export interface DrawSvgOptions {
   /** Exact pixel box — uniform scale to fit width × height (preserves SVG aspect). */
   widthPx?: number;
   heightPx?: number;
-  /**
-   * When true with widthPx/heightPx, scale X and Y independently so the SVG
-   * fills the box (stretches). Used for Goal/Foul/Offside on the mosaic grid.
-   */
-  stretchToBox?: boolean;
   /** Override layer colors (layer name → hex). */
   colorOverrides?: Record<string, string>;
 }
@@ -99,14 +94,11 @@ export function drawSvgComponent(
   if (rot !== 0) p.rotate(rot);
 
   if (useBox) {
-    const sx = options.widthPx! / viewBox.w;
-    const sy = options.heightPx! / viewBox.h;
-    if (options.stretchToBox) {
-      p.scale(sx, sy);
-    } else {
-      const scale = Math.min(sx, sy);
-      p.scale(scale, scale);
-    }
+    const scale = Math.min(
+      options.widthPx! / viewBox.w,
+      options.heightPx! / viewBox.h
+    );
+    p.scale(scale, scale);
   } else {
     const scale =
       options.scalePx !== undefined

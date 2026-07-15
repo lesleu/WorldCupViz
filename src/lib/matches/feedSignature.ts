@@ -1,14 +1,15 @@
 import type { LiveFeedUpdate } from "@/data/mockLiveFeed";
 import type { MatchFeedResponse } from "@/lib/matches/types";
 
-export function feedUpdateSignature(
-  update: LiveFeedUpdate,
-  index?: number
-): string {
+/**
+ * Stable identity for feed rows across live polls.
+ * Must NOT include array index — extendFeed re-sorts and polls re-send the full
+ * feed; index-based keys caused every foul/shot to be applied again each poll.
+ */
+export function feedUpdateSignature(update: LiveFeedUpdate): string {
   if (update.type === "state_update") {
     return [
       "state",
-      index ?? -1,
       update.minute,
       update.home.possession,
       update.home.passAccuracy,
@@ -17,13 +18,16 @@ export function feedUpdateSignature(
     ].join(":");
   }
 
+  // Sequenced events (stat synthesis / shootout) keep identity when minutes reshuffle.
+  if (update.sequence != null) {
+    return ["event", update.team, update.eventType, `seq:${update.sequence}`].join(":");
+  }
+
   return [
     "event",
-    index ?? -1,
-    update.minute,
     update.team,
     update.eventType,
-    update.sequence ?? 0,
+    `min:${update.minute}`,
   ].join(":");
 }
 
@@ -31,5 +35,6 @@ export function feedUpdateSignature(
 export function feedBundleSignature(feed: MatchFeedResponse | null | undefined): string {
   if (!feed) return "none";
   const events = feed.feed.filter((update) => update.type === "event").length;
-  return `${feed.feed.length}:${events}:${feed.hasReplayFeed ? 1 : 0}:${feed.currentMinute ?? 0}`;
+  // Omit currentMinute — live clock ticks must not reboot the canvas.
+  return `${feed.feed.length}:${events}:${feed.hasReplayFeed ? 1 : 0}`;
 }

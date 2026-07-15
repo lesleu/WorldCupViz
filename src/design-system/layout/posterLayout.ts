@@ -18,8 +18,6 @@ export interface PosterLayout {
   artworkHeight: number;
   homeZone: TeamZone;
   awayZone: TeamZone;
-  /** realone: teams share the full canvas, split along the anti-diagonal. */
-  diagonalSplit: boolean;
 }
 
 /** Bounds and spawn anchor for one team's side of the canvas. */
@@ -155,12 +153,9 @@ function buildPosterLayout(
   const midX = width * 0.5;
   const zones = cfg.composition.zones;
   const artworkHeight = Math.max(artworkBottom - artworkTop, 1);
-  const diagonalSplit = cfg.composition.diagonalSplit === true;
   const gapHalf = width * zones.centerGapWidthRatio * 0.5;
-  // Diagonal split: both teams share the full artwork rect; the triangle
-  // ownership + seam gap are enforced in the placement engine.
-  const homeRight = diagonalSplit ? width : midX - gapHalf;
-  const awayLeft = diagonalSplit ? 0 : midX + gapHalf;
+  const homeRight = midX - gapHalf;
+  const awayLeft = midX + gapHalf;
 
   return {
     margin: 0,
@@ -172,11 +167,10 @@ function buildPosterLayout(
     artworkBottom,
     waveformTop,
     waveformBottom,
-    centerGapLeft: diagonalSplit ? midX : homeRight,
-    centerGapRight: diagonalSplit ? midX : awayLeft,
+    centerGapLeft: homeRight,
+    centerGapRight: awayLeft,
     artworkWidth: width,
     artworkHeight,
-    diagonalSplit,
     homeZone: buildTeamZone(
       0,
       homeRight,
@@ -283,7 +277,6 @@ export function computeSingleTeamArtworkLayout(
     centerGapRight: awayLeft,
     artworkWidth: width,
     artworkHeight: height,
-    diagonalSplit: false,
     homeZone: buildTeamZone(
       0,
       homeRight,

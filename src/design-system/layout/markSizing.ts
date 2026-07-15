@@ -4,13 +4,10 @@ import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated
 import { goalsConfig } from "@/config/goals.config";
 import { markSizesConfig } from "@/config/markSizes.config";
 import { randomnessConfig } from "@/config/randomness.config";
-import { cfg } from "@/config";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import type { TeamSide } from "@/data/mockMatch";
 import {
   getTeamZoneFillScale,
-  mosaicMinMarkRuntimePx,
-  possessionMosaicMinRuntimePx,
   scaleDesignPx,
 } from "@/design-system/layout/designScale";
 import type { PosterLayout } from "@/design-system/layout/posterLayout";
@@ -103,9 +100,7 @@ export function resolveMarkSizePx(
   spawnScale = 1,
   options: { zoneFill?: boolean } = {}
 ): number {
-  const zoneFill =
-    options.zoneFill ??
-    (!usesShotDesignBase(component) && !layout.diagonalSplit);
+  const zoneFill = options.zoneFill ?? !usesShotDesignBase(component);
   const rankScale = rankDecayMultiplier(component, rank);
   const scale = markSizeScale(component) * spawnScale * rankScale;
 
@@ -158,7 +153,7 @@ export function resolveGoalMarkSizePx(
     heightPx *= cap;
   }
 
-  return clampMarkDimsMin({ widthPx, heightPx }, layout);
+  return clampMarkDimsMin({ widthPx, heightPx });
 }
 
 /** Offside bar — width and height use separate Figma axes. */
@@ -175,54 +170,34 @@ export function resolveOffsideMarkSizePx(
     rankDecayMultiplier(VISUAL_COMPONENT.Offside, rank);
 
   const heightDesign = figmaDesignPx(VISUAL_COMPONENT.Offside, undefined, "y") * scale;
-  // Diagonal mosaic: don't lock aspect to the SVG — axes snap/stretch independently.
-  const widthDesign = layout.diagonalSplit
-    ? figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale
-    : (() => {
-        const vb = COMPONENT_PATHS.Offside?.viewBox;
-        return vb
-          ? heightDesign * (vb.w / vb.h)
-          : figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale;
-      })();
-  const zone = layout.diagonalSplit ? 1 : getTeamZoneFillScale(layout, side);
+  const vb = COMPONENT_PATHS.Offside?.viewBox;
+  const widthDesign = vb
+    ? heightDesign * (vb.w / vb.h)
+    : figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale;
+  const zone = getTeamZoneFillScale(layout, side);
 
-  return clampMarkDimsMin(
-    {
-      widthPx: scaleDesignPx(widthDesign, layout) * zone,
-      heightPx: scaleDesignPx(heightDesign, layout) * zone,
-    },
-    layout
-  );
+  return clampMarkDimsMin({
+    widthPx: scaleDesignPx(widthDesign, layout) * zone,
+    heightPx: scaleDesignPx(heightDesign, layout) * zone,
+  });
 }
 
-/** Global experiment: shrink every asset's footprint by this many design px (long side). */
+/** Global experiment: shrink every asset's footprint by this many px (long side). */
 export const MARK_SHRINK_PX = 10;
 
 /**
  * Shrink each mark by MARK_SHRINK_PX (aspect-preserving, off the long side), then
- * enforce a short-side floor. Pass `layout` so both shrink and floor scale with
- * the artboard; or pass a runtime min px number (already scaled).
+ * enforce minMarkPx on the shorter side (from eventMarks.config, default 20px).
  */
 export function clampMarkDimsMin(
   dims: MarkPixelDims,
-  layoutOrMinPx?: PosterLayout | number
+  minPx = eventMarksConfig.minMarkPx
 ): MarkPixelDims {
-  const layout =
-    layoutOrMinPx && typeof layoutOrMinPx === "object" ? layoutOrMinPx : undefined;
-  const minPx =
-    typeof layoutOrMinPx === "number"
-      ? layoutOrMinPx
-      : layout
-        ? mosaicMinMarkRuntimePx(layout)
-        : eventMarksConfig.minMarkPx;
-  const shrinkPx = layout ? scaleDesignPx(MARK_SHRINK_PX, layout) : MARK_SHRINK_PX;
-
   let { widthPx, heightPx } = dims;
 
   const long = Math.max(widthPx, heightPx);
-  // Never shrink past zero — absolute MARK_SHRINK_PX can exceed mobile design-scaled sizes.
-  if (long > shrinkPx && shrinkPx > 0) {
-    const shrink = (long - shrinkPx) / long;
+  if (long > 0 && MARK_SHRINK_PX > 0) {
+    const shrink = Math.max(0, (long - MARK_SHRINK_PX) / long);
     widthPx *= shrink;
     heightPx *= shrink;
   }
@@ -266,23 +241,6 @@ export function resolveQuadrantEntryDimensions(
   mark: { id: string; minute: number; spawnScale: number },
   rng: () => number
 ): MarkPixelDims {
-  if (component === VISUAL_COMPONENT.PossessionGrid) {
-    const design = cfg.composition.possessionMosaicDesignPx ?? 44;
-    const minPx = possessionMosaicMinRuntimePx(layout);
-    const scale =
-      markSizeScale(component) *
-      mark.spawnScale *
-      rankDecayMultiplier(component, rank);
-    const px = scaleDesignPx(design * scale, layout);
-    // Pre-compensate diagonal draw scale so final diameter stays ≥ minPx.
-    const diagonal = layout.diagonalSplit
-      ? (cfg.composition.diagonalMarkScale ?? 0.58)
-      : 1;
-    const floor = minPx / Math.max(diagonal, 1e-6);
-    // Numeric floor is already runtime-scaled; shrink is skipped when ≥ long side.
-    return clampMarkDimsMin({ widthPx: px, heightPx: px }, floor);
-  }
-
   if (component === VISUAL_COMPONENT.Goal) {
     return resolveGoalMarkSizePx(layout, rank, rng, mark.spawnScale, side);
   }
@@ -302,7 +260,7 @@ export function resolveQuadrantEntryDimensions(
     );
     const vb = COMPONENT_PATHS.Foul?.viewBox;
     const widthPx = vb ? heightPx * (vb.w / vb.h) : heightPx * 3;
-    return clampMarkDimsMin({ widthPx, heightPx }, layout);
+    return clampMarkDimsMin({ widthPx, heightPx });
   }
 
   const widthPx = resolveMarkSizePx(
@@ -315,12 +273,9 @@ export function resolveQuadrantEntryDimensions(
   );
   const vb = COMPONENT_PATHS[component]?.viewBox;
   if (vb) {
-    return clampMarkDimsMin(
-      { widthPx, heightPx: widthPx * (vb.h / vb.w) },
-      layout
-    );
+    return clampMarkDimsMin({ widthPx, heightPx: widthPx * (vb.h / vb.w) });
   }
-  return clampMarkDimsMin({ widthPx, heightPx: widthPx }, layout);
+  return clampMarkDimsMin({ widthPx, heightPx: widthPx });
 }
 
 export function markRng(markId: string, minute: number): () => number {

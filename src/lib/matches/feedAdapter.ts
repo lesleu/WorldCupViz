@@ -248,23 +248,18 @@ export function mergeMatchDataWithFeedStats(
   };
 }
 
-/** Deterministic minute slots spread across the elapsed match window. */
-function spreadEventMinutes(
-  count: number,
-  maxMinute: number,
-  seed: number
-): number[] {
-  if (count <= 0 || maxMinute <= 0) return [];
-
-  const minutes: number[] = [];
-  for (let i = 0; i < count; i++) {
-    const t = (i + 0.5) / count;
-    const jitter = (((seed + i * 17) * 9301 + 49297) % 233280) / 233280 - 0.5;
-    const minute = Math.round(maxMinute * Math.min(0.98, Math.max(0.02, t + jitter * 0.06)));
-    minutes.push(Math.max(1, minute));
-  }
-
-  return minutes.sort((a, b) => a - b);
+/**
+ * Stable minute for the i-th synthetic event of a type.
+ * Independent of total count and live elapsed clock so polls don't reshuffle
+ * existing foul/shot marks (which previously duplicated via extendFeed).
+ */
+function syntheticEventMinute(index: number, seed: number, horizon: number): number {
+  const jitter =
+    (((seed + index * 17) * 9301 + 49297) % 233280) / 233280 - 0.5;
+  // Spread indices across a fixed regulation horizon with light jitter.
+  const t = ((index * 0.6180339887) % 1) * 0.9 + 0.05;
+  const minute = Math.round(horizon * Math.min(0.98, Math.max(0.02, t + jitter * 0.04)));
+  return Math.max(1, Math.min(horizon, minute));
 }
 
 function appendSyntheticEvents(
@@ -275,18 +270,24 @@ function appendSyntheticEvents(
   maxMinute: number,
   seed: number
 ): void {
-  if (count <= 0) return;
+  if (count <= 0 || maxMinute <= 0) return;
 
-  const minutes = spreadEventMinutes(count, maxMinute, seed);
-  minutes.forEach((minute, sequence) => {
+  // Lock distribution to regulation (or ET when already past 90) so the live
+  // clock ticking 12 → 13 does not move every synthetic minute.
+  const horizon = Math.max(90, maxMinute);
+
+  for (let sequence = 0; sequence < count; sequence++) {
+    const target = syntheticEventMinute(sequence, seed, horizon);
+    // Clamp into elapsed window so early live matches still show current totals.
+    const minute = Math.min(target, maxMinute);
     feed.push({
-      minute,
+      minute: Math.max(1, minute),
       type: "event",
       team: side,
       eventType,
       sequence,
     });
-  });
+  }
 }
 
 function extraStatCount(

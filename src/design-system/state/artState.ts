@@ -1,4 +1,4 @@
-import type { LiveFeedUpdate, MatchEvent, MatchEventType, StateUpdate } from "@/data/mockLiveFeed";
+import type { MatchEvent, MatchEventType } from "@/data/mockLiveFeed";
 import { paletteForSide, type MatchData, type TeamSide } from "@/data/mockMatch";
 import {
   type PosterLayout,
@@ -145,26 +145,12 @@ export interface Offside {
   phase: number;
 }
 
-/** Possession mosaic circle — count tracks possession % on diagonal layouts. */
-export interface PossessionCircleMark {
-  id: string;
-  side: TeamSide;
-  minute: number;
-  nx: number;
-  ny: number;
-  spawnScale: number;
-  layoutScale: number;
-  phase: number;
-}
-
 /**
  * Accumulated art state — each team builds its own side artifact.
  * possessionGrid morphs continuously; event marks are append-only until reset.
- * possessionCircles are mosaic marks (diagonal composition only).
  */
 export interface AccumulatedArtState {
   possessionGrid: ContinuousMatchState;
-  possessionCircles: PossessionCircleMark[];
   shots: ShotMark[];
   goals: GoalMark[];
   fouls: FoulMark[];
@@ -178,7 +164,6 @@ export interface AccumulatedArtState {
 export function createKickoffArtState(initial: ContinuousMatchState): AccumulatedArtState {
   return {
     possessionGrid: cloneContinuous(initial),
-    possessionCircles: [],
     shots: [],
     goals: [],
     fouls: [],
@@ -251,136 +236,7 @@ export function timedMarkCountOnSide(art: AccumulatedArtState, side: TeamSide): 
   count += art.shotsOnTarget.filter((m) => m.side === side).length;
   count += art.goals.filter((m) => m.side === side).length;
   count += art.cards.filter((m) => m.side === side).length;
-  count += art.possessionCircles.filter((m) => m.side === side).length;
   return count;
-}
-
-export function possessionMosaicCircleCount(possessionPct: number): number {
-  const at100 = cfg.composition.possessionMosaicCirclesAt100 ?? 36;
-  const pct = Math.min(100, Math.max(0, possessionPct));
-  return Math.max(0, Math.round((pct / 100) * at100));
-}
-
-/**
- * Chronological appear-minutes for possession circles on one side, walking feed
- * state_updates up to `upToMinute`. Circle i becomes visible at appear[i].
- * Batches that jump the count are staggered so circles grow in with events.
- */
-export function buildPossessionCircleAppearMinutes(
-  feed: LiveFeedUpdate[],
-  kickoff: StateUpdate,
-  side: TeamSide,
-  upToMinute: number
-): number[] {
-  let pct = side === "home" ? kickoff.home.possession : kickoff.away.possession;
-  const appear: number[] = [];
-  let target = possessionMosaicCircleCount(pct);
-  // Stagger kickoff circles through the opening minutes so they don't all pop at 0'.
-  for (let i = 0; i < target; i++) {
-    appear.push((i / Math.max(target, 1)) * 6);
-  }
-
-  const updates = feed
-    .filter((u): u is Extract<LiveFeedUpdate, { type: "state_update" }> => {
-      return u.type === "state_update" && u.minute <= upToMinute;
-    })
-    .slice()
-    .sort((a, b) => a.minute - b.minute);
-
-  for (const update of updates) {
-    pct = side === "home" ? update.home.possession : update.away.possession;
-    target = possessionMosaicCircleCount(pct);
-    const before = appear.length;
-    while (appear.length < target) {
-      const k = appear.length - before;
-      appear.push(update.minute + k * 0.35);
-    }
-    if (appear.length > target) appear.length = target;
-  }
-
-  // Drop circles that haven't reached the clock yet (kickoff stagger can run past now).
-  return appear.filter((m) => m <= upToMinute + 1e-9);
-}
-
-/**
- * Rebuild possession circle marks from discrete possession % (diagonal only).
- * Circles join the event mosaic: edge-touch, no overlap, shrink-to-fit.
- *
- * Important: pass the *target* / feed possession, not the smoothed/lerped value —
- * rounding a float each animation frame can flicker the count and infinitely
- * re-layout the mosaic (browser freeze / endless "loading").
- *
- * `appearMinutes` (per side) sets when each circle becomes visible in replay.
- */
-export function syncPossessionMosaic(
-  art: AccumulatedArtState,
-  layout: PosterLayout,
-  possessionSource?: ContinuousMatchState,
-  appearMinutes?: { home: number[]; away: number[] }
-): void {
-  if (!layout.diagonalSplit) {
-    if (art.possessionCircles.length > 0) {
-      art.possessionCircles = [];
-      requestBothTeamsLayout(art, layout);
-    }
-    return;
-  }
-
-  const source = possessionSource ?? art.possessionGrid;
-  let changed = false;
-  for (const side of ["home", "away"] as const) {
-    const pct = side === "home" ? source.home.possession : source.away.possession;
-    const sideAppear = appearMinutes?.[side];
-    // Prefer feed timeline length when provided; otherwise possession %.
-    const target = sideAppear
-      ? sideAppear.length
-      : possessionMosaicCircleCount(pct);
-    const existing = art.possessionCircles.filter((c) => c.side === side);
-    if (existing.length === target) {
-      if (sideAppear) {
-        for (let i = 0; i < existing.length; i++) {
-          const appear = sideAppear[i];
-          if (appear !== undefined && existing[i].minute !== appear) {
-            existing[i].minute = appear;
-          }
-        }
-      }
-      continue;
-    }
-
-    changed = true;
-    const kept = existing.slice(0, target);
-    while (kept.length < target) {
-      const i = kept.length;
-      const rng = createRng(
-        (side === "home" ? 17 : 41) * 1009 + i * 131 + cfg.randomness.seed
-      );
-      kept.push({
-        id: `poss-${side}-${i}`,
-        side,
-        minute: sideAppear?.[i] ?? 0,
-        nx: 0,
-        ny: 0,
-        spawnScale: 1,
-        layoutScale: 1,
-        phase: randBetween(rng, 0, Math.PI * 2),
-      });
-    }
-    for (let i = 0; i < kept.length; i++) {
-      const appear = sideAppear?.[i];
-      if (appear !== undefined) {
-        kept[i] = { ...kept[i], minute: appear };
-      }
-    }
-    art.possessionCircles = [
-      ...art.possessionCircles.filter((c) => c.side !== side),
-      ...kept,
-    ];
-  }
-
-  if (changed) {
-    requestBothTeamsLayout(art, layout);
-  }
 }
 
 function quadrantBaseScale(component: VisualComponent): number {
@@ -392,14 +248,6 @@ function collectTimedMarks(
   side: TeamSide
 ): TimedMarkEntry[] {
   const entries: TimedMarkEntry[] = [];
-
-  for (const circle of art.possessionCircles) {
-    if (circle.side !== side) continue;
-    entries.push({
-      mark: circle as LayoutMark,
-      component: VISUAL_COMPONENT.PossessionGrid,
-    });
-  }
 
   for (const shot of art.shots) {
     if (shot.side !== side) continue;
@@ -417,16 +265,10 @@ function collectTimedMarks(
       entries.push({
         mark: proxy,
         component: VISUAL_COMPONENT.Shot,
-        commit: (nx, ny, layoutScale, _layout, footprint) => {
+        commit: (nx, ny, layoutScale) => {
           sq.nx = nx;
           sq.ny = ny;
           sq.layoutScale = layoutScale;
-          if (footprint) {
-            (sq as { layoutNw?: number; layoutNh?: number }).layoutNw =
-              footprint.nw;
-            (sq as { layoutNw?: number; layoutNh?: number }).layoutNh =
-              footprint.nh;
-          }
         },
       });
     });
@@ -483,13 +325,6 @@ function rankForLayoutEntry(
     case VISUAL_COMPONENT.YellowCard:
     case VISUAL_COMPONENT.RedCard:
       return rankInDataset(art, side, "card", mark.id);
-    case VISUAL_COMPONENT.PossessionGrid:
-      return Math.max(
-        0,
-        art.possessionCircles
-          .filter((c) => c.side === side)
-          .findIndex((c) => c.id === mark.id)
-      );
     default:
       return 0;
   }
@@ -530,52 +365,6 @@ function relayoutTeamTimedMarks(
 
 const markScale = () => cfg.composition.markScale;
 const density = () => cfg.composition.densityMultiplier;
-
-/**
- * Seek/flush apply dozens of events; relayouting the mosaic after each one
- * freezes phones (quadratic pack per mark). Batch to one pack at end.
- */
-let deferredTeamLayoutDepth = 0;
-let deferredTeamLayoutDirty = false;
-
-export function beginDeferredTeamLayout(): void {
-  deferredTeamLayoutDepth++;
-}
-
-export function endDeferredTeamLayout(
-  art: AccumulatedArtState,
-  layout: PosterLayout
-): void {
-  deferredTeamLayoutDepth = Math.max(0, deferredTeamLayoutDepth - 1);
-  if (deferredTeamLayoutDepth > 0 || !deferredTeamLayoutDirty) return;
-  deferredTeamLayoutDirty = false;
-  relayoutTeamTimedMarks(art, "home", layout);
-  relayoutTeamTimedMarks(art, "away", layout);
-}
-
-function requestTeamLayout(
-  art: AccumulatedArtState,
-  side: TeamSide,
-  layout: PosterLayout
-): void {
-  if (deferredTeamLayoutDepth > 0) {
-    deferredTeamLayoutDirty = true;
-    return;
-  }
-  relayoutTeamTimedMarks(art, side, layout);
-}
-
-function requestBothTeamsLayout(
-  art: AccumulatedArtState,
-  layout: PosterLayout
-): void {
-  if (deferredTeamLayoutDepth > 0) {
-    deferredTeamLayoutDirty = true;
-    return;
-  }
-  relayoutTeamTimedMarks(art, "home", layout);
-  relayoutTeamTimedMarks(art, "away", layout);
-}
 
 function eventScale(rng: () => number) {
   return markScale() * rand(rng, cfg.composition.markScaleMin, cfg.composition.markScaleMax);
@@ -688,7 +477,7 @@ export function addEventMark(
         });
       }
       art.shots.push({ id, side, minute: event.minute, squares });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.ShotOnTarget: {
@@ -711,7 +500,7 @@ export function addEventMark(
         color: impactColor,
         phase,
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Goal: {
@@ -729,7 +518,7 @@ export function addEventMark(
         phase,
         ...(isShootout ? { variant: "shootout" as const } : {}),
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Foul: {
@@ -743,7 +532,7 @@ export function addEventMark(
         layoutScale: 1,
         phase,
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Corner: {
@@ -758,7 +547,7 @@ export function addEventMark(
         color: palette.c5,
         phase,
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.Offside: {
@@ -773,7 +562,7 @@ export function addEventMark(
         color: getComponentColor(VISUAL_COMPONENT.Offside, palette, "c2", "event.offside"),
         phase,
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
     case VISUAL_COMPONENT.YellowCard:
@@ -790,7 +579,7 @@ export function addEventMark(
         kind: isYellow ? "yellow" : "red",
         phase,
       });
-      requestTeamLayout(art, side, layout);
+      relayoutTeamTimedMarks(art, side, layout);
       break;
     }
   }

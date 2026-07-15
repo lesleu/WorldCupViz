@@ -19,8 +19,8 @@ export const eventMarksConfig: EventMarksConfig = {
   /** Per-mark size jitter (each asset scales individually within a shared multiplier). */
   crowdedScaleMin: 0.94,
   crowdedScaleMax: 1,
-  /** No mark dimension may shrink below this (design px @ 1920×1080; scales at runtime). */
-  minMarkPx: 40,
+  /** No mark dimension may shrink below this (px). */
+  minMarkPx: 20,
   /** How strongly match minute nudges spiral angle (0 = index order only). */
   temporalFlowStrength: 0.42,
   patternComponents: [
@@ -32,6 +32,5 @@ export const eventMarksConfig: EventMarksConfig = {
     VISUAL_COMPONENT.Offside,
     VISUAL_COMPONENT.YellowCard,
     VISUAL_COMPONENT.RedCard,
-    VISUAL_COMPONENT.PossessionGrid,
   ],
 };
