@@ -134,6 +134,18 @@ export class ReplayEngine {
     this.liveClockMode = enabled;
   }
 
+  private syncPossession(layout: PosterLayout, animateSpawn: boolean): void {
+    syncPossessionCircles(this.art, layout, this.targetContinuous, {
+      currentMinute: this.minute,
+      animateSpawn,
+      feed: this.feed,
+      kickoff: {
+        home: this.kickoff.home,
+        away: this.kickoff.away,
+      },
+    });
+  }
+
   /** Apply feed updates immediately (e.g. after a live poll). */
   flushUpdates(layout: PosterLayout, match: MatchData): void {
     this.applyPendingUpdates(layout, match);
@@ -144,7 +156,7 @@ export class ReplayEngine {
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
     // Sync from target (not lerped float) so circle count stays stable.
-    syncPossessionCircles(this.art, layout, this.targetContinuous, this.minute);
+    this.syncPossession(layout, true);
   }
 
   /** Clear all accumulated marks and restart from kickoff. */
@@ -185,7 +197,7 @@ export class ReplayEngine {
     this.smoothContinuous = cloneContinuous(this.targetContinuous);
     this.art.possessionGrid = cloneContinuous(this.targetContinuous);
     // Static seek — circles are fully grown (no wall-clock pop-in).
-    syncPossessionCircles(this.art, layout, this.targetContinuous, this.minute, false);
+    this.syncPossession(layout, false);
     this.pause();
   }
 
@@ -208,7 +220,8 @@ export class ReplayEngine {
       cfg.replay.continuousSmoothing
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
-    syncPossessionCircles(this.art, layout, this.targetContinuous, this.minute);
+    // Replay + live: appear-minutes from feed; wall-clock grow for new circles.
+    this.syncPossession(layout, true);
     tickEnergy(this.energy, deltaSeconds, this.isPlaying, true);
   }
 

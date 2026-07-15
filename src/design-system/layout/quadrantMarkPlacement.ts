@@ -289,20 +289,16 @@ function snapRectToNeighbor(
 function enforceEdgeTouches(
   rects: PlacedRect[],
   teamBounds: RegionBounds,
-  components?: VisualComponent[]
+  _components?: VisualComponent[]
 ): PlacedRect[] {
   if (rects.length <= 1) return rects;
 
   const fixed = rects.map((r) => ({ ...r }));
-  const isPossession = (i: number) =>
-    components?.[i] === VISUAL_COMPONENT.PossessionGrid;
 
   for (let pass = 0; pass < 10; pass++) {
     let moved = false;
     for (let i = 0; i < fixed.length; i++) {
-      // Possession circles are allowed to float with gaps — don't glue them.
-      if (isPossession(i)) continue;
-      const others = fixed.filter((_, idx) => idx !== i && !isPossession(idx));
+      const others = fixed.filter((_, idx) => idx !== i);
       if (others.length === 0) continue;
       if (touchesAny(fixed[i], others)) continue;
 
@@ -720,8 +716,8 @@ function placeMarkInLayout(
   const { w, h, layoutScale } = dimsAt(baseDims[index], layoutScales[index]);
   const target = temporalTarget(ordered[index], index, total, region, side, maxMinute);
   const wantEdgeTouch =
-    requireEdgeTouch &&
-    ordered[index].component !== VISUAL_COMPONENT.PossessionGrid;
+    requireEdgeTouch; // possession included — must touch an edge like other marks
+
 
   let candidates =
     index === 0
@@ -1017,8 +1013,8 @@ function postProcessMosaic(
     fixed = repairOverlaps(fixed, teamBounds);
     if (!layoutHasOverlaps(fixed)) break;
   }
-  // Snap isolated *event* marks so they share an edge. Possession circles may
-  // separate — they are excluded from connectivity enforcement.
+  // Snap isolated marks so every mark (except the first) shares an edge —
+  // same connectivity rule for event marks and possession circles.
   fixed = enforceEdgeTouches(fixed, teamBounds, components);
   for (let pass = 0; pass < 4; pass++) {
     fixed = repairOverlaps(fixed, teamBounds);

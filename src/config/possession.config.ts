@@ -19,8 +19,11 @@ export const possessionConfig: PossessionConfig = {
   gridBreathingAmount: 0.35,
   /** ~0.55s pop-in so new circles grow onto the canvas. */
   spawnGrowMs: 550,
-  /** Allow gaps — circles may separate instead of edge-gluing. */
-  separationGapRatio: 0.12,
+  /**
+   * Collision-pad fraction — keep 0 so circles can edge-touch via the mosaic
+   * algorithm (they must share an edge with at least one neighbor).
+   */
+  separationGapRatio: 0,
   rowJitterRatio: 0,
   circleFillRatio: 0.88,
 };
