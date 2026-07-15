@@ -244,7 +244,7 @@ export function createReplaySketch(
           },
           code,
           // Drawn under possession grid — keep letters readable but secondary.
-          "rgba(255, 255, 255, 0.5)"
+          "rgba(255, 255, 255, 0.08)"
         );
       }
 
