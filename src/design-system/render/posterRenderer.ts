@@ -38,7 +38,7 @@ import {
 import { stackedMarkColorOverrides } from "@/design-system/color/markColors";
 import { drawSvgComponent, warnIfSvgAssetsMissing } from "@/design-system/render/svgRenderer";
 import type { ReplayEngine, ReplaySnapshot } from "@/engine/replayEngine";
-import { createRng, randBetween, seededNoise } from "@/utils/seededRandom";
+import { seededNoise } from "@/utils/seededRandom";
 import {
   markRng,
   resolveQuadrantEntryDimensions,
@@ -128,6 +128,7 @@ export function createReplaySketch(
     const ink = hexToRgb(cfg.colors.text);
     const inkMuted = hexToRgb(cfg.colors.textMuted);
     const black = hexToRgb(cfg.colors.black);
+    const possessionGridBg: Rgb = [0, 0, 0];
 
     function rebuildLayout() {
       const { width, height } = getSize();
@@ -259,6 +260,17 @@ export function createReplaySketch(
           0.65 *
           intensity,
       };
+    }
+
+    /** Pure black slab under possession circles — covers team letter pixels in the corner. */
+    function drawPossessionGridBackdrop() {
+      p.noStroke();
+      fillRgb(p, possessionGridBg);
+      for (const side of drawSides()) {
+        const region = gridRegionForSide(layout, side);
+        if (region.width <= 0 || region.height <= 0) continue;
+        p.rect(region.left, region.top, region.width, region.height);
+      }
     }
 
     /** PossessionGrid — aligned row/column grid; circles stagger in one-by-one early in the match. */
@@ -769,13 +781,15 @@ export function createReplaySketch(
 
         drawPosterBackground();
 
+        drawTeamBackgroundType();
+
         const artPresence = gameArtPresence(snapshot.minute);
 
         if (artPresence > 0.005 || snapshot.minute >= 0) {
+          drawPossessionGridBackdrop();
           drawPossessionGrid(snapshot);
         }
 
-        drawTeamBackgroundType();
         advanceMotionClock();
 
         const shake = snapshot.energy.shake * cfg.energy.shakeAmplitude;
