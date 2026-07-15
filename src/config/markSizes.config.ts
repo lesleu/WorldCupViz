@@ -19,6 +19,7 @@ export const markSizesConfig: MarkSizesConfig = {
     [VISUAL_COMPONENT.Foul]: 0.5,
     [VISUAL_COMPONENT.YellowCard]: 0.7,
     [VISUAL_COMPONENT.RedCard]: 0.7,
+    [VISUAL_COMPONENT.PossessionGrid]: 0.7,
   },
   rankDecay: {
     [VISUAL_COMPONENT.Goal]: {
@@ -55,6 +56,11 @@ export const markSizesConfig: MarkSizesConfig = {
     [VISUAL_COMPONENT.RedCard]: {
       firstFullSizeCount: 4,
       sizeDecayRatio: 0.95,
+    },
+    [VISUAL_COMPONENT.PossessionGrid]: {
+      firstFullSizeCount: 36,
+      sizeDecayRatio: 1,
+      minSizeMultiplier: 1,
     },
   },
 };

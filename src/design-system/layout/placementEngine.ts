@@ -78,6 +78,50 @@ function pointFromNorm(nx: number, ny: number, layout: PosterLayout): [number, n
   ];
 }
 
+/** Diagonal seam dead band (u+v units) around the top-right→bottom-left split. */
+function diagonalGap(): number {
+  return cfg.composition.diagonalSeamGap ?? 0;
+}
+
+/**
+ * Team ownership for the realone diagonal split. Home owns the upper-left
+ * triangle, away owns the lower-right triangle, split along the seam u+v=1.
+ *
+ * The whole mark bbox (not just its center) must clear the seam by `gap`, so
+ * larger marks are pushed further from the diagonal and never cross into the
+ * other team's triangle. halfU/halfV are the mark's half-extents in the
+ * normalized artwork square.
+ */
+function inTeamTriangle(
+  nx: number,
+  ny: number,
+  halfU: number,
+  halfV: number,
+  side: TeamSide,
+  gap: number
+): boolean {
+  return side === "home"
+    ? nx + halfU + (ny + halfV) <= 1 - gap
+    : nx - halfU + (ny - halfV) >= 1 + gap;
+}
+
+/** Mark half-extents in the normalized [0,1]² artwork square (u=width, v=height). */
+function normHalfExtents(
+  markWidthPx: number,
+  markHeightPx: number,
+  layout: PosterLayout
+): [number, number] {
+  return [
+    markWidthPx / 2 / Math.max(layout.artworkWidth, 1),
+    markHeightPx / 2 / Math.max(layout.artworkHeight, 1),
+  ];
+}
+
+/** Normalized growth corner for a team: home = top-left, away = bottom-right. */
+function teamCorner(side: TeamSide): [number, number] {
+  return side === "home" ? [0, 0] : [1, 1];
+}
+
 function clampToRegion(
   x: number,
   y: number,
@@ -221,6 +265,18 @@ function scoreCandidate(
   const emptiness = 1 - maxOverlap;
 
   let score = emptiness * emptyWeight;
+
+  // Diagonal split: marks radiate from each team's growth corner. The left/right
+  // inner/row/timeline biases don't apply, so proximity to the corner + emptiness
+  // are the only spatial terms (dense corner, thinning outward as it fills).
+  if (layout.diagonalSplit) {
+    const [cornerU, cornerV] = teamCorner(side);
+    const dist = Math.hypot(nx - cornerU, ny - cornerV) / Math.SQRT2;
+    score += (1 - dist) * (cfg.composition.cornerGrowthBias ?? 0);
+    score += occupied === 0 ? 0.4 : -occupied * 0.25;
+    return score;
+  }
+
   score += innerBiasScore(nx, side, layout, innerBias * innerMult) * 0.35;
   score += rowBiasScore(row, rows, rowBias);
   score += timelineScore(row, rows, options.minute);
@@ -250,6 +306,8 @@ function buildGridCandidates(
   const rows = cfg.composition.placementRows;
   const halfW = markWidthPx / 2;
   const halfH = markHeightPx / 2;
+  const [halfU, halfV] = normHalfExtents(markWidthPx, markHeightPx, layout);
+  const gap = diagonalGap();
   const candidates: PlacementCandidate[] = [];
 
   for (let row = 0; row < rows; row++) {
@@ -263,6 +321,9 @@ function buildGridCandidates(
       const jy = cfg.animation.staticRender ? 0 : randBetween(rng, -cellH * 0.38, cellH * 0.38);
       const [x, y] = clampToRegion(cx + jx, cy + jy, layout, side, halfW, halfH);
       const [nx, ny] = normFromPoint(x, y, layout);
+      if (layout.diagonalSplit && !inTeamTriangle(nx, ny, halfU, halfV, side, gap)) {
+        continue;
+      }
       const box: PlacedBBox = { nx, ny, nw, nh };
       const maxOverlap = maxOverlapWithExisting(box, existing);
       const occupied = cellOccupancy(row, col, cols, rows, existing, region, layout);
@@ -309,6 +370,8 @@ function buildPoissonCandidates(
   const cols = cfg.composition.placementCols;
   const halfW = markWidthPx / 2;
   const halfH = markHeightPx / 2;
+  const [halfU, halfV] = normHalfExtents(markWidthPx, markHeightPx, layout);
+  const gap = diagonalGap();
   const minDist = Math.min(markWidthPx, markHeightPx) * 0.55;
   const candidates: PlacementCandidate[] = [];
   const accepted: Array<[number, number]> = [];
@@ -326,8 +389,11 @@ function buildPoissonCandidates(
       }
     }
     if (!ok) continue;
-    accepted.push([x, y]);
     const [nx, ny] = normFromPoint(x, y, layout);
+    if (layout.diagonalSplit && !inTeamTriangle(nx, ny, halfU, halfV, side, gap)) {
+      continue;
+    }
+    accepted.push([x, y]);
     const box: PlacedBBox = { nx, ny, nw, nh };
     const maxOverlap = maxOverlapWithExisting(box, existing);
     const row = Math.min(
@@ -423,7 +489,12 @@ export function findPlacement(
   rng: () => number,
   options: FindPlacementOptions = {}
 ): [number, number] {
-  const existing = side === "home" ? placement.home : placement.away;
+  const sideList = side === "home" ? placement.home : placement.away;
+  // Diagonal split: collision must consider BOTH teams so marks never overlap
+  // across the seam — otherwise each team places blind to the other.
+  const existing = layout.diagonalSplit
+    ? placement.home.concat(placement.away)
+    : sideList;
   const nw = normSize(markWidthPx, layout);
   const nh = normSize(markHeightPx, layout);
   const halfW = markWidthPx / 2;
@@ -448,7 +519,7 @@ export function findPlacement(
     const maxAllowed = Math.min(1, threshold + boost);
     const pick = pickBestUnderThreshold(candidates, maxAllowed);
     if (pick) {
-      existing.push(pick.box);
+      sideList.push(pick.box);
       return [pick.nx, pick.ny];
     }
   }
@@ -465,6 +536,8 @@ export function findPlacement(
   };
   const [bestX, bestY] = pointFromNorm(best.nx, best.ny, layout);
 
+  const gap = diagonalGap();
+  const [halfU, halfV] = normHalfExtents(markWidthPx, markHeightPx, layout);
   for (const threshold of overlapSteps()) {
     const maxAllowed = Math.min(1, threshold + boost);
     for (let i = 0; i < 48; i++) {
@@ -474,16 +547,17 @@ export function findPlacement(
       const sy = bestY + Math.sin(angle) * radius;
       const [x, y] = clampToRegion(sx, sy, layout, side, halfW, halfH);
       const [nx, ny] = normFromPoint(x, y, layout);
+      if (layout.diagonalSplit && !inTeamTriangle(nx, ny, halfU, halfV, side, gap)) continue;
       const box: PlacedBBox = { nx, ny, nw, nh };
       const maxOverlap = maxOverlapWithExisting(box, existing);
       if (maxOverlap <= maxAllowed) {
-        existing.push(box);
+        sideList.push(box);
         return [nx, ny];
       }
     }
   }
 
-  existing.push(best.box);
+  sideList.push(best.box);
   return [best.nx, best.ny];
 }
 
