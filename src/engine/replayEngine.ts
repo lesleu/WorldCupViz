@@ -266,9 +266,22 @@ export class ReplayEngine {
   ): void {
     if (update.type === "state_update") {
       // Continuous mappings: possession → PossessionGrid, passAccuracy → PassAccuracy
+      // Ignore barren 0/0 possession rows — they wipe mosaic circles mid-match.
+      const hasPossession =
+        update.home.possession > 0 || update.away.possession > 0;
       this.targetContinuous = {
-        home: { ...update.home },
-        away: { ...update.away },
+        home: {
+          ...update.home,
+          possession: hasPossession
+            ? update.home.possession
+            : this.targetContinuous.home.possession,
+        },
+        away: {
+          ...update.away,
+          possession: hasPossession
+            ? update.away.possession
+            : this.targetContinuous.away.possession,
+        },
       };
       return;
     }

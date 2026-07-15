@@ -99,6 +99,14 @@ export function adaptStatisticsPair(
     ),
   };
 
+  // Missing Ball Possession totals often arrive as null → 0/0, which blanks the
+  // poster. Fall back to a goal-weighted estimate when both sides are empty.
+  if (base.home.possession <= 0 && base.away.possession <= 0) {
+    const estimated = estimateTeamStatsFromFixture(fixture);
+    base.home.possession = estimated.home.possession;
+    base.away.possession = estimated.away.possession;
+  }
+
   return adaptPenaltyShootoutStats(base, fixture, events);
 }
 
@@ -162,29 +170,42 @@ function countFeedEvents(feed: LiveFeedUpdate[]): Record<TeamSide, EventCounts> 
   return counts;
 }
 
+function stateHasPossessionSignal(update: StateUpdate): boolean {
+  return update.home.possession > 0 || update.away.possession > 0;
+}
+
 function latestStateUpdate(
   feed: LiveFeedUpdate[],
   upToMinute: number
 ): StateUpdate | null {
   let latest: StateUpdate | null = null;
+  let latestWithPossession: StateUpdate | null = null;
   for (const update of feed) {
     if (update.type !== "state_update" || update.minute > upToMinute) continue;
     latest = update;
+    if (stateHasPossessionSignal(update)) latestWithPossession = update;
   }
-  return latest;
+  // Prefer a state with real possession — APIs sometimes emit a trailing 0/0
+  // FT row that would wipe the board/canvas.
+  return latestWithPossession ?? latest;
 }
 
 function teamStatsFromFeedSide(
   side: TeamSide,
   counts: Record<TeamSide, EventCounts>,
   continuous: StateUpdate["home"] | undefined,
-  fallbackGoals: number
+  fallbackGoals: number,
+  fallbackPossession = 50
 ): TeamStats {
   const events = counts[side];
   const goals = Math.max(events.goal, fallbackGoals);
+  const possession =
+    continuous && continuous.possession > 0
+      ? continuous.possession
+      : fallbackPossession;
 
   return {
-    possession: continuous?.possession ?? 50,
+    possession,
     passAccuracy: continuous?.passAccuracy ?? 0,
     shots: events.shot + events.shot_on_target + goals,
     shotsOnTarget: events.shot_on_target + goals,
@@ -219,13 +240,15 @@ export function deriveTeamStatsFromFeed(
       "home",
       counts,
       state?.home,
-      options?.homeGoals ?? 0
+      options?.homeGoals ?? 0,
+      50
     ),
     away: teamStatsFromFeedSide(
       "away",
       counts,
       state?.away,
-      options?.awayGoals ?? 0
+      options?.awayGoals ?? 0,
+      50
     ),
   };
 }
@@ -248,10 +271,35 @@ export function mergeMatchDataWithFeedStats(
   const awayGoals =
     upToMinute != null ? derived.away.goals : matchData.away.goals;
 
+  // Don't let a barren API FT state (0% possession) blank the stats board
+  // when the catalog already has usable possession.
+  const homePossession =
+    derived.home.possession > 0
+      ? derived.home.possession
+      : matchData.home.possession > 0
+        ? matchData.home.possession
+        : 50;
+  const awayPossession =
+    derived.away.possession > 0
+      ? derived.away.possession
+      : matchData.away.possession > 0
+        ? matchData.away.possession
+        : Math.max(0, 100 - homePossession);
+
   return {
     ...matchData,
-    home: { ...matchData.home, ...derived.home, goals: homeGoals },
-    away: { ...matchData.away, ...derived.away, goals: awayGoals },
+    home: {
+      ...matchData.home,
+      ...derived.home,
+      goals: homeGoals,
+      possession: homePossession,
+    },
+    away: {
+      ...matchData.away,
+      ...derived.away,
+      goals: awayGoals,
+      possession: awayPossession,
+    },
   };
 }
 
@@ -495,17 +543,24 @@ export function estimateTeamStatsFromFixture(fixture: ApiFootballFixture): {
 } {
   const homeGoals = fixture.goals.home ?? 0;
   const awayGoals = fixture.goals.away ?? 0;
+  const totalGoals = homeGoals + awayGoals;
+  // Without statistics, keep a usable possession split so the canvas still
+  // grows circles (0/0 blanks possession marks and the board).
+  const homePossession =
+    totalGoals <= 0 ? 50 : Math.round((homeGoals / totalGoals) * 100);
+  const awayPossession = Math.max(0, 100 - homePossession);
 
-  const estimateSide = (goals: number): TeamStats => ({
+  const estimateSide = (goals: number, possession: number): TeamStats => ({
     ...adaptStatisticsToTeamStats([], goals),
+    possession,
     goals,
     shots: Math.max(goals * 2, goals),
     shotsOnTarget: Math.max(goals, goals > 0 ? 1 : 0),
   });
 
   return {
-    home: estimateSide(homeGoals),
-    away: estimateSide(awayGoals),
+    home: estimateSide(homeGoals, homePossession),
+    away: estimateSide(awayGoals, awayPossession),
   };
 }
 

@@ -366,6 +366,14 @@ function runtimeFeedHasContent(feed: MatchFeedResponse | null): boolean {
   return feedHasReplayContent(feed.feed);
 }
 
+function feedHasPossessionSignal(feed: MatchFeedResponse["feed"]): boolean {
+  for (const update of feed) {
+    if (update.type !== "state_update") continue;
+    if (update.home.possession > 0 || update.away.possession > 0) return true;
+  }
+  return false;
+}
+
 /** Resolve the best feed for canvas replay (static → runtime → live API). */
 async function resolveMatchFeedBundle(
   id: string,
@@ -387,7 +395,13 @@ async function resolveMatchFeedBundle(
   }
 
   const runtimeFeed = await getRuntimeFeed(id, sinceMinute);
-  if (runtimeFeed && runtimeFeedHasContent(runtimeFeed)) {
+  // Prefer runtime only when it has real possession / replay content. A cached
+  // FT feed with 0/0 possession blanks the ENG–ARG poster after the final whistle.
+  if (
+    runtimeFeed &&
+    runtimeFeedHasContent(runtimeFeed) &&
+    feedHasPossessionSignal(runtimeFeed.feed)
+  ) {
     return runtimeFeed;
   }
 
@@ -402,6 +416,11 @@ async function resolveMatchFeedBundle(
   ) {
     const apiFeed = await loadAndCacheApiFeed(id, fixtureId, sinceMinute);
     if (apiFeed) return apiFeed;
+  }
+
+  // Last resort: runtime even if possession is barren (still has goal events).
+  if (runtimeFeed && runtimeFeedHasContent(runtimeFeed)) {
+    return runtimeFeed;
   }
 
   return staticFeed;
