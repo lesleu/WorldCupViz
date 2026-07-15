@@ -4,6 +4,7 @@ import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated
 import { goalsConfig } from "@/config/goals.config";
 import { markSizesConfig } from "@/config/markSizes.config";
 import { randomnessConfig } from "@/config/randomness.config";
+import { cfg } from "@/config";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
 import type { TeamSide } from "@/data/mockMatch";
 import {
@@ -170,10 +171,15 @@ export function resolveOffsideMarkSizePx(
     rankDecayMultiplier(VISUAL_COMPONENT.Offside, rank);
 
   const heightDesign = figmaDesignPx(VISUAL_COMPONENT.Offside, undefined, "y") * scale;
-  const vb = COMPONENT_PATHS.Offside?.viewBox;
-  const widthDesign = vb
-    ? heightDesign * (vb.w / vb.h)
-    : figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale;
+  // Diagonal mosaic: don't lock aspect to the SVG — axes snap/stretch independently.
+  const widthDesign = layout.diagonalSplit
+    ? figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale
+    : (() => {
+        const vb = COMPONENT_PATHS.Offside?.viewBox;
+        return vb
+          ? heightDesign * (vb.w / vb.h)
+          : figmaDesignPx(VISUAL_COMPONENT.Offside, rng, "x") * scale;
+      })();
   const zone = getTeamZoneFillScale(layout, side);
 
   return clampMarkDimsMin({
@@ -187,7 +193,7 @@ export const MARK_SHRINK_PX = 10;
 
 /**
  * Shrink each mark by MARK_SHRINK_PX (aspect-preserving, off the long side), then
- * enforce minMarkPx on the shorter side (from eventMarks.config, default 20px).
+ * enforce minMarkPx on the shorter side (from eventMarks.config).
  */
 export function clampMarkDimsMin(
   dims: MarkPixelDims,
@@ -241,6 +247,23 @@ export function resolveQuadrantEntryDimensions(
   mark: { id: string; minute: number; spawnScale: number },
   rng: () => number
 ): MarkPixelDims {
+  if (component === VISUAL_COMPONENT.PossessionGrid) {
+    const design = cfg.composition.possessionMosaicDesignPx ?? 44;
+    const minPx =
+      cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx;
+    const scale =
+      markSizeScale(component) *
+      mark.spawnScale *
+      rankDecayMultiplier(component, rank);
+    const px = scaleDesignPx(design * scale, layout);
+    // Pre-compensate diagonal draw scale so final diameter stays ≥ minPx.
+    const diagonal = layout.diagonalSplit
+      ? (cfg.composition.diagonalMarkScale ?? 0.58)
+      : 1;
+    const floor = minPx / Math.max(diagonal, 1e-6);
+    return clampMarkDimsMin({ widthPx: px, heightPx: px }, floor);
+  }
+
   if (component === VISUAL_COMPONENT.Goal) {
     return resolveGoalMarkSizePx(layout, rank, rng, mark.spawnScale, side);
   }

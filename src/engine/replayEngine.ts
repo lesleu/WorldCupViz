@@ -1,8 +1,10 @@
 import {
   addEventMark,
+  buildPossessionCircleAppearMinutes,
   cloneContinuous,
   createKickoffArtState,
   removeCancelledGoalMark,
+  syncPossessionMosaic,
   type AccumulatedArtState,
   type ContinuousMatchState,
 } from "@/design-system/state/artState";
@@ -135,6 +137,24 @@ export class ReplayEngine {
     this.liveClockMode = enabled;
   }
 
+  private syncPossessionAtMinute(layout: PosterLayout): void {
+    const appear = {
+      home: buildPossessionCircleAppearMinutes(
+        this.feed,
+        this.kickoff,
+        "home",
+        this.minute
+      ),
+      away: buildPossessionCircleAppearMinutes(
+        this.feed,
+        this.kickoff,
+        "away",
+        this.minute
+      ),
+    };
+    syncPossessionMosaic(this.art, layout, this.targetContinuous, appear);
+  }
+
   /** Apply feed updates immediately (e.g. after a live poll). */
   flushUpdates(layout: PosterLayout, match: MatchData): void {
     this.applyPendingUpdates(layout, match);
@@ -144,6 +164,7 @@ export class ReplayEngine {
       cfg.replay.continuousSmoothing
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
+    this.syncPossessionAtMinute(layout);
   }
 
   /** Clear all accumulated marks and restart from kickoff. */
@@ -183,6 +204,7 @@ export class ReplayEngine {
     this.applyPendingUpdates(layout, match);
     this.smoothContinuous = cloneContinuous(this.targetContinuous);
     this.art.possessionGrid = cloneContinuous(this.targetContinuous);
+    this.syncPossessionAtMinute(layout);
     this.pause();
   }
 
@@ -205,6 +227,9 @@ export class ReplayEngine {
       cfg.replay.continuousSmoothing
     );
     this.art.possessionGrid = cloneContinuous(this.smoothContinuous);
+    // Sync once per tick from discrete feed timeline — count grows as possession
+    // state_updates arrive (not every lerped float frame).
+    this.syncPossessionAtMinute(layout);
     tickEnergy(this.energy, deltaSeconds, this.isPlaying, true);
   }
 
@@ -253,6 +278,8 @@ export class ReplayEngine {
         home: { ...update.home },
         away: { ...update.away },
       };
+      // Don't sync circles here — seek/flush apply dozens of state_updates.
+      // One sync at the end rebuilds the mosaic once.
       return;
     }
 

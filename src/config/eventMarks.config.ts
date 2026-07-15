@@ -20,7 +20,7 @@ export const eventMarksConfig: EventMarksConfig = {
   crowdedScaleMin: 0.94,
   crowdedScaleMax: 1,
   /** No mark dimension may shrink below this (px). */
-  minMarkPx: 20,
+  minMarkPx: 40,
   /** How strongly match minute nudges spiral angle (0 = index order only). */
   temporalFlowStrength: 0.42,
   patternComponents: [
@@ -32,5 +32,6 @@ export const eventMarksConfig: EventMarksConfig = {
     VISUAL_COMPONENT.Offside,
     VISUAL_COMPONENT.YellowCard,
     VISUAL_COMPONENT.RedCard,
+    VISUAL_COMPONENT.PossessionGrid,
   ],
 };

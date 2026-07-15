@@ -27,6 +27,16 @@ export function denormSize(norm: number, layout: PosterLayout): number {
   return norm * layout.artworkWidth;
 }
 
+/**
+ * Extra size multiplier for diagonal-split compositions. Placement applies this
+ * when laying out; the same factor must be used when drawing so visual footprints
+ * match the no-overlap boxes.
+ */
+export function diagonalCompositionMarkScale(layout: PosterLayout): number {
+  if (!layout.diagonalSplit) return 1;
+  return cfg.composition.diagonalMarkScale ?? 0.58;
+}
+
 type SizeSpec = (typeof COMPONENT_SIZES)[keyof typeof COMPONENT_SIZES];
 
 function pickRange(
