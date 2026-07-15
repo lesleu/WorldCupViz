@@ -61,7 +61,7 @@ export default function KickoffCoverPreview({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video w-full min-w-0 overflow-hidden bg-[#121212]"
+      className="relative aspect-video w-full min-w-0 overflow-hidden bg-[#1A1A1A]"
     >
       <canvas ref={canvasRef} className="block h-full w-full" aria-hidden />
     </div>

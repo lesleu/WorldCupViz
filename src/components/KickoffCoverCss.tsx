@@ -61,7 +61,7 @@ export default function KickoffCoverCss({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video w-full min-w-0 overflow-hidden bg-[#121212]"
+      className="relative aspect-video w-full min-w-0 overflow-hidden bg-[#1A1A1A]"
     >
       <div className="absolute inset-0 flex" aria-hidden>
         <div

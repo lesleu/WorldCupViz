@@ -16,7 +16,7 @@ export default function Error({
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center"
-      style={{ backgroundColor: "#080a12", color: "#eaeaea" }}
+      style={{ backgroundColor: "#1A1A1A", color: "#eaeaea" }}
     >
       <h2 className="text-lg font-semibold">Something went wrong</h2>
       <p className="max-w-md font-mono text-xs leading-relaxed text-[#948f87]">
