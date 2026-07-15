@@ -129,7 +129,7 @@ export const TEAM_PALETTES: Record<string, TeamPalette> = {
     "c5": "#000000"
   },
   "ENG": {
-    "c1": "#FFFFFF",
+    "c1": "#f1f1f1",
     "c2": "#1b2539",
     "c3": "#e1213a",
     "c4": "#efa74a",

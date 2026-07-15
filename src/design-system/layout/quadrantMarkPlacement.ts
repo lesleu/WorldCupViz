@@ -1,10 +1,7 @@
 import { cfg } from "@/config";
 import { eventMarksConfig } from "@/config/eventMarks.config";
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
-import {
-  VISUAL_COMPONENT,
-  type VisualComponent,
-} from "@/design-system/mapping/visualMappings";
+import type { VisualComponent } from "@/design-system/mapping/visualMappings";
 import type { TeamSide } from "@/data/mockMatch";
 import { normSize } from "@/design-system/layout/designScale";
 import type { MarkPixelDims } from "@/design-system/layout/markSizing";
@@ -13,18 +10,6 @@ import {
   minMosaicScaleForMinPx,
   scaleMarkDims,
 } from "@/design-system/layout/markSizing";
-import {
-  diagonalCompositionMarkScale,
-  mosaicGridCellRuntimePx,
-  mosaicMinMarkRuntimePx,
-  possessionMosaicMinRuntimePx,
-} from "@/design-system/layout/designScale";
-import {
-  mosaicGridCellPx,
-  snapDimsToGrid,
-  snapElongatedDimsToGrid,
-  snapRectToGrid,
-} from "@/design-system/layout/mosaicGrid";
 import {
   gridRegionForSide,
   markRegionForSide,
@@ -45,12 +30,6 @@ export interface LayoutMark {
   ny: number;
   spawnScale: number;
   layoutScale: number;
-  /**
-   * Normalized AABB on the artwork (diagonal mosaic). When set, draw uses this
-   * footprint so stretched Goal/Foul/Offside boxes aren't re-aspect-locked.
-   */
-  layoutNw?: number;
-  layoutNh?: number;
 }
 
 /** @deprecated Use LayoutMark */
@@ -63,8 +42,7 @@ export interface TimedMarkEntry {
     nx: number,
     ny: number,
     layoutScale: number,
-    layout: PosterLayout,
-    footprint?: { nw: number; nh: number }
+    layout: PosterLayout
   ) => void;
 }
 
@@ -87,68 +65,6 @@ type WalkDir = "right" | "left" | "down" | "up";
 
 const WALK_DIRS: WalkDir[] = ["right", "down", "left", "up"];
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-/** Slides along a neighbor edge so new marks fork mid-side instead of dead-center. */
-const EDGE_SLIDES = [-0.48, -0.28, -0.1, 0.1, 0.28, 0.48] as const;
-
-function isPossessionComponent(component: VisualComponent): boolean {
-  return component === VISUAL_COMPONENT.PossessionGrid;
-}
-
-function possessionMosaicMinPx(): number {
-  const layout = activePlacementLayout;
-  if (!layout) {
-    return cfg.composition.possessionMosaicMinPx ?? eventMarksConfig.minMarkPx;
-  }
-  return possessionMosaicMinRuntimePx(layout);
-}
-
-function eventMinMarkPx(): number {
-  const layout = activePlacementLayout;
-  if (!layout) return eventMarksConfig.minMarkPx;
-  return mosaicMinMarkRuntimePx(layout);
-}
-
-function mosaicCellPx(): number {
-  const layout = activePlacementLayout;
-  if (!layout) return mosaicGridCellPx();
-  return mosaicGridCellRuntimePx(layout);
-}
-
-function mosaicGrowthSporadicity(): number {
-  if (!activePlacementLayout?.diagonalSplit) return 0;
-  const v = cfg.composition.mosaicGrowthSporadicity;
-  if (v === undefined) return 0.7;
-  return Math.min(1, Math.max(0, v));
-}
-
-/** Floor short-side px; used so possession circles stay ≥ min after diagonal scale. */
-function floorDimsToMinPx(dims: MarkPixelDims, minPx: number): MarkPixelDims {
-  const short = Math.min(dims.widthPx, dims.heightPx);
-  if (short <= 0 || short >= minPx) return dims;
-  const s = minPx / short;
-  return { widthPx: dims.widthPx * s, heightPx: dims.heightPx * s };
-}
-
-/**
- * Events shrink with mosaicScale; possession circles stay at base size (≥ min px)
- * so they never get crushed below the floor when packing gets dense.
- */
-function dimsForMosaicScale(
-  ordered: TimedMarkEntry[],
-  baseDims: MarkPixelDims[],
-  mosaicScale: number
-): MarkPixelDims[] {
-  const cell = mosaicCellPx();
-  const snap = activePlacementLayout?.diagonalSplit === true;
-  return baseDims.map((d, i) => {
-    if (isPossessionComponent(ordered[i].component)) return d;
-    const scaled = {
-      widthPx: d.widthPx * mosaicScale,
-      heightPx: d.heightPx * mosaicScale,
-    };
-    return snap ? snapDimsToGrid(scaled, cell) : scaled;
-  });
-}
 
 /** Active layout/side while placing marks — avoids threading through every helper. */
 let activePlacementLayout: PosterLayout | undefined;
@@ -169,83 +85,6 @@ function runWithPlacementContext<T>(
     activePlacementLayout = prevLayout;
     activePlacementSide = prevSide;
   }
-}
-
-function diagonalSeamGap(): number {
-  return cfg.composition.diagonalSeamGap ?? 0.08;
-}
-
-function pointToNorm(
-  x: number,
-  y: number,
-  layout: PosterLayout
-): [number, number] {
-  return [
-    (x - layout.margin) / Math.max(layout.artworkWidth, 1),
-    (y - layout.artworkTop) / Math.max(layout.artworkHeight, 1),
-  ];
-}
-
-/**
- * True when the mark's full axis-aligned bbox stays entirely on this team's
- * side of the diagonal seam (home: upper-left; away: lower-right).
- */
-function markClearsDiagonal(
-  cx: number,
-  cy: number,
-  w: number,
-  h: number,
-  layout: PosterLayout,
-  side: TeamSide
-): boolean {
-  const gap = diagonalSeamGap();
-  const halfU = w / 2 / Math.max(layout.artworkWidth, 1);
-  const halfV = h / 2 / Math.max(layout.artworkHeight, 1);
-  const [nx, ny] = pointToNorm(cx, cy, layout);
-  return side === "home"
-    ? nx + halfU + ny + halfV <= 1 - gap
-    : nx - halfU + ny - halfV >= 1 + gap;
-}
-
-/**
- * Pull a mark center toward its growth corner until the bbox clears the diagonal.
- */
-function projectIntoDiagonal(
-  cx: number,
-  cy: number,
-  w: number,
-  h: number,
-  layout: PosterLayout,
-  side: TeamSide
-): { cx: number; cy: number } {
-  let x = cx;
-  let y = cy;
-  const gap = diagonalSeamGap();
-  const halfU = w / 2 / Math.max(layout.artworkWidth, 1);
-  const halfV = h / 2 / Math.max(layout.artworkHeight, 1);
-  const aw = Math.max(layout.artworkWidth, 1);
-  const ah = Math.max(layout.artworkHeight, 1);
-
-  for (let i = 0; i < 32; i++) {
-    const [nx, ny] = pointToNorm(x, y, layout);
-    if (side === "home") {
-      const s = nx + halfU + ny + halfV;
-      const limit = 1 - gap;
-      if (s <= limit) break;
-      const move = (s - limit) * 0.55;
-      x -= move * aw;
-      y -= move * ah;
-    } else {
-      const s = nx - halfU + ny - halfV;
-      const limit = 1 + gap;
-      if (s >= limit) break;
-      const move = (limit - s) * 0.55;
-      x += move * aw;
-      y += move * ah;
-    }
-  }
-
-  return { cx: x, cy: y };
 }
 
 /** Pixel width/height from design width (viewBox aspect). */
@@ -277,18 +116,6 @@ export function teamPlacementBounds(
   const zone = teamZoneForSide(layout, side);
   const { artworkEdgePaddingRatio, centerEdgePaddingRatio } = eventMarksConfig;
   const pad = Math.min(region.width, region.height) * artworkEdgePaddingRatio;
-
-  // Diagonal split: both teams share the full artwork rect; triangle ownership
-  // is enforced by markClearsDiagonal / projectIntoDiagonal — not by a center cut.
-  if (layout.diagonalSplit) {
-    return {
-      left: region.left + pad,
-      top: region.top + pad,
-      width: Math.max(region.width - pad * 2, 1),
-      height: Math.max(region.height - pad * 2, 1),
-    };
-  }
-
   const centerPad = Math.min(region.width, region.height) * centerEdgePaddingRatio;
 
   let left = region.left + pad;
@@ -350,19 +177,12 @@ function rectFitsInBounds(
   h: number,
   bounds: RegionBounds
 ): boolean {
-  const inRect =
+  return (
     cx - w / 2 >= bounds.left &&
     cx + w / 2 <= bounds.left + bounds.width &&
     cy - h / 2 >= bounds.top &&
-    cy + h / 2 <= bounds.top + bounds.height;
-  if (!inRect) return false;
-
-  const layout = activePlacementLayout;
-  const side = activePlacementSide;
-  if (layout?.diagonalSplit && side) {
-    return markClearsDiagonal(cx, cy, w, h, layout, side);
-  }
-  return true;
+    cy + h / 2 <= bounds.top + bounds.height
+  );
 }
 
 function clampCenterToBounds(
@@ -376,21 +196,10 @@ function clampCenterToBounds(
   const maxX = bounds.left + bounds.width - w / 2;
   const minY = bounds.top + h / 2;
   const maxY = bounds.top + bounds.height - h / 2;
-  let out = {
+  return {
     cx: Math.min(maxX, Math.max(minX, cx)),
     cy: Math.min(maxY, Math.max(minY, cy)),
   };
-
-  const layout = activePlacementLayout;
-  const side = activePlacementSide;
-  if (layout?.diagonalSplit && side) {
-    out = projectIntoDiagonal(out.cx, out.cy, w, h, layout, side);
-    out = {
-      cx: Math.min(maxX, Math.max(minX, out.cx)),
-      cy: Math.min(maxY, Math.max(minY, out.cy)),
-    };
-  }
-  return out;
 }
 
 /** Penalize placements hugging the team's outer vertical edge (top/bottom corners). */
@@ -400,8 +209,6 @@ function outerEdgeCornerPenalty(
   bounds: RegionBounds,
   side: TeamSide
 ): number {
-  // Diagonal composition wants marks near opposite corners — no outer-edge penalty.
-  if (activePlacementLayout?.diagonalSplit) return 0;
   const outerX = side === "home" ? bounds.left : bounds.left + bounds.width;
   const topY = bounds.top;
   const bottomY = bounds.top + bounds.height;
@@ -460,37 +267,15 @@ function snapRectToNeighbor(
   const others = allRects.filter((_, idx) => idx !== currentIndex);
   let best: PlacedRect | null = null;
   let bestDist = Infinity;
-  const spor = mosaicGrowthSporadicity();
 
   for (const dir of WALK_DIRS) {
-    const slides = spor > 0.1 ? [0, ...EDGE_SLIDES] : [0];
-    for (const slide of slides) {
-      const adj =
-        slide === 0
-          ? adjacentCenter(neighbor, rect.w, rect.h, dir)
-          : adjacentCenterSlid(neighbor, rect.w, rect.h, dir, slide);
-      const candidate = { ...rect, cx: adj.cx, cy: adj.cy };
-      if (!placementValid(candidate, others, teamBounds, false)) continue;
-      const dist = Math.hypot(candidate.cx - rect.cx, candidate.cy - rect.cy);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = candidate;
-      }
-    }
-  }
-
-  if (spor > 0.15) {
-    for (const sx of [-1, 1] as const) {
-      for (const sy of [-1, 1] as const) {
-        const corner = adjacentCorner(neighbor, rect.w, rect.h, sx, sy);
-        const candidate = { ...rect, cx: corner.cx, cy: corner.cy };
-        if (!placementValid(candidate, others, teamBounds, false)) continue;
-        const dist = Math.hypot(candidate.cx - rect.cx, candidate.cy - rect.cy);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = candidate;
-        }
-      }
+    const adj = adjacentCenter(neighbor, rect.w, rect.h, dir);
+    const candidate = { ...rect, cx: adj.cx, cy: adj.cy };
+    if (!placementValid(candidate, others, teamBounds, false)) continue;
+    const dist = Math.hypot(candidate.cx - rect.cx, candidate.cy - rect.cy);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = candidate;
     }
   }
 
@@ -590,17 +375,6 @@ function placementAnchorCenter(bounds: RegionBounds): { cx: number; cy: number }
   const side = activePlacementSide;
   if (!layout || !side) return zoneCenter(bounds);
 
-  // realone: grow away from each other — home from top-left, away from bottom-right.
-  if (layout.diagonalSplit) {
-    const inset = Math.min(bounds.width, bounds.height) * 0.14;
-    return side === "home"
-      ? { cx: bounds.left + inset, cy: bounds.top + inset }
-      : {
-          cx: bounds.left + bounds.width - inset,
-          cy: bounds.top + bounds.height - inset,
-        };
-  }
-
   const grid = gridRegionForSide(layout, side);
   const gap =
     Math.min(bounds.width, bounds.height) * cfg.composition.zones.gridMarkGapRatio;
@@ -690,42 +464,8 @@ function adjacentCenter(
   }
 }
 
-/** Edge attachment with mid-side slide — forks branches off flushed centers. */
-function adjacentCenterSlid(
-  prev: PlacedRect,
-  w: number,
-  h: number,
-  dir: WalkDir,
-  slide: number
-): { cx: number; cy: number } {
-  const base = adjacentCenter(prev, w, h, dir);
-  switch (dir) {
-    case "right":
-    case "left":
-      return { cx: base.cx, cy: base.cy + slide * prev.h };
-    case "down":
-    case "up":
-      return { cx: base.cx + slide * prev.w, cy: base.cy };
-  }
-}
-
-/** Corner-to-corner attachment — diagonal forks, not just H/V limbs. */
-function adjacentCorner(
-  prev: PlacedRect,
-  w: number,
-  h: number,
-  sx: -1 | 1,
-  sy: -1 | 1
-): { cx: number; cy: number } {
-  return {
-    cx: prev.cx + sx * ((prev.w + w) / 2),
-    cy: prev.cy + sy * ((prev.h + h) / 2),
-  };
-}
-
 /**
- * Ideal center for one mark — golden phyllotaxis from the growth corner,
- * with sporadic angular / radius noise on diagonal packs.
+ * Ideal center for one mark — golden phyllotaxis from zone center (no corner bias).
  */
 function temporalTarget(
   entry: TimedMarkEntry,
@@ -740,47 +480,25 @@ function temporalTarget(
   const rng = markRng(markId, entry.mark.minute);
   const timeT = Math.min(entry.mark.minute / Math.max(maxMinute, 90), 1);
   const orderT = total <= 1 ? 0 : index / (total - 1);
-  const spor = mosaicGrowthSporadicity();
 
   const center = placementAnchorCenter(bounds);
-  // Diagonal: let the spiral reach most of the triangle (kept back from the seam by
-  // markClearsDiagonal). Classic split keeps the wider zone fill ratio.
-  const spiralCap = activePlacementLayout?.diagonalSplit ? 0.92 : 0.82;
-  const maxR = Math.min(bounds.width, bounds.height) * spiralSpreadRatio * spiralCap;
+  const maxR = Math.min(bounds.width, bounds.height) * spiralSpreadRatio * 0.82;
 
   const rank = index + 1;
-  // Sporadic: each mark picks a sector bias so growth fans into many arms,
-  // not just the two golden-angle limbs.
-  const sectorBias =
-    spor > 0 ? randBetween(rng, -Math.PI, Math.PI) * spor * 0.85 : 0;
-  const angleJitter = 0.08 + spor * 0.55;
   const angle =
     rank * GOLDEN_ANGLE +
     timeT * Math.PI * 0.22 * temporalFlowStrength +
-    sectorBias +
-    randBetween(rng, -angleJitter, angleJitter);
+    randBetween(rng, -0.08, 0.08);
+  const radius = (0.05 + orderT * 0.88) * maxR;
 
-  const radiusNoise = spor > 0 ? randBetween(rng, -0.22, 0.28) * spor : 0;
-  // Sporadic: mix chronological radius with a per-mark random orbit so every
-  // asset type (not only early circles) can sit near or far from the corner.
-  const orderMix =
-    spor > 0
-      ? orderT * (1 - spor * 0.8) + randBetween(rng, 0, 1) * spor * 0.8
-      : orderT;
-  const radius =
-    Math.max(0.02, Math.min(1, 0.05 + orderMix * 0.88 + radiusNoise)) * maxR;
+  const sideNudge =
+    (side === "home" ? -1 : 1) *
+    bounds.width *
+    0.04 *
+    (timeT - 0.5) *
+    temporalFlowStrength;
 
-  // Left/right side nudge only applies to the classic split.
-  const sideNudge = activePlacementLayout?.diagonalSplit
-    ? 0
-    : (side === "home" ? -1 : 1) *
-      bounds.width *
-      0.04 *
-      (timeT - 0.5) *
-      temporalFlowStrength;
-
-  const jitter =
-    Math.min(bounds.width, bounds.height) * (0.028 + spor * 0.06);
+  const jitter = Math.min(bounds.width, bounds.height) * 0.028;
   return {
     cx:
       center.cx +
@@ -815,33 +533,24 @@ function scoreCandidate(
   side: TeamSide
 ): number {
   const probe: PlacedRect = { cx, cy, w, h, layoutScale: 1 };
-  const diagonal = activePlacementLayout?.diagonalSplit === true;
-  let score = Math.hypot(cx - target.cx, cy - target.cy) * (diagonal ? 0.28 : 0.12);
+  let score = Math.hypot(cx - target.cx, cy - target.cy) * 0.12;
 
   if (placed.length > 0) {
-    const spor = mosaicGrowthSporadicity();
-    const unit = Math.min(region.width, region.height);
-    // High spor → weaker "must cling to the same arm" bonus so forks compete.
-    const touchWeight = 0.55 - spor * 0.28;
-    const missWeight = 0.25 - spor * 0.12;
     const touchBonus = touchesAny(probe, placed)
-      ? -unit * touchWeight
-      : unit * Math.max(0.04, missWeight);
+      ? -Math.min(region.width, region.height) * 0.55
+      : Math.min(region.width, region.height) * 0.25;
     score += touchBonus;
 
     const before = layoutBoundingBox(placed);
     const after = layoutBoundingBox([...placed, probe]);
     const growth = after.width * after.height - before.width * before.height;
-    // Classic: keep the collage compact. Diagonal+sporadic: stop rewarding the
-    // AABB "right+down" two-arm expansion so forks into gaps compete equally.
-    score -= growth * (diagonal ? 0.12 * (1 - spor * 0.9) : 1.2);
+    score -= growth * 1.2;
 
     const centroid = placementCentroid(placed);
-    score -=
-      Math.hypot(cx - centroid.cx, cy - centroid.cy) *
-      (diagonal ? 0.06 + spor * 0.08 : 0.45);
+    score -= Math.hypot(cx - centroid.cx, cy - centroid.cy) * 0.45;
 
     let crowding = 0;
+    const unit = Math.min(region.width, region.height);
     for (const p of placed) {
       const dx = Math.abs(cx - p.cx);
       const dy = Math.abs(cy - p.cy);
@@ -856,15 +565,6 @@ function scoreCandidate(
 
   score += outerEdgeCornerPenalty(cx, cy, region, side);
   score += quadrantBalancePenalty(cx, cy, placed, region);
-
-  // Mild pull toward the growth corner — soften when sporadic so interior forks live.
-  if (diagonal) {
-    const spor = mosaicGrowthSporadicity();
-    const anchor = placementAnchorCenter(region);
-    const dist = Math.hypot(cx - anchor.cx, cy - anchor.cy);
-    const unit = Math.min(region.width, region.height);
-    score += (dist / Math.max(unit, 1)) * unit * (0.1 - spor * 0.06);
-  }
   return score;
 }
 
@@ -916,17 +616,12 @@ function collectAdjacentCandidates(
   placed: PlacedRect[],
   region: RegionBounds,
   teamBounds: RegionBounds,
-  side: TeamSide,
-  entry?: TimedMarkEntry
+  side: TeamSide
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const seen = new Set<string>();
-  const spor = mosaicGrowthSporadicity();
-  const rng = entry
-    ? markRng(entry.mark.id.replace(/-sq\d+$/, ""), entry.mark.minute)
-    : null;
 
-  const push = (cx: number, cy: number, scoreJitter = 0) => {
+  const push = (cx: number, cy: number) => {
     if (!rectFitsInBounds(cx, cy, w, h, teamBounds)) return;
     const key = `${Math.round(cx * 10)},${Math.round(cy * 10)}`;
     if (seen.has(key)) return;
@@ -934,64 +629,14 @@ function collectAdjacentCandidates(
     candidates.push({
       cx,
       cy,
-      score:
-        scoreCandidate(cx, cy, target, w, h, placed, region, side) + scoreJitter,
+      score: scoreCandidate(cx, cy, target, w, h, placed, region, side),
     });
   };
 
-  // Prefer expanding from a random sample of already-placed marks (any asset
-  // type) so shots/goals/cards fork off circles and each other — not only tip limbs.
-  const parents = [...placed];
-  if (rng && spor > 0.15 && parents.length > 2) {
-    for (let i = parents.length - 1; i > 0; i--) {
-      const j = Math.floor(randBetween(rng, 0, i + 0.999999));
-      const tmp = parents[i];
-      parents[i] = parents[j];
-      parents[j] = tmp;
-    }
-  }
-  const sampleFrac = spor > 0.05 ? 0.22 + spor * 0.28 : 1;
-  const sampleCount = Math.max(
-    1,
-    Math.min(parents.length, Math.ceil(parents.length * sampleFrac))
-  );
-  const expandFrom = parents.slice(0, sampleCount);
-
-  for (const p of expandFrom) {
+  for (const p of placed) {
     for (const dir of WALK_DIRS) {
       const adj = adjacentCenter(p, w, h, dir);
       push(adj.cx, adj.cy);
-
-      if (spor > 0.05) {
-        for (const slide of EDGE_SLIDES) {
-          const slid = adjacentCenterSlid(p, w, h, dir, slide);
-          const jitter = rng ? randBetween(rng, -spor * 8, spor * 8) : 0;
-          push(slid.cx, slid.cy, jitter);
-        }
-      }
-    }
-
-    if (spor > 0.1) {
-      for (const sx of [-1, 1] as const) {
-        for (const sy of [-1, 1] as const) {
-          const corner = adjacentCorner(p, w, h, sx, sy);
-          const jitter = rng ? randBetween(rng, -spor * 10, spor * 10) : 0;
-          push(corner.cx, corner.cy, jitter);
-        }
-      }
-
-      // A few near-touch polar samples — irregular knuckles on the collage.
-      const arms = 3 + Math.floor(spor * 4);
-      for (let k = 0; k < arms; k++) {
-        const angle =
-          (rng ? randBetween(rng, 0, Math.PI * 2) : k * GOLDEN_ANGLE) +
-          k * GOLDEN_ANGLE * 0.17;
-        const r =
-          (Math.max(p.w, p.h) + Math.max(w, h)) / 2 +
-          (rng ? randBetween(rng, -4, 10) * spor : 0);
-        const jitter = rng ? randBetween(rng, -spor * 12, spor * 12) : 0;
-        push(p.cx + Math.cos(angle) * r, p.cy + Math.sin(angle) * r, jitter);
-      }
     }
   }
 
@@ -1009,12 +654,11 @@ function spiralSearchCandidates(
   requireEdgeTouch: boolean
 ): Candidate[] {
   const candidates: Candidate[] = [];
-  const spor = mosaicGrowthSporadicity();
 
   let radius = Math.max(w, h) * 0.08;
   for (let step = 0; step < 240; step++) {
-    const angle = step * GOLDEN_ANGLE * (1 + spor * 0.35);
-    radius += Math.max(w, h) * (0.052 + spor * 0.02);
+    const angle = step * GOLDEN_ANGLE;
+    radius += Math.max(w, h) * 0.052;
     const cx = target.cx + Math.cos(angle) * radius;
     const cy = target.cy + Math.sin(angle) * radius;
     if (!rectFitsInBounds(cx, cy, w, h, bounds)) continue;
@@ -1034,10 +678,6 @@ function spiralSearchCandidates(
   return candidates;
 }
 
-/**
- * Soft-pick among the best valid placements so growth forks randomly instead of
- * always extending the single lowest-score arm.
- */
 function pickBestCandidate(
   candidates: Candidate[],
   w: number,
@@ -1045,50 +685,15 @@ function pickBestCandidate(
   layoutScale: number,
   placed: PlacedRect[],
   teamBounds: RegionBounds,
-  requireEdgeTouch: boolean,
-  entry?: TimedMarkEntry
+  requireEdgeTouch: boolean
 ): PlacedRect | null {
-  const valid: Candidate[] = [];
   for (const c of candidates) {
     const candidate = { cx: c.cx, cy: c.cy, w, h, layoutScale };
     if (placementValid(candidate, placed, teamBounds, requireEdgeTouch)) {
-      valid.push(c);
+      return candidate;
     }
   }
-  if (valid.length === 0) return null;
-
-  const spor = mosaicGrowthSporadicity();
-  if (spor <= 0.05 || !entry || valid.length === 1) {
-    const c = valid[0];
-    return { cx: c.cx, cy: c.cy, w, h, layoutScale };
-  }
-
-  const poolSize = Math.min(
-    valid.length,
-    2 + Math.round(spor * 7)
-  );
-  const pool = valid.slice(0, poolSize);
-  const rng = markRng(entry.mark.id.replace(/-sq\d+$/, ""), entry.mark.minute + 17);
-  // Softmax over inverted scores — better scores more likely, weaker still viable.
-  const best = pool[0].score;
-  const weights = pool.map((c) => {
-    const delta = c.score - best;
-    const base = Math.exp(
-      -delta / Math.max(8, Math.abs(best) * 0.15 + 1)
-    );
-    return Math.pow(base, 1.15 - spor * 0.55);
-  });
-  const sum = weights.reduce((a, b) => a + b, 0);
-  let pick = randBetween(rng, 0, sum);
-  for (let i = 0; i < pool.length; i++) {
-    pick -= weights[i];
-    if (pick <= 0) {
-      const c = pool[i];
-      return { cx: c.cx, cy: c.cy, w, h, layoutScale };
-    }
-  }
-  const c = pool[pool.length - 1];
-  return { cx: c.cx, cy: c.cy, w, h, layoutScale };
+  return null;
 }
 
 function placeMarkInLayout(
@@ -1104,23 +709,13 @@ function placeMarkInLayout(
   requireEdgeTouch: boolean
 ): PlacedRect | null {
   const total = ordered.length;
-  const entry = ordered[index];
   const { w, h, layoutScale } = dimsAt(baseDims[index], layoutScales[index]);
-  const target = temporalTarget(entry, index, total, region, side, maxMinute);
+  const target = temporalTarget(ordered[index], index, total, region, side, maxMinute);
 
   let candidates =
     index === 0
       ? collectFirstMarkCandidates(target, w, h, region, teamBounds, side)
-      : collectAdjacentCandidates(
-          target,
-          w,
-          h,
-          placed,
-          region,
-          teamBounds,
-          side,
-          entry
-        );
+      : collectAdjacentCandidates(target, w, h, placed, region, teamBounds, side);
 
   let found = pickBestCandidate(
     candidates,
@@ -1129,8 +724,7 @@ function placeMarkInLayout(
     layoutScale,
     placed,
     teamBounds,
-    index > 0 && requireEdgeTouch,
-    entry
+    index > 0 && requireEdgeTouch
   );
 
   if (!found && index > 0) {
@@ -1150,8 +744,7 @@ function placeMarkInLayout(
       layoutScale,
       placed,
       teamBounds,
-      requireEdgeTouch,
-      entry
+      requireEdgeTouch
     );
   }
 
@@ -1213,37 +806,6 @@ function spiralPackNoOverlap(
     );
     let scale = layoutScales[i];
     let found: PlacedRect | null = null;
-    const stepBudget = activePlacementLayout?.diagonalSplit ? 120 : 500;
-    const microBudget = activePlacementLayout?.diagonalSplit ? 160 : 800;
-    const anchorBudget = activePlacementLayout?.diagonalSplit ? 120 : 600;
-
-    // Sporadic adjacent forks first (all asset types) — spiral is fallback only.
-    if (mosaicGrowthSporadicity() > 0.05) {
-      let forkScale = scale;
-      let forkTries = 0;
-      const forkCap = activePlacementLayout?.diagonalSplit ? 10 : 28;
-      while (
-        !found &&
-        forkTries < forkCap &&
-        markMinDimension(baseDims[i], forkScale) >= minMarkPx * 0.8
-      ) {
-        forkTries++;
-        const scales = layoutScales.map((s, idx) => (idx === i ? forkScale : s));
-        found = placeMarkInLayout(
-          i,
-          ordered,
-          baseDims,
-          teamBounds,
-          teamBounds,
-          scales,
-          maxMinute,
-          side,
-          placed,
-          false
-        );
-        if (!found) forkScale *= 0.88;
-      }
-    }
 
     while (
       !found &&
@@ -1251,7 +813,7 @@ function spiralPackNoOverlap(
     ) {
       const { w, h } = dimsAt(baseDims[i], scale);
       let radius = Math.max(w, h) * 0.25;
-      for (let step = 0; step < stepBudget; step++) {
+      for (let step = 0; step < 500; step++) {
         const angle = (i + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.29;
         radius += Math.max(w, h) * 0.038;
         const cx = target.cx + Math.cos(angle) * radius;
@@ -1272,7 +834,7 @@ function spiralPackNoOverlap(
       );
       while (!found && microScale >= 0.025) {
         const { w, h } = dimsAt(baseDims[i], microScale);
-        for (let step = 0; step < microBudget; step++) {
+        for (let step = 0; step < 800; step++) {
           const angle = (i + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.21;
           const r = Math.max(w, h) * (0.4 + step * 0.06);
           const cx = target.cx + Math.cos(angle) * r;
@@ -1294,7 +856,7 @@ function spiralPackNoOverlap(
       );
       const { w, h } = dimsAt(baseDims[i], floorScale);
       const anchor = placementAnchorCenter(teamBounds);
-      for (let step = 0; step < anchorBudget; step++) {
+      for (let step = 0; step < 600; step++) {
         const angle = (i + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.25;
         const r = Math.max(w, h) * (0.15 + step * 0.045);
         const cx = anchor.cx + Math.cos(angle) * r;
@@ -1345,11 +907,7 @@ function repairOverlaps(
   const fixed = rects.map((r) => ({ ...r }));
   const anchor = placementAnchorCenter(teamBounds);
 
-  // Diagonal packs are dense; 800×N² rescue passes froze mobile seek.
-  const maxIters = activePlacementLayout?.diagonalSplit ? 48 : 800;
-  const rescueSteps = activePlacementLayout?.diagonalSplit ? 48 : 200;
-
-  for (let iter = 0; iter < maxIters; iter++) {
+  for (let iter = 0; iter < 800; iter++) {
     if (!layoutHasOverlaps(fixed)) break;
 
     let repaired = false;
@@ -1380,7 +938,7 @@ function repairOverlaps(
       const current = fixed[j];
       if (others.every((o) => !rectsOverlap(current, o, 0))) continue;
 
-      for (let step = 0; step < rescueSteps; step++) {
+      for (let step = 0; step < 200; step++) {
         const angle = j * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.33;
         const r = Math.max(current.w, current.h) * (0.35 + step * 0.065);
         const cx = anchor.cx + Math.cos(angle) * r;
@@ -1402,9 +960,7 @@ function repairOverlaps(
 
 function layoutHasOverlaps(rects: PlacedRect[]): boolean {
   for (let i = 0; i < rects.length; i++) {
-    if (rects[i].w <= 0 || rects[i].h <= 0) continue;
     for (let j = i + 1; j < rects.length; j++) {
-      if (rects[j].w <= 0 || rects[j].h <= 0) continue;
       if (rectsOverlap(rects[i], rects[j], 0)) return true;
     }
   }
@@ -1412,9 +968,7 @@ function layoutHasOverlaps(rects: PlacedRect[]): boolean {
 }
 
 function allRectsFitBounds(rects: PlacedRect[], bounds: RegionBounds): boolean {
-  return rects.every(
-    (r) => r.w <= 0 || r.h <= 0 || rectFitsInBounds(r.cx, r.cy, r.w, r.h, bounds)
-  );
+  return rects.every((r) => rectFitsInBounds(r.cx, r.cy, r.w, r.h, bounds));
 }
 
 function renderSizedRects(
@@ -1430,16 +984,6 @@ function renderSizedRects(
   }));
 }
 
-function mosaicHasEdgeConnectivity(rects: PlacedRect[]): boolean {
-  const visible = rects.filter((r) => r.w > 0 && r.h > 0);
-  if (visible.length <= 1) return true;
-  for (let i = 0; i < visible.length; i++) {
-    const others = visible.filter((_, idx) => idx !== i);
-    if (!touchesAny(visible[i], others)) return false;
-  }
-  return true;
-}
-
 function mosaicLayoutValid(
   rects: PlacedRect[],
   baseDims: MarkPixelDims[],
@@ -1448,149 +992,19 @@ function mosaicLayoutValid(
   layout: PosterLayout,
   side: TeamSide
 ): boolean {
-  if (rects.length === 0) return false;
-  void baseDims;
-  void mosaicScale;
-
-  if (layoutHasOverlaps(rects)) return false;
-  if (!allRectsFitBounds(rects, teamBounds)) return false;
-
-  if (layout.diagonalSplit) {
-    for (const r of rects) {
-      if (r.w <= 0 || r.h <= 0) continue;
-      if (!markClearsDiagonal(r.cx, r.cy, r.w, r.h, layout, side)) return false;
-    }
-  }
-
-  // Edge connectivity is enforced in postProcess — don't fail the whole scale
-  // search on it (that caused multi-minute freezes when packs got dense).
-  return true;
-}
-
-/**
- * Keep possession circles from sharing AABB with any other mark.
- * Prefer relocating the other mark; relocate or hide the circle if needed.
- */
-function enforcePossessionClearance(
-  rects: PlacedRect[],
-  ordered: TimedMarkEntry[],
-  teamBounds: RegionBounds
-): PlacedRect[] {
-  const fixed = rects.map((r) => ({ ...r }));
-  const anchor = placementAnchorCenter(teamBounds);
-
-  function tryRelocate(
-    moveIdx: number,
-    others: PlacedRect[]
-  ): PlacedRect | null {
-    const moving = fixed[moveIdx];
-    const stepCap = activePlacementLayout?.diagonalSplit ? 64 : 320;
-    for (let step = 0; step < stepCap; step++) {
-      const angle = (moveIdx + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
-      const r = Math.max(moving.w, moving.h) * (0.2 + step * 0.05);
-      const cx = anchor.cx + Math.cos(angle) * r;
-      const cy = anchor.cy + Math.sin(angle) * r;
-      const candidate = { ...moving, cx, cy };
-      if (placementValid(candidate, others, teamBounds, false)) {
-        return candidate;
-      }
-    }
-    return null;
-  }
-
-  const maxIters = activePlacementLayout?.diagonalSplit ? 24 : 80;
-  for (let iter = 0; iter < maxIters; iter++) {
-    let hit = false;
-    for (let i = 0; i < fixed.length; i++) {
-      if (!isPossessionComponent(ordered[i].component)) continue;
-      if (fixed[i].w <= 0 || fixed[i].h <= 0) continue;
-
-      for (let j = 0; j < fixed.length; j++) {
-        if (i === j || fixed[j].w <= 0 || fixed[j].h <= 0) continue;
-        if (!rectsOverlap(fixed[i], fixed[j], 0)) continue;
-        hit = true;
-
-        const othersWithout = (skip: number) =>
-          fixed.filter((_, k) => k !== skip && fixed[k].w > 0 && fixed[k].h > 0);
-
-        // Prefer relocating a non-circle; otherwise the other circle.
-        const preferMove = isPossessionComponent(ordered[j].component) ? j : j;
-        const relocated = tryRelocate(preferMove, othersWithout(preferMove));
-        if (relocated) {
-          fixed[preferMove] = relocated;
-          continue;
-        }
-
-        if (!isPossessionComponent(ordered[j].component)) {
-          const circleMoved = tryRelocate(i, othersWithout(i));
-          if (circleMoved) {
-            fixed[i] = circleMoved;
-            continue;
-          }
-          // Keep the event; hide the circle rather than leave an overlap.
-          fixed[i] = { ...fixed[i], w: 0, h: 0, layoutScale: 0 };
-        } else {
-          fixed[j] = { ...fixed[j], w: 0, h: 0, layoutScale: 0 };
-        }
-      }
-    }
-    if (!hit) break;
-  }
-
-  return fixed;
+  const sized = renderSizedRects(rects, baseDims, mosaicScale);
+  return !layoutHasOverlaps(sized) && allRectsFitBounds(sized, teamBounds);
 }
 
 function postProcessMosaic(
   rects: PlacedRect[],
-  teamBounds: RegionBounds,
-  ordered: TimedMarkEntry[] = []
+  teamBounds: RegionBounds
 ): PlacedRect[] {
-  let fixed = rects.map((r) => ({ ...r }));
-
+  let fixed = rects;
   for (let pass = 0; pass < 6; pass++) {
     fixed = repairOverlaps(fixed, teamBounds);
     if (!layoutHasOverlaps(fixed)) break;
   }
-
-  if (!activePlacementLayout?.diagonalSplit) return fixed;
-
-  const possMin = possessionMosaicMinPx();
-
-  // Cap attempts — shrink + re-snap, but never grind for seconds on fail.
-  for (let attempt = 0; attempt < 8; attempt++) {
-    fixed = enforceEdgeTouches(fixed, teamBounds);
-    fixed = connectIsolatedMarks(fixed, teamBounds);
-    fixed = repairOverlaps(fixed, teamBounds);
-
-    const ok =
-      !layoutHasOverlaps(fixed) &&
-      mosaicHasEdgeConnectivity(fixed) &&
-      allRectsFitBounds(fixed, teamBounds);
-    if (ok) return fixed;
-
-    fixed = fixed.map((r, i) => {
-      // Possession circles stay at ≥ min diameter — shrink events only.
-      if (ordered[i] && isPossessionComponent(ordered[i].component)) {
-        const short = Math.min(r.w, r.h);
-        if (short <= possMin * 1.02) return r;
-      }
-      const w = r.w * 0.94;
-      const h = r.h * 0.94;
-      const clamped = clampCenterToBounds(r.cx, r.cy, w, h, teamBounds);
-      return {
-        ...r,
-        cx: clamped.cx,
-        cy: clamped.cy,
-        w,
-        h,
-        layoutScale: r.layoutScale * 0.94,
-      };
-    });
-  }
-
-  fixed = enforceEdgeTouches(fixed, teamBounds);
-  fixed = connectIsolatedMarks(fixed, teamBounds);
-  fixed = repairOverlaps(fixed, teamBounds);
   return fixed;
 }
 
@@ -1622,9 +1036,6 @@ function placeAllMarks(
     const placedSoFar: PlacedRect[] = [];
     const results: PlacedRect[] = [];
     for (let i = 0; i < ordered.length; i++) {
-      const floorPx = isPossessionComponent(ordered[i].component)
-        ? possessionMosaicMinPx()
-        : minMarkPx;
       let next =
         rects[i] ??
         forcePlaceMarkAtTarget(
@@ -1637,13 +1048,9 @@ function placeAllMarks(
           side,
           maxMinute,
           placedSoFar,
-          floorPx
+          minMarkPx
         );
-
-      // Don't inflate zeroed (hidden) possession slots back to min size.
-      if (next.w > 0 && next.h > 0) {
-        next = clampRectToMinVisible(next, baseDims[i], floorPx);
-      }
+      next = clampRectToMinVisible(next, baseDims[i], minMarkPx);
       if (next.w > baseDims[i].widthPx * 1.01 || next.h > baseDims[i].heightPx * 1.01) {
         next = {
           ...next,
@@ -1652,34 +1059,7 @@ function placeAllMarks(
           layoutScale: 1,
         };
       }
-
-      // Clamp-to-min can reintroduce overlaps — relocate at the floor size.
-      if (
-        next.w > 0 &&
-        next.h > 0 &&
-        placedSoFar.some((other) => rectsOverlap(next, other, 0))
-      ) {
-        const relocated = forcePlaceMarkAtTarget(
-          ordered[i],
-          i,
-          ordered.length,
-          baseDims[i],
-          teamBounds,
-          region,
-          side,
-          maxMinute,
-          placedSoFar,
-          floorPx
-        );
-        next =
-          relocated.w > 0 && relocated.h > 0
-            ? relocated
-            : isPossessionComponent(ordered[i].component)
-              ? { cx: next.cx, cy: next.cy, w: 0, h: 0, layoutScale: 0 }
-              : next;
-      }
-
-      if (next.w > 0 && next.h > 0) placedSoFar.push(next);
+      placedSoFar.push(next);
       results.push(next);
     }
     return results;
@@ -1773,83 +1153,18 @@ function forcePlaceMarkAtTarget(
   placed: PlacedRect[],
   minMarkPx: number
 ): PlacedRect {
-  const layout = activePlacementLayout;
-  const floorScale = Math.max(
-    minMarkPx / Math.min(base.widthPx, base.heightPx),
-    0.025
-  );
-  const { w, h, layoutScale } = dimsAt(base, floorScale);
-  const anchor = placementAnchorCenter(teamBounds);
   const target = temporalTarget(entry, index, total, region, side, maxMinute);
-
-  // Diagonal: stay on a tight budget. The long golden spirals below freeze phones
-  // once possession circles approach ~36 on a mobile canvas.
-  if (layout?.diagonalSplit) {
-    const cell = Math.max(mosaicCellPx(), Math.max(w, h));
-    const cols = Math.max(4, Math.floor(teamBounds.width / cell));
-    const rows = Math.max(4, Math.floor(teamBounds.height / cell));
-
-    const tryCandidate = (cx: number, cy: number): PlacedRect | null => {
-      const clamped = clampCenterToBounds(cx, cy, w, h, teamBounds);
-      const candidate = {
-        cx: clamped.cx,
-        cy: clamped.cy,
-        w,
-        h,
-        layoutScale,
-      };
-      return placementValid(candidate, placed, teamBounds, false)
-        ? candidate
-        : null;
-    };
-
-    let found = tryCandidate(target.cx, target.cy);
-    if (found) return found;
-
-    for (let step = 0; step < 48; step++) {
-      const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
-      const r = Math.max(w, h) * (0.15 + step * 0.08);
-      found = tryCandidate(
-        anchor.cx + Math.cos(angle) * r,
-        anchor.cy + Math.sin(angle) * r
-      );
-      if (found) return found;
-    }
-
-    for (let gy = 0; gy < rows; gy++) {
-      for (let gx = 0; gx < cols; gx++) {
-        const cx = teamBounds.left + ((gx + 0.5) / cols) * teamBounds.width;
-        const cy = teamBounds.top + ((gy + 0.5) / rows) * teamBounds.height;
-        found = tryCandidate(cx, cy);
-        if (found) return found;
-      }
-    }
-
-    if (isPossessionComponent(entry.component)) {
-      return { cx: anchor.cx, cy: anchor.cy, w: 0, h: 0, layoutScale: 0 };
-    }
-
-    const parked = clampCenterToBounds(anchor.cx, anchor.cy, w, h, teamBounds);
-    return { cx: parked.cx, cy: parked.cy, w, h, layoutScale };
-  }
-
   let scale = eventMarksConfig.crowdedScaleMin;
 
   while (scale >= 0.025) {
-    const dims = dimsAt(base, scale);
+    const { w, h, layoutScale } = dimsAt(base, scale);
     let radius = 0;
     for (let step = 0; step < 600; step++) {
       const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.27;
-      radius += Math.max(dims.w, dims.h) * 0.038;
+      radius += Math.max(w, h) * 0.038;
       const cx = target.cx + Math.cos(angle) * radius;
       const cy = target.cy + Math.sin(angle) * radius;
-      const candidate = {
-        cx,
-        cy,
-        w: dims.w,
-        h: dims.h,
-        layoutScale: dims.layoutScale,
-      };
+      const candidate = { cx, cy, w, h, layoutScale };
       if (placementValid(candidate, placed, teamBounds, false)) {
         return candidate;
       }
@@ -1857,6 +1172,12 @@ function forcePlaceMarkAtTarget(
     scale *= 0.85;
   }
 
+  const floorScale = Math.max(
+    minMarkPx / Math.min(base.widthPx, base.heightPx),
+    0.025
+  );
+  const { w, h, layoutScale } = dimsAt(base, floorScale);
+  const anchor = placementAnchorCenter(teamBounds);
   for (let step = 0; step < 400; step++) {
     const angle = (index + 1) * GOLDEN_ANGLE + step * GOLDEN_ANGLE * 0.31;
     const r = Math.max(w, h) * (0.2 + step * 0.055);
@@ -1937,8 +1258,8 @@ function incrementalGuidedLayout(
   layout: PosterLayout,
   startIndex: number
 ): PlacedRect[] | null {
-  const minMarkPx = eventMinMarkPx();
-  const preferEdgeTouch = mosaicGrowthSporadicity() > 0.35 ? false : true;
+  const { minMarkPx } = eventMarksConfig;
+  const preferEdgeTouch = true;
   const placed: PlacedRect[] = [];
   const results: PlacedRect[] = new Array(ordered.length);
 
@@ -2091,31 +1412,13 @@ function layoutInRegion(
   region: RegionBounds,
   teamBounds: RegionBounds,
   side: TeamSide,
-  layout: PosterLayout
+  _layout: PosterLayout
 ): PlacedRect[] {
-  const minMarkPx = eventMinMarkPx();
+  const { minMarkPx } = eventMarksConfig;
   const weights = randomPerMarkWeights(ordered);
   const maxMinute = maxMinuteForEntries(ordered);
-
-  // Diagonal packs get dense (possession + events). Skip aesthetic / spiral
-  // thrash — those froze mobile seek for minutes once circles ≥ ~36.
-  // Guarantee + light overlap repair is enough for the mosaic look.
-  if (layout.diagonalSplit) {
-    return repairOverlaps(
-      guaranteeAllMarksPlaced(
-        ordered,
-        baseDims,
-        region,
-        teamBounds,
-        side,
-        maxMinute,
-        minMarkPx
-      ),
-      teamBounds
-    );
-  }
-
   const preferEdgeTouch = false;
+
   let globalMult = 1;
 
   for (let attempt = 0; attempt < 80; attempt++) {
@@ -2174,7 +1477,7 @@ function layoutInRegion(
     }
   }
 
-  return repairOverlaps(
+  const last = repairOverlaps(
     spiralPackNoOverlap(
       ordered,
       baseDims,
@@ -2198,6 +1501,7 @@ function layoutInRegion(
       ),
     teamBounds
   );
+  return last;
 }
 
 /** Last resort — place every mark via golden spiral; never drop an asset. */
@@ -2214,9 +1518,6 @@ function guaranteeAllMarksPlaced(
   const results: PlacedRect[] = [];
 
   for (let i = 0; i < ordered.length; i++) {
-    const floorPx = isPossessionComponent(ordered[i].component)
-      ? possessionMosaicMinPx()
-      : minMarkPx;
     let rect = forcePlaceMarkAtTarget(
       ordered[i],
       i,
@@ -2227,13 +1528,11 @@ function guaranteeAllMarksPlaced(
       side,
       maxMinute,
       placed,
-      floorPx
+      minMarkPx
     );
-    if (rect.w > 0 && rect.h > 0) {
-      rect = clampRectToMinVisible(rect, baseDims[i], floorPx);
-    }
+    rect = clampRectToMinVisible(rect, baseDims[i], minMarkPx);
     results.push(rect);
-    if (rect.w > 0 && rect.h > 0) placed.push(rect);
+    placed.push(rect);
   }
 
   return results;
@@ -2262,163 +1561,60 @@ export function relayoutTimedMarkEntries(
   const region = teamPlacementBounds(layout, side);
   const teamBounds = teamPlacementBounds(layout, side);
   const rawDims = ordered.map(({ mark, component }) => baseSizeForEntry(component, mark));
-  // Shrink marks under diagonal split so both teams fit in opposite triangles.
-  // Must stay in sync with diagonalCompositionMarkScale() used at draw time.
-  const diagonalScale = diagonalCompositionMarkScale(layout);
-  const possMin = possessionMosaicMinPx();
-  const minMarkPx = eventMinMarkPx();
-  const cell = mosaicCellPx();
-  const gridOriginX = layout.margin;
-  const gridOriginY = layout.artworkTop;
-  // Possession raw dims are already floored for diagonal in markSizing — scale only.
-  // Snap every mark to the mosaic grid so sizes are multiples of the cell.
-  const baseDims = scaleMarkDims(rawDims, diagonalScale).map((d, i) => {
-    const floorPx = isPossessionComponent(ordered[i].component)
-      ? possMin
-      : minMarkPx;
-    const floored = floorDimsToMinPx(d, floorPx);
-    if (!layout.diagonalSplit) return floored;
-    const comp = ordered[i].component;
-    if (
-      comp === VISUAL_COMPONENT.Goal ||
-      comp === VISUAL_COMPONENT.Foul ||
-      comp === VISUAL_COMPONENT.Offside
-    ) {
-      return snapElongatedDimsToGrid(floored, cell);
-    }
-    return snapDimsToGrid(floored, cell);
-  });
-  // Scale floor ignores possession (they stay fixed ≥ possMin); only events shrink.
-  const eventDims = baseDims.filter(
-    (_, i) => !isPossessionComponent(ordered[i].component)
-  );
-  const scaleFloor =
-    eventDims.length > 0 ? minMosaicScaleForMinPx(eventDims, minMarkPx) : 1;
+  const baseDims = rawDims;
+  const { minMarkPx } = eventMarksConfig;
+  const scaleFloor = minMosaicScaleForMinPx(baseDims, minMarkPx);
 
   let mosaicScale = 1;
   let rects: PlacedRect[] = [];
-
-  if (layout.diagonalSplit) {
-    // One pack only — multi-scale postProcess thrashed phones on dense mosaics.
+  for (let scale = 1; scale >= scaleFloor; scale -= 0.02) {
+    const scaledDims = scaleMarkDims(baseDims, scale);
     const placed = placeAllMarks(
       ordered,
-      baseDims,
+      scaledDims,
       region,
       teamBounds,
       side,
       layout,
       minMarkPx
     );
-    rects = repairOverlaps(placed, teamBounds);
-    mosaicScale = 1;
-  } else {
-    for (let scale = 1; scale >= scaleFloor; scale -= 0.02) {
-      const scaledDims = dimsForMosaicScale(ordered, baseDims, scale);
-      const placed = placeAllMarks(
-        ordered,
-        scaledDims,
-        region,
-        teamBounds,
-        side,
-        layout,
-        minMarkPx
-      );
-      const processed = postProcessMosaic(placed, teamBounds, ordered);
-      if (mosaicLayoutValid(processed, baseDims, scale, teamBounds, layout, side)) {
-        mosaicScale = scale;
-        rects = processed;
-        break;
-      }
-      if (scale <= scaleFloor) {
-        mosaicScale = scale;
-        rects = postProcessMosaic(placed, teamBounds, ordered);
-      }
+    const processed = postProcessMosaic(placed, teamBounds);
+    if (mosaicLayoutValid(processed, baseDims, scale, teamBounds, layout, side)) {
+      mosaicScale = scale;
+      rects = processed;
+      break;
     }
-
-    if (!mosaicLayoutValid(rects, baseDims, mosaicScale, teamBounds, layout, side)) {
-      for (let pass = 0; pass < 4; pass++) {
-        mosaicScale = Math.max(scaleFloor, mosaicScale - 0.05);
-        const scaledDims = dimsForMosaicScale(ordered, baseDims, mosaicScale);
-        const candidate = postProcessMosaic(
-          placeAllMarks(
-            ordered,
-            scaledDims,
-            region,
-            teamBounds,
-            side,
-            layout,
-            minMarkPx
-          ),
-          teamBounds,
-          ordered
-        );
-        if (mosaicLayoutValid(candidate, baseDims, mosaicScale, teamBounds, layout, side)) {
-          rects = candidate;
-          break;
-        }
-      }
+    if (scale <= scaleFloor) {
+      mosaicScale = scale;
+      rects = postProcessMosaic(placed, teamBounds);
     }
   }
 
-  // Final pass: possession circles must not share AABB with anything else.
-  rects = enforcePossessionClearance(rects, ordered, teamBounds);
-
-  if (layout.diagonalSplit) {
-    rects = rects.map((r) =>
-      snapRectToGrid(r, gridOriginX, gridOriginY, cell)
-    );
-    // Snap can collide — nudge on-grid until clear, prefer moving later marks.
+  if (!mosaicLayoutValid(rects, baseDims, mosaicScale, teamBounds, layout, side)) {
     for (let pass = 0; pass < 12; pass++) {
-      let moved = false;
-      for (let i = 0; i < rects.length; i++) {
-        if (rects[i].w <= 0 || rects[i].h <= 0) continue;
-        const others = rects.filter(
-          (_, k) => k !== i && rects[k].w > 0 && rects[k].h > 0
-        );
-        if (!others.some((o) => rectsOverlap(rects[i], o, 0))) continue;
-        let found: PlacedRect | null = null;
-        const steps = [
-          [cell, 0],
-          [-cell, 0],
-          [0, cell],
-          [0, -cell],
-          [cell, cell],
-          [cell, -cell],
-          [-cell, cell],
-          [-cell, -cell],
-        ];
-        for (let ring = 1; ring <= 8 && !found; ring++) {
-          for (const [dx, dy] of steps) {
-            const cx = rects[i].cx + dx * ring;
-            const cy = rects[i].cy + dy * ring;
-            const candidate = snapRectToGrid(
-              { ...rects[i], cx, cy },
-              gridOriginX,
-              gridOriginY,
-              cell
-            );
-            if (placementValid(candidate, others, teamBounds, false)) {
-              found = candidate;
-              break;
-            }
-          }
-        }
-        if (found) {
-          rects[i] = found;
-          moved = true;
-        } else if (isPossessionComponent(ordered[i].component)) {
-          rects[i] = { ...rects[i], w: 0, h: 0, layoutScale: 0 };
-          moved = true;
-        }
+      mosaicScale = Math.max(scaleFloor, mosaicScale - 0.03);
+      const scaledDims = scaleMarkDims(baseDims, mosaicScale);
+      const candidate = postProcessMosaic(
+        placeAllMarks(
+          ordered,
+          scaledDims,
+          region,
+          teamBounds,
+          side,
+          layout,
+          minMarkPx
+        ),
+        teamBounds
+      );
+      if (mosaicLayoutValid(candidate, baseDims, mosaicScale, teamBounds, layout, side)) {
+        rects = candidate;
+        break;
       }
-      if (!moved) break;
     }
   }
 
   const maxMinute = maxMinuteForEntries(ordered);
-
-  const sideList = side === "home" ? placement.home : placement.away;
-  sideList.length = 0;
+  mosaicScale *= 0.992;
 
   for (let i = 0; i < ordered.length; i++) {
     const entry = ordered[i];
@@ -2442,32 +1638,13 @@ export function relayoutTimedMarkEntries(
 
     const nx = (rect.cx - layout.margin) / Math.max(layout.artworkWidth, 1);
     const ny = (rect.cy - layout.artworkTop) / Math.max(layout.artworkHeight, 1);
-    const nw = rect.w / Math.max(layout.artworkWidth, 1);
-    const nh = rect.h / Math.max(layout.artworkHeight, 1);
-    sideList.push({
-      nx,
-      ny,
-      nw,
-      nh,
-    });
 
-    // Draw size = raw * layoutScale * diagonalScale for uniform marks.
-    // Footprint nw/nh preserves snapped+stretched boxes for Goal/Foul/Offside.
-    const commitScale =
-      rect.w <= 0 || rect.h <= 0
-        ? 0
-        : rect.w /
-          Math.max(rawDims[i].widthPx * Math.max(diagonalScale, 1e-6), 1e-6);
-
-    const footprint = { nw, nh };
     if (entry.commit) {
-      entry.commit(nx, ny, commitScale, layout, footprint);
+      entry.commit(nx, ny, mosaicScale, layout);
     } else {
       entry.mark.nx = nx;
       entry.mark.ny = ny;
-      entry.mark.layoutScale = commitScale;
-      entry.mark.layoutNw = nw;
-      entry.mark.layoutNh = nh;
+      entry.mark.layoutScale = mosaicScale;
     }
   }
 

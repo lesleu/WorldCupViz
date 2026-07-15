@@ -892,7 +892,7 @@
         "com.figma.hiddenFromPublishing": false
       },
       "$type": "color",
-      "$value": "#FFFFFF"
+      "$value": "#f1f1f1"
     },
     "c2": {
       "$extensions": {

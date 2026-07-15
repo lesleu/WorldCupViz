@@ -38,26 +38,6 @@ export const compositionConfig: CompositionConfig = {
   timelineYWeight: 0.65,
   markAgeOpacityDecay: 1,
   usePoissonCandidates: true,
-  diagonalSplit: true,
-  diagonalSeamGap: 0.02,
-  cornerGrowthBias: 1.25,
-  /** Multi-branch sporadic growth for every mosaic asset (vs two clean limbs). */
-  mosaicGrowthSporadicity: 0.88,
-  /** Pack marks into opposite triangles without crossing the seam. */
-  diagonalMarkScale: 0.72,
-  /** 100% possession → this many circles; 50% → half (rounded). */
-  possessionMosaicCirclesAt100: 36,
-  /** Circle diameter in Figma design px before canvas / diagonal scaling. */
-  possessionMosaicDesignPx: 44,
-  /** Possession mosaic circles never render smaller than this (design px @ 1920×1080; 40 on desktop, ≥20 on mobile). */
-  possessionMosaicMinPx: 40,
-  /** Subtle bg grid + mark snap (design px). Desktop stays 40; mobile scales down to ≥20. */
-  mosaicGridCellPx: 40,
-  /**
-   * Boost team palette saturation toward neon while keeping hue (0 = off, 1 = max).
-   * Applied at draw time for diagonal compositions.
-   */
-  neonPaletteBoost: 0.68,
   eventPlacementProfiles: {
     [VISUAL_COMPONENT.Goal]: {
       innerBiasMultiplier: 1.15,

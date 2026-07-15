@@ -1,8 +1,6 @@
 import type { TeamPalette } from "@/data/teamPalettes.generated";
 import { getTeamName } from "@/data/teams.generated";
 import { resolveTeamPalette } from "@/data/teamPaletteFallback";
-import { neonizePalette } from "@/design-system/color/neonPalette";
-import { cfg } from "@/config";
 
 export type { TeamPalette };
 export { TEAM_PALETTES } from "@/data/teamPalettes.generated";
@@ -41,10 +39,7 @@ export type TeamSide = "home" | "away";
 
 export function paletteForSide(match: MatchData, side: TeamSide): TeamPalette {
   const code = side === "home" ? match.homeTeamCode : match.awayTeamCode;
-  const base = resolveTeamPalette(code);
-  if (!cfg.composition.diagonalSplit) return base;
-  const boost = cfg.composition.neonPaletteBoost ?? 0;
-  return boost > 0 ? neonizePalette(base, boost) : base;
+  return resolveTeamPalette(code);
 }
 
 /** Demo match used for replay mode (Mexico vs Korea Republic). */

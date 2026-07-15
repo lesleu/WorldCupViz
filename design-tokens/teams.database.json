@@ -1,7 +1,7 @@
 {
   "tournament": "FIFA World Cup 2026",
   "teamCount": 48,
-  "generatedAt": "2026-07-12T17:30:19.999Z",
+  "generatedAt": "2026-07-03T19:08:55.698Z",
   "teams": [
     {
       "code": "CAN",
@@ -492,7 +492,7 @@
       "name": "England",
       "confederation": "UEFA",
       "palette": {
-        "c1": "#FFFFFF",
+        "c1": "#f1f1f1",
         "c2": "#1b2539",
         "c3": "#e1213a",
         "c4": "#efa74a",

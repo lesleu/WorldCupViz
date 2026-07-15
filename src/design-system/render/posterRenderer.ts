@@ -45,12 +45,6 @@ import {
   resolveQuadrantEntryDimensions,
   type MarkPixelDims,
 } from "@/design-system/layout/markSizing";
-import {
-  diagonalCompositionMarkScale,
-  mosaicGridCellRuntimePx,
-  possessionMosaicMinRuntimePx,
-  scaleDesignPx,
-} from "@/design-system/layout/designScale";
 import { cfg } from "@/config";
 import { HOME_THUMBNAIL_FIT } from "@/config/home.config";
 
@@ -139,9 +133,6 @@ export function createReplaySketch(
   const posterArtworkCrop = options.posterArtworkCrop ?? false;
   const fitBothTeams = options.fitBothTeams ?? false;
   const thumbnailFit = options.thumbnailFit ?? HOME_THUMBNAIL_FIT;
-  // realone: diagonal split composition — drop gradients, initials, possession
-  // grid, and pass-accuracy stripes; marks fill each team's corner triangle.
-  const diagonalComposition = cfg.composition.diagonalSplit === true;
   const drawSides = (): TeamSide[] =>
     teamSide ? [teamSide] : ["home", "away"];
   const markSideVisible = (side: TeamSide) => !teamSide || teamSide === side;
@@ -165,8 +156,6 @@ export function createReplaySketch(
     }
 
     const chrome = hexToRgb(cfg.colors.cream);
-    /** realone: dark grey/black artwork background behind the diagonal marks. */
-    const diagonalBg = hexToRgb("#161616");
     const ink = hexToRgb(cfg.colors.text);
     const inkMuted = hexToRgb(cfg.colors.textMuted);
     const black = hexToRgb(cfg.colors.black);
@@ -391,15 +380,9 @@ export function createReplaySketch(
       dims: MarkPixelDims,
       colorOverrides?: Record<string, string>
     ) {
-      const stretchLongAssets =
-        diagonalComposition &&
-        (component === VISUAL_COMPONENT.Goal ||
-          component === VISUAL_COMPONENT.Foul ||
-          component === VISUAL_COMPONENT.Offside);
       drawSvgComponent(p, component, palette, x, y, {
         widthPx: dims.widthPx,
         heightPx: dims.heightPx,
-        stretchToBox: stretchLongAssets,
         colorOverrides,
       });
     }
@@ -441,24 +424,8 @@ export function createReplaySketch(
         side: TeamSide;
         spawnScale: number;
         layoutScale: number;
-        layoutNw?: number;
-        layoutNh?: number;
       }
     ): MarkPixelDims {
-      // Prefer committed mosaic footprint so stretched Goal/Foul/Offside keep
-      // their grid box (not the SVG's native aspect).
-      if (
-        layout.diagonalSplit &&
-        mark.layoutNw !== undefined &&
-        mark.layoutNh !== undefined &&
-        mark.layoutNw > 0 &&
-        mark.layoutNh > 0
-      ) {
-        return {
-          widthPx: mark.layoutNw * layout.artworkWidth,
-          heightPx: mark.layoutNh * layout.artworkHeight,
-        };
-      }
       const parentId = mark.id.replace(/-sq\d+$/, "");
       const rank = rankForDraw(art, mark.side, component, mark.id);
       const base = resolveQuadrantEntryDimensions(
@@ -470,10 +437,9 @@ export function createReplaySketch(
         markRng(parentId, mark.minute)
       );
       const ls = mark.layoutScale > 0 ? mark.layoutScale : 1;
-      const diagonalScale = diagonalCompositionMarkScale(layout);
       return {
-        widthPx: base.widthPx * ls * diagonalScale,
-        heightPx: base.heightPx * ls * diagonalScale,
+        widthPx: base.widthPx * ls,
+        heightPx: base.heightPx * ls,
       };
     }
 
@@ -697,40 +663,15 @@ export function createReplaySketch(
       }
     }
 
-    /** Possession mosaic circles — diameter from layoutScale; team c1 fill. */
-    function drawPossessionCircles(
-      art: AccumulatedArtState,
-      currentMinute: number
-    ) {
-      if (!diagonalComposition) return;
-      const minDiameter = possessionMosaicMinRuntimePx(layout);
-      p.noStroke();
-      for (const mark of art.possessionCircles) {
-        if (!markSideVisible(mark.side)) continue;
-        // Grow with the match clock — same chronological gate as other marks.
-        if (mark.minute > currentMinute) continue;
-        const palette = paletteForSide(getMatch(), mark.side);
-        const [x, y] = denormPoint(mark.nx, mark.ny, layout);
-        const dims = quadrantEntryDims(VISUAL_COMPONENT.PossessionGrid, art, mark);
-        const diameter = Math.max(dims.widthPx, dims.heightPx);
-        // Skip hidden / undersized circles (unplaceable without overlap).
-        if (!(diameter >= minDiameter - 0.5)) continue;
-        fillRgb(p, hexToRgb(palette.c1), 230);
-        p.circle(x, y, diameter);
-      }
-    }
-
     /** Accumulated marks — back→front order from MARK_DRAW_ORDER. */
     function drawAccumulatedMarks(
       art: AccumulatedArtState,
       continuous: ContinuousMatchState,
       intensity: number,
-      burst: number,
-      currentMinute: number
+      burst: number
     ) {
       const burstScale = cfg.animation.staticRender ? 1 : 1 + burst * 0.22;
       void MARK_DRAW_ORDER;
-      drawPossessionCircles(art, currentMinute);
       drawGoal(art, intensity);
       drawFoul(art, intensity);
       drawShot(art, continuous, intensity, burstScale);
@@ -740,84 +681,46 @@ export function createReplaySketch(
       drawCard(art);
     }
 
-    /** Subtle mosaic grid + brighter intersection dots (diagonal compositions). */
-    function drawMosaicBackgroundGrid() {
-      const cell = mosaicGridCellRuntimePx(layout);
-      const left = layout.margin;
-      const top = layout.artworkTop;
-      const right = left + layout.artworkWidth;
-      const bottom = layout.artworkBottom;
-      if (right <= left || bottom <= top || cell < 4) return;
-
-      const dotR = Math.max(1, scaleDesignPx(3, layout));
-
-      p.push();
-      p.stroke(255, 255, 255, 16);
-      p.strokeWeight(Math.max(0.5, scaleDesignPx(1, layout)));
-      for (let x = left; x <= right + 0.5; x += cell) {
-        p.line(x, top, x, bottom);
-      }
-      for (let y = top; y <= bottom + 0.5; y += cell) {
-        p.line(left, y, right, y);
-      }
-      p.noStroke();
-      p.fill(255, 255, 255, 140);
-      for (let x = left; x <= right + 0.5; x += cell) {
-        for (let y = top; y <= bottom + 0.5; y += cell) {
-          p.circle(x, y, dotR);
-        }
-      }
-      p.pop();
-    }
-
     /** Dark chrome bands + team halves with c1 (top) → c2 (bottom) gradients. */
     function drawPosterBackground() {
-      // realone: dark artwork background. Header/footer chrome bands are painted
-      // back over it below (and by drawPosterChromeMask), so only the art area
-      // reads as dark grey/black.
-      backgroundRgb(p, diagonalComposition ? diagonalBg : chrome);
+      backgroundRgb(p, chrome);
 
-      // realone: no team gradients — the artwork stays the dark background color.
-      if (!diagonalComposition) {
-        const homePalette = paletteForSide(getMatch(), "home");
-        const awayPalette = paletteForSide(getMatch(), "away");
-        const { homeZone, awayZone } = layout;
+      const homePalette = paletteForSide(getMatch(), "home");
+      const awayPalette = paletteForSide(getMatch(), "away");
+      const { homeZone, awayZone } = layout;
 
-        if (homeZone.width > 0 && homeZone.height > 0) {
-          drawVerticalGradientRect(
-            p,
-            homeZone.left,
-            homeZone.top,
-            homeZone.width,
-            homeZone.height,
-            hexToRgb(homePalette.c1),
-            hexToRgb(homePalette.c2)
-          );
-        }
-        if (awayZone.width > 0 && awayZone.height > 0) {
-          drawVerticalGradientRect(
-            p,
-            awayZone.left,
-            awayZone.top,
-            awayZone.width,
-            awayZone.height,
-            hexToRgb(awayPalette.c1),
-            hexToRgb(awayPalette.c2)
-          );
-        }
+      if (homeZone.width > 0 && homeZone.height > 0) {
+        drawVerticalGradientRect(
+          p,
+          homeZone.left,
+          homeZone.top,
+          homeZone.width,
+          homeZone.height,
+          hexToRgb(homePalette.c1),
+          hexToRgb(homePalette.c2)
+        );
+      }
+      if (awayZone.width > 0 && awayZone.height > 0) {
+        drawVerticalGradientRect(
+          p,
+          awayZone.left,
+          awayZone.top,
+          awayZone.width,
+          awayZone.height,
+          hexToRgb(awayPalette.c1),
+          hexToRgb(awayPalette.c2)
+        );
+      }
 
-        if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
-          p.noStroke();
-          fillRgb(p, chrome);
-          p.rect(
-            layout.centerGapLeft,
-            homeZone.top,
-            layout.centerGapRight - layout.centerGapLeft,
-            homeZone.height
-          );
-        }
-      } else {
-        drawMosaicBackgroundGrid();
+      if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
+        p.noStroke();
+        fillRgb(p, chrome);
+        p.rect(
+          layout.centerGapLeft,
+          homeZone.top,
+          layout.centerGapRight - layout.centerGapLeft,
+          homeZone.height
+        );
       }
 
       if (!artworkOnly) {
@@ -974,17 +877,15 @@ export function createReplaySketch(
 
         const artPresence = gameArtPresence(snapshot.minute);
 
-        if (!diagonalComposition) {
-          if (artPresence > 0.005 || snapshot.minute >= 0) {
-            drawPassAccuracy(snapshot);
-          }
-
-          if (artPresence > 0.005 || snapshot.minute >= 0) {
-            drawPossessionGrid(snapshot);
-          }
-
-          drawTeamBackgroundType();
+        if (artPresence > 0.005 || snapshot.minute >= 0) {
+          drawPassAccuracy(snapshot);
         }
+
+        if (artPresence > 0.005 || snapshot.minute >= 0) {
+          drawPossessionGrid(snapshot);
+        }
+
+        drawTeamBackgroundType();
         advanceMotionClock();
 
         const shake = snapshot.energy.shake * cfg.energy.shakeAmplitude;
@@ -1006,13 +907,7 @@ export function createReplaySketch(
               (p.drawingContext as CanvasRenderingContext2D).globalAlpha = artPresence;
             }
             drawZoneDebug();
-            drawAccumulatedMarks(
-              snapshot.art,
-              snapshot.continuous,
-              intensity,
-              burst,
-              snapshot.minute
-            );
+            drawAccumulatedMarks(snapshot.art, snapshot.continuous, intensity, burst);
           } finally {
             (p.drawingContext as CanvasRenderingContext2D).globalAlpha = 1;
             p.pop();
