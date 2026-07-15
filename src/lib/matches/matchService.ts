@@ -1,5 +1,6 @@
 import {
   getMatchById as getDemoMatchById,
+  isListedMatch,
   unresolvedTbdPlaceholders,
   type MatchCatalogEntry,
   type MatchStatus,
@@ -197,7 +198,9 @@ async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse
   // Overlay live/completed status + stats written by the cron poll so the home
   // grid reflects in-progress and just-finished matches without a redeploy.
   const withOverlay = await mergeScheduleWithOverlay([...byId.values()]);
-  const merged = enrichCatalogKickoff(filterByStage(withOverlay, stage));
+  const merged = enrichCatalogKickoff(filterByStage(withOverlay, stage)).filter(
+    isListedMatch
+  );
 
   return {
     source: "static",

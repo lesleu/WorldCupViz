@@ -2,6 +2,7 @@ import {
   MATCH_CATALOG,
   TBD_PLACEHOLDER_CATALOG,
   getMatchById as getDemoMatchById,
+  isListedMatch,
   unresolvedTbdPlaceholders,
   type MatchCatalogEntry,
   type TournamentStage,
@@ -48,5 +49,5 @@ export function getStaticMatchById(id: string): MatchCatalogEntry | undefined {
 export function getDemoCatalog(stage?: TournamentStage): MatchCatalogEntry[] {
   const base = [...MATCH_CATALOG];
   const tbd = unresolvedTbdPlaceholders(base, stage);
-  return filterByStage([...base, ...tbd], stage);
+  return filterByStage([...base, ...tbd], stage).filter(isListedMatch);
 }

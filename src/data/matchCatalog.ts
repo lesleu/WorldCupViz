@@ -200,64 +200,20 @@ export function getMatchesByStage(stage: TournamentStage): MatchCatalogEntry[] {
   );
 }
 
-function buildTbdEntry(
-  partial: Pick<MatchCatalogEntry, "id" | "stage" | "dateSort"> & {
-    date?: string;
-    stageLabel?: string;
-    matchNumber?: number;
-    venue?: string;
-  }
-): MatchCatalogEntry {
-  const stageLabel =
-    partial.stageLabel ??
-    STAGE_SECTIONS.find((s) => s.stage === partial.stage)?.label ??
-    partial.stage;
+/**
+ * Placeholder slots for knockout stages not yet in the schedule.
+ * Empty now that third place (Sat) and final (Sun) have real fixtures —
+ * do not re-add weekend TBD cards while France–England / Spain–Argentina exist.
+ */
+export const TBD_PLACEHOLDER_CATALOG: MatchCatalogEntry[] = [];
 
-  return {
-    id: partial.id,
-    tournament: "FIFA World Cup 2026",
-    stage: partial.stage,
-    stageLabel,
-    status: "scheduled",
-    isTbd: true,
-    matchNumber: partial.matchNumber,
-    date: partial.date ?? "Date TBD",
-    dateSort: partial.dateSort,
-    venue: partial.venue ?? "",
-    homeTeam: "TBD",
-    awayTeam: "TBD",
-    homeTeamCode: "TBD",
-    awayTeamCode: "TBD",
-    hasReplayFeed: false,
-    matchData: {
-      homeTeam: "TBD",
-      awayTeam: "TBD",
-      homeTeamCode: "TBD",
-      awayTeamCode: "TBD",
-      stage: stageLabel.toUpperCase(),
-      date: partial.date ?? "Date TBD",
-      venue: partial.venue,
-      home: { ...kickoffStats },
-      away: { ...kickoffStats },
-    },
-  };
+/** True when a catalog row should appear on the home grid / match list. */
+export function isListedMatch(entry: MatchCatalogEntry): boolean {
+  if (entry.isTbd) return false;
+  if (entry.id.endsWith("-tbd")) return false;
+  if (entry.homeTeam === "TBD" || entry.awayTeam === "TBD") return false;
+  return true;
 }
-
-/** Placeholder slots for knockout stages not yet in the demo/API schedule. */
-export const TBD_PLACEHOLDER_CATALOG: MatchCatalogEntry[] = [
-  buildTbdEntry({
-    id: "2026-third-place-tbd",
-    stage: "third_place",
-    matchNumber: 103,
-    dateSort: "2026-07-18",
-  }),
-  buildTbdEntry({
-    id: "2026-final-tbd",
-    stage: "final",
-    matchNumber: 104,
-    dateSort: "2026-07-19",
-  }),
-];
 
 /**
  * TBD placeholders that still need a slot — skip any stage that already has a

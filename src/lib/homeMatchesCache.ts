@@ -1,4 +1,7 @@
-import type { MatchCatalogEntry } from "@/data/matchCatalog";
+import {
+  isListedMatch,
+  type MatchCatalogEntry,
+} from "@/data/matchCatalog";
 
 const CACHE_KEY = "wc-vizi-home-matches";
 
@@ -6,7 +9,10 @@ export function writeHomeMatchesCache(matches: MatchCatalogEntry[]): void {
   if (typeof window === "undefined") return;
 
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(matches));
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify(matches.filter(isListedMatch))
+    );
   } catch {
     // Ignore quota / private browsing errors.
   }
@@ -20,7 +26,11 @@ export function readHomeMatchesCache(): MatchCatalogEntry[] | null {
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as MatchCatalogEntry[];
-    return Array.isArray(parsed) ? parsed : null;
+    if (!Array.isArray(parsed)) return null;
+
+    // Drop stale TBD placeholders cached before real Sat/Sun fixtures landed.
+    const listed = parsed.filter(isListedMatch);
+    return listed.length > 0 ? listed : null;
   } catch {
     return null;
   }
