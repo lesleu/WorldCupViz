@@ -258,3 +258,21 @@ export const TBD_PLACEHOLDER_CATALOG: MatchCatalogEntry[] = [
     dateSort: "2026-07-19",
   }),
 ];
+
+/**
+ * TBD placeholders that still need a slot — skip any stage that already has a
+ * real (non-TBD) fixture so Saturday/Sunday don't show duplicate TBD cards.
+ */
+export function unresolvedTbdPlaceholders(
+  schedule: MatchCatalogEntry[],
+  stage?: TournamentStage
+): MatchCatalogEntry[] {
+  const coveredStages = new Set(
+    schedule.filter((entry) => !entry.isTbd).map((entry) => entry.stage)
+  );
+  return TBD_PLACEHOLDER_CATALOG.filter(
+    (entry) =>
+      !coveredStages.has(entry.stage) &&
+      (stage == null || entry.stage === stage)
+  );
+}

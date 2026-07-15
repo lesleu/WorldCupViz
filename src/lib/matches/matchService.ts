@@ -1,6 +1,6 @@
 import {
-  TBD_PLACEHOLDER_CATALOG,
   getMatchById as getDemoMatchById,
+  unresolvedTbdPlaceholders,
   type MatchCatalogEntry,
   type MatchStatus,
   type TournamentStage,
@@ -180,10 +180,13 @@ async function resolveCatalogEntry(id: string): Promise<MatchCatalogEntry | null
 }
 
 async function staticCatalog(stage?: TournamentStage): Promise<MatchListResponse> {
-  const scheduleMatches = getStaticSchedule(stage);
-  const tbd = stage
-    ? TBD_PLACEHOLDER_CATALOG.filter((entry) => entry.stage === stage)
-    : TBD_PLACEHOLDER_CATALOG;
+  // Full schedule (all stages) so TBD placeholders are dropped once third
+  // place / final fixtures exist — avoids duplicate Sat/Sun TBD cards.
+  const allSchedule = getStaticSchedule();
+  const scheduleMatches = stage
+    ? allSchedule.filter((entry) => entry.stage === stage)
+    : allSchedule;
+  const tbd = unresolvedTbdPlaceholders(allSchedule, stage);
 
   const byId = new Map<string, MatchCatalogEntry>();
   for (const entry of scheduleMatches) byId.set(entry.id, entry);
