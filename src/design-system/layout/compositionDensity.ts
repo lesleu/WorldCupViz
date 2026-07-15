@@ -9,7 +9,8 @@ export type MarkDataset =
   | "foul"
   | "corner"
   | "offside"
-  | "card";
+  | "card"
+  | "possession";
 
 interface DatasetMark {
   id: string;
@@ -48,6 +49,10 @@ function datasetMarks(
         .map((mark) => ({ id: mark.id, minute: mark.minute }));
     case "card":
       return art.cards
+        .filter((mark) => mark.side === side)
+        .map((mark) => ({ id: mark.id, minute: mark.minute }));
+    case "possession":
+      return art.possessionCircles
         .filter((mark) => mark.side === side)
         .map((mark) => ({ id: mark.id, minute: mark.minute }));
   }

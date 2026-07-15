@@ -32,5 +32,6 @@ export const eventMarksConfig: EventMarksConfig = {
     VISUAL_COMPONENT.Offside,
     VISUAL_COMPONENT.YellowCard,
     VISUAL_COMPONENT.RedCard,
+    VISUAL_COMPONENT.PossessionGrid,
   ],
 };

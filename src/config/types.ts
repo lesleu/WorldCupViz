@@ -90,6 +90,11 @@ export interface PossessionConfig {
   /** Circles placed per row (inclusive range). */
   circlesPerRowMin: number;
   circlesPerRowMax: number;
+  /**
+   * When possession circles are mosaic-placed (not a corner grid), how many
+   * circles represent 100% possession. Count scales linearly with %.
+   */
+  placedCirclesAt100: number;
   /** Multiplier on Figma-derived circle diameter (<1 = smaller). */
   circleScale: number;
   filledOpacity: number;

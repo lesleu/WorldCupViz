@@ -11,11 +11,6 @@ import {
 import { motionIntensity } from "@/design-system/motion/energyState";
 import { getComponentColor } from "@/design-system/color/resolveColor";
 import { VISUAL_COMPONENT, type VisualComponent } from "@/design-system/mapping/visualMappings";
-import {
-  buildPossessionGridSlots,
-  resolvePossessionCircleDiameter,
-  type PossessionCircleSlot,
-} from "@/design-system/layout/possessionGridLayout";
 import { MARK_DRAW_ORDER } from "@/design-system/layout/drawOrder";
 import {
   markAgeOpacity,
@@ -109,11 +104,6 @@ export function createReplaySketch(
   return (p: p5) => {
     let time = 0;
     let layout!: PosterLayout;
-    let possessionSlots: { home: PossessionCircleSlot[]; away: PossessionCircleSlot[] } = {
-      home: [],
-      away: [],
-    };
-    let possessionCircleSize: { home: number; away: number } = { home: 0, away: 0 };
     let lastFrameMs = 0;
 
     const chromeBoldFamily = () => resolveKickoffCanvasFontFamily();
@@ -137,11 +127,6 @@ export function createReplaySketch(
         teamSide,
         posterArtworkCrop,
       });
-      const seed = cfg.randomness.seed;
-      possessionSlots.home = buildPossessionGridSlots(layout, "home", seed);
-      possessionSlots.away = buildPossessionGridSlots(layout, "away", seed);
-      possessionCircleSize.home = resolvePossessionCircleDiameter(layout, "home");
-      possessionCircleSize.away = resolvePossessionCircleDiameter(layout, "away");
     }
 
     function motion(snapshot: ReplaySnapshot) {
@@ -149,79 +134,14 @@ export function createReplaySketch(
       return motionIntensity(snapshot.energy);
     }
 
-    function breathe(possession: number, side: TeamSide, intensity: number) {
-      if (cfg.animation.staticRender) return 1;
-      const poss = possession / 100;
-      const phase = side === "home" ? 0 : Math.PI;
-      return (
-        1 +
-        Math.sin(time * cfg.animation.breathingSpeed * intensity + phase) *
-          cfg.animation.breathingAmount *
-          intensity *
-          (cfg.animation.breathingPossessionWeight + poss)
-      );
-    }
-
     function gameArtPresence(minute: number) {
       return minute > 0 ? 1 : 0;
-    }
-
-    /** Per-component live pulse — each asset type breathes at its own pace. */
-    type LiveAssetKind =
-      | "possession"
-      | "goal"
-      | "shot"
-      | "shotOnTarget"
-      | "foul"
-      | "card"
-      | "corner"
-      | "offside";
-
-    const LIVE_ASSET_RHYTHMS: Record<
-      LiveAssetKind,
-      { speed: number; phase: number }
-    > = {
-      possession: { speed: 1.05, phase: 0 },
-      goal: { speed: 0.78, phase: 1.45 },
-      shot: { speed: 1.28, phase: 2.25 },
-      shotOnTarget: { speed: 1.62, phase: 0.35 },
-      foul: { speed: 1.08, phase: 2.85 },
-      card: { speed: 1.42, phase: 1.75 },
-      corner: { speed: 1.68, phase: 3.05 },
-      offside: { speed: 0.88, phase: 4.15 },
-    };
-
-    function liveAssetScale(kind: LiveAssetKind, itemPhase = 0): number {
-      if (!liveAssetMotion) return 1;
-
-      const { speed, phase } = LIVE_ASSET_RHYTHMS[kind];
-      const base = cfg.animation.liveBreathingSpeed;
-      const amount = cfg.animation.liveBreathingAmount;
-      const t = time * base * speed + phase + itemPhase;
-
-      return (
-        1 +
-        Math.sin(t) * amount +
-        Math.sin(t * 1.71 + 0.8) * amount * 0.3
-      );
     }
 
     function advanceMotionClock() {
       time += liveAssetMotion
         ? cfg.animation.liveUpdateSpeed
         : cfg.animation.updateSpeed;
-    }
-
-    /** One-by-one reveal for continuous assets during the kickoff window (full opacity when visible). */
-    function staggeredItemPresence(minute: number, index: number, total: number): number {
-      if (total <= 0 || minute <= 0) return 0;
-      const phase = cfg.replay.kickoffPhaseMinutes;
-      if (minute >= phase) return 1;
-
-      const step = phase / total;
-      const start = index * step;
-      if (minute <= start) return 0;
-      return 1;
     }
 
     /** Inter ExtraBold — tight tracking, width-fill then vertical stretch per zone half. */
@@ -243,8 +163,8 @@ export function createReplaySketch(
             height: zone.height,
           },
           code,
-          // Drawn under possession grid — keep letters readable but secondary.
-          "rgba(255, 255, 255, 0.08)"
+          // Drawn under possession / marks — faint watermark.
+          "rgba(255, 255, 255, 0.2)"
         );
       }
 
@@ -271,16 +191,15 @@ export function createReplaySketch(
       p.rect(0, top, layout.width, layout.artworkHeight);
     }
 
-    /** PossessionGrid — aligned row/column grid; circles stagger in one-by-one early in the match. */
-    function drawPossessionGrid(snapshot: ReplaySnapshot) {
-      const { continuous, minute } = snapshot;
+    /** Possession circles — mosaic-placed with other assets (nx/ny from layout). */
+    function drawPossessionCircles(snapshot: ReplaySnapshot) {
+      const { art, minute } = snapshot;
       if (minute <= 0) return;
-      const intensity = motion(snapshot);
 
-      for (const side of drawSides()) {
-        const possession =
-          side === "home" ? continuous.home.possession : continuous.away.possession;
-        const palette = paletteForSide(getMatch(), side);
+      p.noStroke();
+      for (const mark of art.possessionCircles) {
+        if (!markSideVisible(mark.side)) continue;
+        const palette = paletteForSide(getMatch(), mark.side);
         const color = getComponentColor(
           VISUAL_COMPONENT.PossessionGrid,
           palette,
@@ -288,34 +207,19 @@ export function createReplaySketch(
           "c1"
         );
         const rgb = hexToRgb(color);
-        const slots = possessionSlots[side];
-        const g = cfg.possession;
-        const total = slots.length;
-        if (total === 0 || !Number.isFinite(possessionCircleSize[side])) continue;
-        const filled = Math.round((possession / 100) * total);
-        if (filled <= 0) continue;
-        const pulse = breathe(possession, side, intensity);
-        const circleSize = possessionCircleSize[side];
-        const size = circleSize * (1 + (pulse - 1) * g.gridBreathingAmount);
-
-        p.noStroke();
-        for (let i = 0; i < filled; i++) {
-          const itemPresence = staggeredItemPresence(minute, i, total);
-          if (itemPresence <= 0.01) continue;
-
-          const { x: cx, y: cy } = slots[i];
-          const ripple =
-            1 +
-            Math.sin(time * cfg.animation.breathingSpeed * 2 + i * 0.15) *
-              g.gridBreathingAmount *
-              intensity;
-          fillRgb(p, rgb, g.filledOpacity * itemPresence);
-          const liveScale = liveAssetScale(
-            "possession",
-            i * 0.11 + (side === "away" ? 1.7 : 0)
-          );
-          p.circle(cx, cy, size * ripple * itemPresence * liveScale);
-        }
+        const proxy = {
+          id: mark.id,
+          minute: mark.minute,
+          side: mark.side,
+          spawnScale: mark.spawnScale,
+          layoutScale: mark.layoutScale,
+        };
+        const dims = quadrantEntryDims(VISUAL_COMPONENT.PossessionGrid, art, proxy);
+        const diameter = Math.min(dims.widthPx, dims.heightPx) * mark.layoutScale;
+        if (diameter <= 0.5) continue;
+        const [x, y] = denormPoint(mark.nx, mark.ny, layout);
+        fillRgb(p, rgb, cfg.possession.filledOpacity);
+        p.circle(x, y, diameter);
       }
     }
 
@@ -767,7 +671,7 @@ export function createReplaySketch(
         const artPresence = gameArtPresence(snapshot.minute);
 
         if (artPresence > 0.005 || snapshot.minute >= 0) {
-          drawPossessionGrid(snapshot);
+          drawPossessionCircles(snapshot);
         }
 
         advanceMotionClock();

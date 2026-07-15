@@ -5,6 +5,8 @@ export const possessionConfig: PossessionConfig = {
   gridCols: 10,
   circlesPerRowMin: 10,
   circlesPerRowMax: 10,
+  /** Circles at 100% possession when placed as mosaic marks (0% → none). */
+  placedCirclesAt100: 36,
   circleScale: 1,
   filledOpacity: 255,
   unfilledOpacity: 255,
