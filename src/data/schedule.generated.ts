@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-15T20:00:33.250Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-15T21:45:21.304Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -1549,7 +1549,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 9,
         "yellowCards": 1,
         "redCards": 0,
-        "goals": 7,
+        "goals": 6,
         "corners": 19,
         "offsides": 1,
         "penaltyShootoutScored": 0,
@@ -3187,7 +3187,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 10,
         "yellowCards": 1,
         "redCards": 0,
-        "goals": 2,
+        "goals": 1,
         "corners": 2,
         "offsides": 0,
         "penaltyShootoutScored": 0,
@@ -3825,7 +3825,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "fouls": 7,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 6,
+        "goals": 5,
         "corners": 8,
         "offsides": 1,
         "penaltyShootoutScored": 0,
@@ -5881,6 +5881,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Argentina",
     "homeTeamCode": "ENG",
     "awayTeamCode": "ARG",
+    "finalMinute": 94,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "England",
@@ -5918,7 +5919,116 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
-    },
-    "finalMinute": 94
+    }
+  },
+  {
+    "id": "1591865",
+    "providerFixtureId": 1591865,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "third_place",
+    "stageLabel": "Third Place",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1591865,
+    "date": "July 18, 2026",
+    "dateSort": "2026-07-18",
+    "kickoffAt": "2026-07-18T21:00:00+00:00",
+    "kickoffTime": "5:00 PM ET",
+    "homeTeam": "France",
+    "awayTeam": "England",
+    "homeTeamCode": "FRA",
+    "awayTeamCode": "ENG",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "France",
+      "awayTeam": "England",
+      "homeTeamCode": "FRA",
+      "awayTeamCode": "ENG",
+      "stage": "THIRD PLACE",
+      "date": "July 18, 2026",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
+  },
+  {
+    "id": "1591866",
+    "providerFixtureId": 1591866,
+    "tournament": "FIFA World Cup 2026",
+    "stage": "final",
+    "stageLabel": "Final",
+    "status": "scheduled",
+    "isTbd": false,
+    "matchNumber": 1591866,
+    "date": "July 19, 2026",
+    "dateSort": "2026-07-19",
+    "kickoffAt": "2026-07-19T19:00:00+00:00",
+    "kickoffTime": "3:00 PM ET",
+    "homeTeam": "Spain",
+    "awayTeam": "Argentina",
+    "homeTeamCode": "ESP",
+    "awayTeamCode": "ARG",
+    "hasReplayFeed": false,
+    "matchData": {
+      "homeTeam": "Spain",
+      "awayTeam": "Argentina",
+      "homeTeamCode": "ESP",
+      "awayTeamCode": "ARG",
+      "stage": "FINAL",
+      "date": "July 19, 2026",
+      "home": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      },
+      "away": {
+        "possession": 50,
+        "shots": 0,
+        "shotsOnTarget": 0,
+        "passAccuracy": 0,
+        "fouls": 0,
+        "yellowCards": 0,
+        "redCards": 0,
+        "goals": 0,
+        "corners": 0,
+        "offsides": 0,
+        "penaltyShootoutScored": 0,
+        "penaltyShootoutMissed": 0
+      }
+    }
   }
 ];
