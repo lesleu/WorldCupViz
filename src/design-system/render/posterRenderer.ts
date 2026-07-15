@@ -37,7 +37,6 @@ import {
 } from "@/design-system/layout/posterLayout";
 import { stackedMarkColorOverrides } from "@/design-system/color/markColors";
 import { drawSvgComponent, warnIfSvgAssetsMissing } from "@/design-system/render/svgRenderer";
-import { drawPassAccuracyStripes } from "@/design-system/render/passAccuracyStripes";
 import type { ReplayEngine, ReplaySnapshot } from "@/engine/replayEngine";
 import { createRng, randBetween, seededNoise } from "@/utils/seededRandom";
 import {
@@ -78,10 +77,6 @@ function strokeRgb(p: p5, rgb: Rgb, alpha?: number) {
 
 function backgroundRgb(p: p5, rgb: Rgb) {
   p.background(rgb[0], rgb[1], rgb[2]);
-}
-
-function passAccuracy(state: ContinuousMatchState, side: TeamSide) {
-  return side === "home" ? state.home.passAccuracy : state.away.passAccuracy;
 }
 
 export function createReplaySketch(
@@ -186,7 +181,6 @@ export function createReplaySketch(
     /** Per-component live pulse — each asset type breathes at its own pace. */
     type LiveAssetKind =
       | "possession"
-      | "passAccuracy"
       | "goal"
       | "shot"
       | "shotOnTarget"
@@ -200,7 +194,6 @@ export function createReplaySketch(
       { speed: number; phase: number }
     > = {
       possession: { speed: 1.05, phase: 0 },
-      passAccuracy: { speed: 1.52, phase: 0.65 },
       goal: { speed: 0.78, phase: 1.45 },
       shot: { speed: 1.28, phase: 2.25 },
       shotOnTarget: { speed: 1.62, phase: 0.35 },
@@ -437,29 +430,6 @@ export function createReplaySketch(
           layout.homeZone.height
         );
       }
-    }
-
-    /** PassAccuracy — alternating vertical stripes over the team gradient (multiply @ 40%). */
-    function drawPassAccuracy(snapshot: ReplaySnapshot) {
-      const { continuous, minute } = snapshot;
-      if (minute <= 0) return;
-      const ctx = p.drawingContext as CanvasRenderingContext2D;
-
-      for (const side of drawSides()) {
-        const accuracy = passAccuracy(continuous, side);
-        const zone = side === "home" ? layout.homeZone : layout.awayZone;
-        drawPassAccuracyStripes(
-          ctx,
-          zone.left,
-          zone.top,
-          zone.width,
-          zone.height,
-          accuracy,
-          { jaggedSeed: side === "home" ? 11 : 29 }
-        );
-      }
-
-      p.blendMode(p.BLEND);
     }
 
     /** Shot — layered SVG stamps (time-quadrant layout). */
@@ -811,10 +781,6 @@ export function createReplaySketch(
         drawPosterBackground();
 
         const artPresence = gameArtPresence(snapshot.minute);
-
-        if (artPresence > 0.005 || snapshot.minute >= 0) {
-          drawPassAccuracy(snapshot);
-        }
 
         if (artPresence > 0.005 || snapshot.minute >= 0) {
           drawPossessionGrid(snapshot);
