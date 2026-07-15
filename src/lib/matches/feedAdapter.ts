@@ -237,14 +237,21 @@ export function mergeMatchDataWithFeedStats(
 ): MatchData {
   const derived = deriveTeamStatsFromFeed(feed, {
     upToMinute,
+    // Live scoreline is source of truth; replay minutes count feed events only.
     homeGoals: upToMinute != null ? 0 : matchData.home.goals,
     awayGoals: upToMinute != null ? 0 : matchData.away.goals,
   });
 
+  // For live/full views, never let over-counted feed goals inflate the scoreboard.
+  const homeGoals =
+    upToMinute != null ? derived.home.goals : matchData.home.goals;
+  const awayGoals =
+    upToMinute != null ? derived.away.goals : matchData.away.goals;
+
   return {
     ...matchData,
-    home: { ...matchData.home, ...derived.home },
-    away: { ...matchData.away, ...derived.away },
+    home: { ...matchData.home, ...derived.home, goals: homeGoals },
+    away: { ...matchData.away, ...derived.away, goals: awayGoals },
   };
 }
 
@@ -268,7 +275,9 @@ function appendSyntheticEvents(
   eventType: MatchEventType,
   count: number,
   maxMinute: number,
-  seed: number
+  seed: number,
+  /** Continue after timeline event sequences so identities never collide. */
+  startSequence = 0
 ): void {
   if (count <= 0 || maxMinute <= 0) return;
 
@@ -276,7 +285,8 @@ function appendSyntheticEvents(
   // clock ticking 12 → 13 does not move every synthetic minute.
   const horizon = Math.max(90, maxMinute);
 
-  for (let sequence = 0; sequence < count; sequence++) {
+  for (let i = 0; i < count; i++) {
+    const sequence = startSequence + i;
     const target = syntheticEventMinute(sequence, seed, horizon);
     // Clamp into elapsed window so early live matches still show current totals.
     const minute = Math.min(target, maxMinute);
@@ -327,21 +337,29 @@ function enrichFeedFromStatistics(
     const existing = counts[side];
     const statList = row?.statistics ?? [];
 
+    // Prefer the live scoreline when present — stats Totals can lag/edge cases.
+    const goalTarget = Math.max(
+      stats.goals,
+      side === "home" ? fixture.goals.home ?? 0 : fixture.goals.away ?? 0
+    );
+
     appendSyntheticEvents(
       feed,
       side,
       "goal",
-      Math.max(0, stats.goals - existing.goal),
+      Math.max(0, goalTarget - existing.goal),
       maxMinute,
-      seedBase + 1
+      seedBase + 1,
+      existing.goal
     );
     appendSyntheticEvents(
       feed,
       side,
       "shot_on_target",
-      Math.max(0, stats.shotsOnTarget - stats.goals - existing.shot_on_target),
+      Math.max(0, stats.shotsOnTarget - goalTarget - existing.shot_on_target),
       maxMinute,
-      seedBase + 2
+      seedBase + 2,
+      existing.shot_on_target
     );
     appendSyntheticEvents(
       feed,
@@ -349,7 +367,8 @@ function enrichFeedFromStatistics(
       "shot",
       Math.max(0, stats.shots - stats.shotsOnTarget - existing.shot),
       maxMinute,
-      seedBase + 3
+      seedBase + 3,
+      existing.shot
     );
     appendSyntheticEvents(
       feed,
@@ -357,7 +376,8 @@ function enrichFeedFromStatistics(
       "foul",
       Math.max(0, stats.fouls - existing.foul),
       maxMinute,
-      seedBase + 4
+      seedBase + 4,
+      existing.foul
     );
     appendSyntheticEvents(
       feed,
@@ -365,7 +385,8 @@ function enrichFeedFromStatistics(
       "yellow_card",
       Math.max(0, stats.yellowCards - existing.yellow_card),
       maxMinute,
-      seedBase + 5
+      seedBase + 5,
+      existing.yellow_card
     );
     appendSyntheticEvents(
       feed,
@@ -373,7 +394,8 @@ function enrichFeedFromStatistics(
       "red_card",
       Math.max(0, stats.redCards - existing.red_card),
       maxMinute,
-      seedBase + 6
+      seedBase + 6,
+      existing.red_card
     );
     appendSyntheticEvents(
       feed,
@@ -381,7 +403,8 @@ function enrichFeedFromStatistics(
       "corner",
       Math.max(0, extraStatCount(statList, "Corner Kicks") - existing.corner),
       maxMinute,
-      seedBase + 7
+      seedBase + 7,
+      existing.corner
     );
     appendSyntheticEvents(
       feed,
@@ -389,7 +412,8 @@ function enrichFeedFromStatistics(
       "offside",
       Math.max(0, extraStatCount(statList, "Offsides") - existing.offside),
       maxMinute,
-      seedBase + 8
+      seedBase + 8,
+      existing.offside
     );
   }
 }
@@ -504,6 +528,15 @@ export function adaptEventsToFeed(
 
   const sorted = [...events].sort((a, b) => eventMinute(a) - eventMinute(b));
   let shootoutKickIndex = 0;
+  /** Per (team, eventType) sequences so live polls identity-match synthetics. */
+  const eventSequences = new Map<string, number>();
+
+  const nextSequence = (team: TeamSide, eventType: MatchEventType): number => {
+    const key = `${team}:${eventType}`;
+    const next = eventSequences.get(key) ?? 0;
+    eventSequences.set(key, next + 1);
+    return next;
+  };
 
   for (const event of sorted) {
     const mapped = mapEventType(event, fixture);
@@ -514,13 +547,16 @@ export function adaptEventsToFeed(
     const minute = isShootoutKick
       ? penaltyShootoutMinute(shootoutKickIndex)
       : eventMinute(event);
+    const team = sideForTeam(event, homeId, awayId, fixture.teams.home.name);
 
     feed.push({
       minute,
       type: "event",
-      team: sideForTeam(event, homeId, awayId, fixture.teams.home.name),
+      team,
       eventType: mapped,
-      ...(isShootoutKick ? { sequence: shootoutKickIndex } : {}),
+      sequence: isShootoutKick
+        ? shootoutKickIndex
+        : nextSequence(team, mapped),
     });
 
     if (isShootoutKick) shootoutKickIndex += 1;

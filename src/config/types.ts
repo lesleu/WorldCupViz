@@ -95,6 +95,8 @@ export interface PossessionConfig {
    * circles represent 100% possession. Count scales linearly with %.
    */
   placedCirclesAt100: number;
+  /** Minimum diameter for mosaic-placed possession circles (runtime px). */
+  minCirclePx: number;
   /** Multiplier on Figma-derived circle diameter (<1 = smaller). */
   circleScale: number;
   filledOpacity: number;

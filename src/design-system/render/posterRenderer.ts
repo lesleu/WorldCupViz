@@ -214,8 +214,10 @@ export function createReplaySketch(
           spawnScale: mark.spawnScale,
           layoutScale: mark.layoutScale,
         };
+        // quadrantEntryDims already applies layoutScale — don't multiply again.
         const dims = quadrantEntryDims(VISUAL_COMPONENT.PossessionGrid, art, proxy);
-        const diameter = Math.min(dims.widthPx, dims.heightPx) * mark.layoutScale;
+        const minPx = cfg.possession.minCirclePx ?? cfg.eventMarks.minMarkPx ?? 20;
+        const diameter = Math.max(minPx, Math.min(dims.widthPx, dims.heightPx));
         if (diameter <= 0.5) continue;
         const [x, y] = denormPoint(mark.nx, mark.ny, layout);
         fillRgb(p, rgb, cfg.possession.filledOpacity);

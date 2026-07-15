@@ -1,7 +1,10 @@
 import { cfg } from "@/config";
 import { eventMarksConfig } from "@/config/eventMarks.config";
 import { COMPONENT_PATHS } from "@/design-system/assets/componentPaths.generated";
-import type { VisualComponent } from "@/design-system/mapping/visualMappings";
+import {
+  VISUAL_COMPONENT,
+  type VisualComponent,
+} from "@/design-system/mapping/visualMappings";
 import type { TeamSide } from "@/data/mockMatch";
 import { normSize } from "@/design-system/layout/designScale";
 import type { MarkPixelDims } from "@/design-system/layout/markSizing";
@@ -1005,6 +1008,13 @@ function postProcessMosaic(
     fixed = repairOverlaps(fixed, teamBounds);
     if (!layoutHasOverlaps(fixed)) break;
   }
+  // Snap isolated marks so every mark (except the first) shares an edge —
+  // same connectivity rule as incremental guided layout.
+  fixed = enforceEdgeTouches(fixed, teamBounds);
+  for (let pass = 0; pass < 4; pass++) {
+    fixed = repairOverlaps(fixed, teamBounds);
+    if (!layoutHasOverlaps(fixed)) break;
+  }
   return fixed;
 }
 
@@ -1035,6 +1045,7 @@ function placeAllMarks(
 
     const placedSoFar: PlacedRect[] = [];
     const results: PlacedRect[] = [];
+    const circleMinPx = cfg.possession.minCirclePx ?? minMarkPx;
     for (let i = 0; i < ordered.length; i++) {
       let next =
         rects[i] ??
@@ -1050,7 +1061,11 @@ function placeAllMarks(
           placedSoFar,
           minMarkPx
         );
-      next = clampRectToMinVisible(next, baseDims[i], minMarkPx);
+      const entryMin =
+        ordered[i].component === VISUAL_COMPONENT.PossessionGrid
+          ? Math.max(minMarkPx, circleMinPx)
+          : minMarkPx;
+      next = clampRectToMinVisible(next, baseDims[i], entryMin);
       if (next.w > baseDims[i].widthPx * 1.01 || next.h > baseDims[i].heightPx * 1.01) {
         next = {
           ...next,
@@ -1417,7 +1432,7 @@ function layoutInRegion(
   const { minMarkPx } = eventMarksConfig;
   const weights = randomPerMarkWeights(ordered);
   const maxMinute = maxMinuteForEntries(ordered);
-  const preferEdgeTouch = false;
+  const preferEdgeTouch = true;
 
   let globalMult = 1;
 
@@ -1563,7 +1578,16 @@ export function relayoutTimedMarkEntries(
   const rawDims = ordered.map(({ mark, component }) => baseSizeForEntry(component, mark));
   const baseDims = rawDims;
   const { minMarkPx } = eventMarksConfig;
-  const scaleFloor = minMosaicScaleForMinPx(baseDims, minMarkPx);
+  // Possession circles floor at minCirclePx (default 20) — same as other min marks.
+  const circleMinPx = cfg.possession.minCirclePx ?? minMarkPx;
+  const scaleFloor = Math.max(
+    minMosaicScaleForMinPx(baseDims, minMarkPx),
+    ...ordered.map((entry, i) =>
+      entry.component === VISUAL_COMPONENT.PossessionGrid
+        ? minLayoutScaleForVisible(baseDims[i], circleMinPx)
+        : 0
+    )
+  );
 
   let mosaicScale = 1;
   let rects: PlacedRect[] = [];
@@ -1614,7 +1638,9 @@ export function relayoutTimedMarkEntries(
   }
 
   const maxMinute = maxMinuteForEntries(ordered);
-  mosaicScale *= 0.992;
+  // Keep mosaicScale at/above the floor so min-size marks (e.g. 20px circles)
+  // are not nudged below their placement budget.
+  mosaicScale = Math.max(scaleFloor, mosaicScale * 0.992);
 
   for (let i = 0; i < ordered.length; i++) {
     const entry = ordered[i];

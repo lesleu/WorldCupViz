@@ -246,6 +246,14 @@ export function possessionCircleCount(pct: number): number {
   return Math.max(0, Math.min(at100, Math.round((pct / 100) * at100)));
 }
 
+/** Runtime floor for possession circle diameter (px). */
+export function possessionCircleMinPx(): number {
+  return Math.max(
+    1,
+    cfg.possession.minCirclePx ?? cfg.eventMarks.minMarkPx ?? 20
+  );
+}
+
 /**
  * Sync possession circle marks from discrete possession % so they join the
  * event mosaic (same placement path, no intentional overlap).

@@ -7,6 +7,8 @@ export const possessionConfig: PossessionConfig = {
   circlesPerRowMax: 10,
   /** Circles at 100% possession when placed as mosaic marks (0% → none). */
   placedCirclesAt100: 36,
+  /** Floor diameter for mosaic-placed possession circles (runtime px). */
+  minCirclePx: 20,
   circleScale: 1,
   filledOpacity: 255,
   unfilledOpacity: 255,

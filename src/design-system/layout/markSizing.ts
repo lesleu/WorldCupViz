@@ -267,15 +267,22 @@ export function resolveQuadrantEntryDimensions(
   }
 
   if (component === VISUAL_COMPONENT.PossessionGrid) {
-    const diameterPx = resolveMarkSizePx(
-      component,
-      layout,
-      rank,
-      side,
-      rng,
-      mark.spawnScale * (cfg.possession.circleScale ?? 1)
+    const minPx = cfg.possession.minCirclePx ?? eventMarksConfig.minMarkPx ?? 20;
+    const diameterPx = Math.max(
+      minPx,
+      resolveMarkSizePx(
+        component,
+        layout,
+        rank,
+        side,
+        rng,
+        mark.spawnScale * (cfg.possession.circleScale ?? 1)
+      )
     );
-    return clampMarkDimsMin({ widthPx: diameterPx, heightPx: diameterPx });
+    return clampMarkDimsMin(
+      { widthPx: diameterPx, heightPx: diameterPx },
+      minPx
+    );
   }
 
   const widthPx = resolveMarkSizePx(

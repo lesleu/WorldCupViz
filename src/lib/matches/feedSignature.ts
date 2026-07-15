@@ -35,6 +35,8 @@ export function feedUpdateSignature(update: LiveFeedUpdate): string {
 export function feedBundleSignature(feed: MatchFeedResponse | null | undefined): string {
   if (!feed) return "none";
   const events = feed.feed.filter((update) => update.type === "event").length;
+  // v2: all discrete events carry sequences — bump forces one canvas reboot after deploy
+  // so stale minute-only appliedKeys cannot double-count goals.
   // Omit currentMinute — live clock ticks must not reboot the canvas.
-  return `${feed.feed.length}:${events}:${feed.hasReplayFeed ? 1 : 0}`;
+  return `v2:${feed.feed.length}:${events}:${feed.hasReplayFeed ? 1 : 0}`;
 }
