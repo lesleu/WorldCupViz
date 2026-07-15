@@ -155,6 +155,8 @@ export interface PossessionCircleMark {
   spawnScale: number;
   layoutScale: number;
   phase: number;
+  /** Wall-clock birth for spawn grow animation (0 = fully grown / static cover). */
+  bornAtMs: number;
 }
 
 /**
@@ -260,14 +262,20 @@ export function possessionCircleMinPx(): number {
  *
  * Pass the *target* / feed possession — not the smoothed lerp — so frame-to-frame
  * rounding cannot flicker the count and endlessly re-layout.
+ *
+ * New circles stagger their appear-minute and get a wall-clock `bornAtMs` so the
+ * renderer can grow them onto the canvas like discrete event marks.
  */
 export function syncPossessionCircles(
   art: AccumulatedArtState,
   layout: PosterLayout,
-  possessionSource?: ContinuousMatchState
+  possessionSource?: ContinuousMatchState,
+  currentMinute = 0,
+  animateSpawn = true
 ): void {
   const source = possessionSource ?? art.possessionGrid;
   let changed = false;
+  const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
 
   for (const side of ["home", "away"] as const) {
     const pct = side === "home" ? source.home.possession : source.away.possession;
@@ -277,20 +285,32 @@ export function syncPossessionCircles(
 
     changed = true;
     const kept = existing.slice(0, target);
+    const batchStart = kept.length;
     while (kept.length < target) {
       const i = kept.length;
       const rng = createRng(
         (side === "home" ? 17 : 41) * 1009 + i * 131 + cfg.randomness.seed
       );
+      const stagger = i - batchStart;
+      // Kickoff replay: stagger appear through the opening phase.
+      // Live % jumps: appear at the current clock (wall-clock bornAtMs grows them in).
+      // Static seek covers: minute 0 so every circle is already visible.
+      const appearMinute = !animateSpawn
+        ? 0
+        : currentMinute <= 0.5
+          ? (i / Math.max(target, 1)) * Math.min(6, cfg.replay.kickoffPhaseMinutes)
+          : currentMinute;
       kept.push({
         id: `poss-${side}-${i}`,
         side,
-        minute: 0,
+        minute: Math.max(0, appearMinute),
         nx: 0,
         ny: 0,
         spawnScale: 1,
         layoutScale: 1,
         phase: rand(rng, 0, Math.PI * 2),
+        // Stagger wall-clock births so a batch doesn't all pop on the same frame.
+        bornAtMs: animateSpawn ? nowMs + stagger * 90 : 0,
       });
     }
     art.possessionCircles = [

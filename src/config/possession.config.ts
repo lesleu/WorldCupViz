@@ -15,7 +15,12 @@ export const possessionConfig: PossessionConfig = {
   homeGridCornerXRatio: 0.04,
   awayGridCornerXRatio: 0.04,
   gridCornerYRatio: 0.06,
-  gridBreathingAmount: 0,
+  /** Light live pulse (liveAssetMotion also drives this). */
+  gridBreathingAmount: 0.35,
+  /** ~0.55s pop-in so new circles grow onto the canvas. */
+  spawnGrowMs: 550,
+  /** Allow gaps — circles may separate instead of edge-gluing. */
+  separationGapRatio: 0.12,
   rowJitterRatio: 0,
   circleFillRatio: 0.88,
 };

@@ -288,16 +288,21 @@ function snapRectToNeighbor(
 /** Nudge every mark so it shares an edge with at least one other (mosaic connectivity). */
 function enforceEdgeTouches(
   rects: PlacedRect[],
-  teamBounds: RegionBounds
+  teamBounds: RegionBounds,
+  components?: VisualComponent[]
 ): PlacedRect[] {
   if (rects.length <= 1) return rects;
 
   const fixed = rects.map((r) => ({ ...r }));
+  const isPossession = (i: number) =>
+    components?.[i] === VISUAL_COMPONENT.PossessionGrid;
 
   for (let pass = 0; pass < 10; pass++) {
     let moved = false;
     for (let i = 0; i < fixed.length; i++) {
-      const others = fixed.filter((_, idx) => idx !== i);
+      // Possession circles are allowed to float with gaps — don't glue them.
+      if (isPossession(i)) continue;
+      const others = fixed.filter((_, idx) => idx !== i && !isPossession(idx));
       if (others.length === 0) continue;
       if (touchesAny(fixed[i], others)) continue;
 
@@ -714,6 +719,9 @@ function placeMarkInLayout(
   const total = ordered.length;
   const { w, h, layoutScale } = dimsAt(baseDims[index], layoutScales[index]);
   const target = temporalTarget(ordered[index], index, total, region, side, maxMinute);
+  const wantEdgeTouch =
+    requireEdgeTouch &&
+    ordered[index].component !== VISUAL_COMPONENT.PossessionGrid;
 
   let candidates =
     index === 0
@@ -727,7 +735,7 @@ function placeMarkInLayout(
     layoutScale,
     placed,
     teamBounds,
-    index > 0 && requireEdgeTouch
+    index > 0 && wantEdgeTouch
   );
 
   if (!found && index > 0) {
@@ -1001,16 +1009,17 @@ function mosaicLayoutValid(
 
 function postProcessMosaic(
   rects: PlacedRect[],
-  teamBounds: RegionBounds
+  teamBounds: RegionBounds,
+  components?: VisualComponent[]
 ): PlacedRect[] {
   let fixed = rects;
   for (let pass = 0; pass < 6; pass++) {
     fixed = repairOverlaps(fixed, teamBounds);
     if (!layoutHasOverlaps(fixed)) break;
   }
-  // Snap isolated marks so every mark (except the first) shares an edge —
-  // same connectivity rule as incremental guided layout.
-  fixed = enforceEdgeTouches(fixed, teamBounds);
+  // Snap isolated *event* marks so they share an edge. Possession circles may
+  // separate — they are excluded from connectivity enforcement.
+  fixed = enforceEdgeTouches(fixed, teamBounds, components);
   for (let pass = 0; pass < 4; pass++) {
     fixed = repairOverlaps(fixed, teamBounds);
     if (!layoutHasOverlaps(fixed)) break;
@@ -1576,7 +1585,18 @@ export function relayoutTimedMarkEntries(
   const region = teamPlacementBounds(layout, side);
   const teamBounds = teamPlacementBounds(layout, side);
   const rawDims = ordered.map(({ mark, component }) => baseSizeForEntry(component, mark));
-  const baseDims = rawDims;
+  // Inflate possession collision boxes so drawn circles can sit apart.
+  const gapRatio = Math.max(0, cfg.possession.separationGapRatio ?? 0);
+  const baseDims = rawDims.map((dims, i) => {
+    if (ordered[i].component !== VISUAL_COMPONENT.PossessionGrid || gapRatio <= 0) {
+      return dims;
+    }
+    return {
+      widthPx: dims.widthPx * (1 + gapRatio),
+      heightPx: dims.heightPx * (1 + gapRatio),
+    };
+  });
+  const components = ordered.map((entry) => entry.component);
   const { minMarkPx } = eventMarksConfig;
   // Possession circles floor at minCirclePx (default 20) — same as other min marks.
   const circleMinPx = cfg.possession.minCirclePx ?? minMarkPx;
@@ -1602,7 +1622,7 @@ export function relayoutTimedMarkEntries(
       layout,
       minMarkPx
     );
-    const processed = postProcessMosaic(placed, teamBounds);
+    const processed = postProcessMosaic(placed, teamBounds, components);
     if (mosaicLayoutValid(processed, baseDims, scale, teamBounds, layout, side)) {
       mosaicScale = scale;
       rects = processed;
@@ -1610,7 +1630,7 @@ export function relayoutTimedMarkEntries(
     }
     if (scale <= scaleFloor) {
       mosaicScale = scale;
-      rects = postProcessMosaic(placed, teamBounds);
+      rects = postProcessMosaic(placed, teamBounds, components);
     }
   }
 
@@ -1628,7 +1648,8 @@ export function relayoutTimedMarkEntries(
           layout,
           minMarkPx
         ),
-        teamBounds
+        teamBounds,
+        components
       );
       if (mosaicLayoutValid(candidate, baseDims, mosaicScale, teamBounds, layout, side)) {
         rects = candidate;

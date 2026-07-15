@@ -105,6 +105,16 @@ export interface PossessionConfig {
   awayGridCornerXRatio: number;
   gridCornerYRatio: number;
   gridBreathingAmount: number;
+  /**
+   * Wall-clock ms for a newly appeared circle to ease 0 → full size
+   * (matches the pop-in feel of discrete event marks on live/replay).
+   */
+  spawnGrowMs: number;
+  /**
+   * Soft gap between mosaic circles as a fraction of diameter (0 = may touch).
+   * Keeps possession circles from forcing an edge-glued mosaic blob.
+   */
+  separationGapRatio: number;
   /** Vertical jitter within a row band (fraction of row height). */
   rowJitterRatio: number;
   /** @deprecated Use circleScale. */
