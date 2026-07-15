@@ -80,32 +80,6 @@ function backgroundRgb(p: p5, rgb: Rgb) {
   p.background(rgb[0], rgb[1], rgb[2]);
 }
 
-function lerpRgb(a: Rgb, b: Rgb, t: number): Rgb {
-  return [
-    a[0] + (b[0] - a[0]) * t,
-    a[1] + (b[1] - a[1]) * t,
-    a[2] + (b[2] - a[2]) * t,
-  ];
-}
-
-function drawVerticalGradientRect(
-  p: p5,
-  left: number,
-  top: number,
-  w: number,
-  h: number,
-  topColor: Rgb,
-  bottomColor: Rgb
-) {
-  p.noStroke();
-  const steps = Math.max(Math.ceil(h), 1);
-  for (let i = 0; i < steps; i++) {
-    const t = steps === 1 ? 0 : i / (steps - 1);
-    fillRgb(p, lerpRgb(topColor, bottomColor, t));
-    p.rect(left, top + i, w, 1);
-  }
-}
-
 function passAccuracy(state: ContinuousMatchState, side: TeamSide) {
   return side === "home" ? state.home.passAccuracy : state.away.passAccuracy;
 }
@@ -269,9 +243,8 @@ export function createReplaySketch(
       return 1;
     }
 
-    /** Inter ExtraBold — tight tracking, width-fill then vertical stretch per gradient half. */
+    /** Inter ExtraBold — tight tracking, width-fill then vertical stretch per zone half. */
     function drawTeamBackgroundType() {
-      const white: Rgb = [255, 255, 255];
       const ctx = p.drawingContext as CanvasRenderingContext2D;
 
       for (const side of drawSides()) {
@@ -289,7 +262,7 @@ export function createReplaySketch(
             height: zone.height,
           },
           code,
-          `rgb(${white[0]},${white[1]},${white[2]})`
+          "rgba(255, 255, 255, 0.5)"
         );
       }
 
@@ -681,47 +654,9 @@ export function createReplaySketch(
       drawCard(art);
     }
 
-    /** Dark chrome bands + team halves with c1 (top) → c2 (bottom) gradients. */
+    /** Flat chrome canvas — no team color fills on individual match posters. */
     function drawPosterBackground() {
       backgroundRgb(p, chrome);
-
-      const homePalette = paletteForSide(getMatch(), "home");
-      const awayPalette = paletteForSide(getMatch(), "away");
-      const { homeZone, awayZone } = layout;
-
-      if (homeZone.width > 0 && homeZone.height > 0) {
-        drawVerticalGradientRect(
-          p,
-          homeZone.left,
-          homeZone.top,
-          homeZone.width,
-          homeZone.height,
-          hexToRgb(homePalette.c1),
-          hexToRgb(homePalette.c2)
-        );
-      }
-      if (awayZone.width > 0 && awayZone.height > 0) {
-        drawVerticalGradientRect(
-          p,
-          awayZone.left,
-          awayZone.top,
-          awayZone.width,
-          awayZone.height,
-          hexToRgb(awayPalette.c1),
-          hexToRgb(awayPalette.c2)
-        );
-      }
-
-      if (!teamSide && layout.centerGapRight > layout.centerGapLeft) {
-        p.noStroke();
-        fillRgb(p, chrome);
-        p.rect(
-          layout.centerGapLeft,
-          homeZone.top,
-          layout.centerGapRight - layout.centerGapLeft,
-          homeZone.height
-        );
-      }
 
       if (!artworkOnly) {
         p.noStroke();
