@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-18T18:43:26.864Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-18T19:57:40.265Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5934,6 +5934,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-18",
     "kickoffAt": "2026-07-18T21:00:00+00:00",
     "kickoffTime": "5:00 PM ET",
+    "venue": "Hard Rock Stadium, Miami Garden",
     "homeTeam": "France",
     "awayTeam": "England",
     "homeTeamCode": "FRA",
@@ -5946,6 +5947,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ENG",
       "stage": "THIRD PLACE",
       "date": "July 18, 2026",
+      "venue": "Hard Rock Stadium, Miami Garden",
       "home": {
         "possession": 50,
         "shots": 0,
