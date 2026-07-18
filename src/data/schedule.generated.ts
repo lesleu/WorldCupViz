@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-18T22:36:57.120Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-18T23:41:03.546Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5927,7 +5927,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "third_place",
     "stageLabel": "Third Place",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1591865,
     "date": "July 18, 2026",
@@ -5939,6 +5939,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "England",
     "homeTeamCode": "FRA",
     "awayTeamCode": "ENG",
+    "finalMinute": 98,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "France",
@@ -5949,30 +5950,30 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 18, 2026",
       "venue": "Hard Rock Stadium, Miami Garden",
       "home": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
+        "possession": 46,
+        "shots": 19,
+        "shotsOnTarget": 9,
+        "passAccuracy": 91,
+        "fouls": 14,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 3,
-        "corners": 0,
-        "offsides": 0,
+        "goals": 4,
+        "corners": 3,
+        "offsides": 3,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
-        "passAccuracy": 0,
-        "fouls": 0,
+        "possession": 54,
+        "shots": 19,
+        "shotsOnTarget": 11,
+        "passAccuracy": 91,
+        "fouls": 8,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 4,
-        "corners": 0,
-        "offsides": 0,
+        "goals": 6,
+        "corners": 4,
+        "offsides": 3,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }

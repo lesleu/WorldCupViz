@@ -105,6 +105,7 @@ export const STATIC_FEED_IDS: string[] = [
   "1585131",
   "1586077",
   "1586077.eng-arg.log",
+  "1591865",
   "2026-group-a-mex-kor",
   "2026-group-b-usa-ecu"
 ];
