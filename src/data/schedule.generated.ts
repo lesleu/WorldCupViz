@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T21:40:05.053Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T22:39:44.138Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5985,7 +5985,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "final",
     "stageLabel": "Final",
-    "status": "live",
+    "status": "completed",
     "isTbd": false,
     "matchNumber": 1591866,
     "date": "July 19, 2026",
@@ -5997,6 +5997,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Argentina",
     "homeTeamCode": "ESP",
     "awayTeamCode": "ARG",
+    "finalMinute": 120,
     "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Spain",
@@ -6007,30 +6008,30 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "date": "July 19, 2026",
       "venue": "MetLife Stadium",
       "home": {
-        "possession": 50,
-        "shots": 0,
-        "shotsOnTarget": 0,
+        "possession": 65,
+        "shots": 20,
+        "shotsOnTarget": 12,
         "passAccuracy": 0,
-        "fouls": 0,
+        "fouls": 21,
         "yellowCards": 0,
         "redCards": 0,
-        "goals": 0,
-        "corners": 0,
-        "offsides": 0,
+        "goals": 1,
+        "corners": 9,
+        "offsides": 4,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       },
       "away": {
-        "possession": 50,
-        "shots": 0,
+        "possession": 35,
+        "shots": 2,
         "shotsOnTarget": 0,
         "passAccuracy": 0,
-        "fouls": 0,
-        "yellowCards": 0,
-        "redCards": 0,
+        "fouls": 25,
+        "yellowCards": 5,
+        "redCards": 1,
         "goals": 0,
-        "corners": 0,
-        "offsides": 0,
+        "corners": 4,
+        "offsides": 1,
         "penaltyShootoutScored": 0,
         "penaltyShootoutMissed": 0
       }
