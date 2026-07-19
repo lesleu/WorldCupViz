@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T17:46:29.668Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T18:46:17.255Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5992,6 +5992,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "dateSort": "2026-07-19",
     "kickoffAt": "2026-07-19T19:00:00+00:00",
     "kickoffTime": "3:00 PM ET",
+    "venue": "MetLife Stadium",
     "homeTeam": "Spain",
     "awayTeam": "Argentina",
     "homeTeamCode": "ESP",
@@ -6004,6 +6005,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
       "awayTeamCode": "ARG",
       "stage": "FINAL",
       "date": "July 19, 2026",
+      "venue": "MetLife Stadium",
       "home": {
         "possession": 50,
         "shots": 0,
