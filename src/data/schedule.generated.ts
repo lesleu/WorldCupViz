@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T18:46:17.255Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T20:00:55.267Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -5985,7 +5985,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "tournament": "FIFA World Cup 2026",
     "stage": "final",
     "stageLabel": "Final",
-    "status": "scheduled",
+    "status": "live",
     "isTbd": false,
     "matchNumber": 1591866,
     "date": "July 19, 2026",
@@ -5997,7 +5997,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
     "awayTeam": "Argentina",
     "homeTeamCode": "ESP",
     "awayTeamCode": "ARG",
-    "hasReplayFeed": false,
+    "hasReplayFeed": true,
     "matchData": {
       "homeTeam": "Spain",
       "awayTeam": "Argentina",
