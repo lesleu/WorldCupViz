@@ -2,7 +2,7 @@
 
 import type { MatchCatalogEntry } from "@/data/matchCatalog";
 
-export const SCHEDULE_SYNCED_AT: string | null = "2026-07-19T22:39:44.138Z";
+export const SCHEDULE_SYNCED_AT: string | null = "2026-07-20T03:09:54.620Z";
 
 export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
   {
@@ -6027,7 +6027,7 @@ export const SCHEDULE_MATCHES: MatchCatalogEntry[] = [
         "shotsOnTarget": 0,
         "passAccuracy": 0,
         "fouls": 25,
-        "yellowCards": 5,
+        "yellowCards": 6,
         "redCards": 1,
         "goals": 0,
         "corners": 4,
